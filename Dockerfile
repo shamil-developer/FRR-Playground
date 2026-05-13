@@ -1,0 +1,88 @@
+FROM golang:1.26
+
+RUN apt update && apt install -y \
+    git \
+    build-essential \
+    protobuf-compiler \
+    protobuf-c-compiler \
+    protobuf-compiler-grpc \
+    libprotobuf-dev \
+    libprotobuf-c-dev \
+    libgrpc++-dev \
+    libgrpc-dev \
+    libyang-dev \
+    libjson-c-dev \
+    libelf-dev \
+    libreadline-dev \
+    libcap-dev \
+    python3-dev \
+    bison \
+    flex \
+    autoconf \
+    automake \
+    libtool \
+    pkg-config \
+    ca-certificates
+
+RUN groupadd -r frr && useradd -r -g frr frr
+
+WORKDIR /src
+
+RUN git clone --branch frr-10.6.1 https://github.com/FRRouting/frr.git
+
+WORKDIR /src/frr
+
+RUN ./bootstrap.sh
+
+RUN ./configure \
+    --enable-grpc \
+    --prefix=/usr \
+    --sysconfdir=/etc/frr \
+    --sbindir=/usr/lib/frr \
+    --localstatedir=/var/run/frr
+
+RUN make -j$(nproc)
+
+RUN make install
+
+RUN ldconfig
+
+
+
+WORKDIR /app
+
+COPY . .
+
+RUN go mod tidy
+
+RUN CGO_ENABLED=0 go build -o app .
+
+
+
+RUN mkdir -p /etc/frr
+RUN mkdir -p /var/run/frr
+RUN mkdir -p /var/log/frr
+
+
+
+COPY ./configs/frr/frr.conf /etc/frr/frr.conf
+COPY ./configs/frr/daemons /etc/frr/daemons
+COPY ./configs/frr/vtysh.conf /etc/frr/vtysh.conf
+
+
+
+EXPOSE 8081
+EXPOSE 50051
+
+
+
+CMD ["/bin/sh", "-c", "\
+chown -R frr:frr /var/run/frr && \
+chmod -R 775 /var/run/frr && \
+/usr/lib/frr/zebra -d && \
+/usr/lib/frr/staticd -d && \
+/usr/lib/frr/bgpd -d -M grpc:50051 && \
+sleep 5 && \
+vtysh -b && \
+./app \
+"]

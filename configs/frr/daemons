@@ -1,0 +1,9 @@
+zebra=yes
+bgpd=yes
+staticd=yes
+bfdd=yes
+
+zebra_options=" -A 127.0.0.1"
+bgpd_options=" -A 127.0.0.1 -M grpc:50051"
+staticd_options=" -A 127.0.0.1"
+bfdd_options=" -A 127.0.0.1"
