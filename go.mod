@@ -8,6 +8,7 @@ require (
 )
 
 require (
+	github.com/FRRouting/frr v0.0.0-20260513212426-6a47f4e8aa0f // indirect
 	golang.org/x/net v0.51.0 // indirect
 	golang.org/x/sys v0.42.0 // indirect
 	golang.org/x/text v0.34.0 // indirect

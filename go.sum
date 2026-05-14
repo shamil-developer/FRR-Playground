@@ -1,3 +1,5 @@
+github.com/FRRouting/frr v0.0.0-20260513212426-6a47f4e8aa0f h1:dqft+MtqsQPTfn+y7e1J6dss1LAKK0kq3XUXlQBsy3M=
+github.com/FRRouting/frr v0.0.0-20260513212426-6a47f4e8aa0f/go.mod h1:JYyuYHXGXyGHUmpfdqXn/P3FgyOyDLqG2iL5OyYmJuM=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=
 github.com/cespare/xxhash/v2 v2.3.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/go-logr/logr v1.4.3 h1:CjnDlHq8ikf6E492q6eKboGOC0T8CDaOvkHCIg8idEI=

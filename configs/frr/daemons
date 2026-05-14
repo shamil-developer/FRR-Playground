@@ -1,9 +1,36 @@
+watchfrr_enable=yes
+
 zebra=yes
 bgpd=yes
 staticd=yes
 bfdd=yes
+ospfd=yes
+ospf6d=yes
+isisd=yes
+pimd=yes
+pbrd=yes
+fabricd=yes
+pathd=yes
+
+ripd=no
+ripngd=no
+eigrpd=no
+babeld=no
+nhrpd=no
+sharpd=no
+ldpd=no
+vrrpd=no
+
+vtysh_enable=yes
 
 zebra_options=" -A 127.0.0.1"
 bgpd_options=" -A 127.0.0.1 -M grpc:50051"
 staticd_options=" -A 127.0.0.1"
 bfdd_options=" -A 127.0.0.1"
+ospfd_options=" -A 127.0.0.1"
+ospf6d_options=" -A ::1"
+isisd_options=" -A 127.0.0.1"
+pimd_options=" -A 127.0.0.1"
+pbrd_options=" -A 127.0.0.1"
+fabricd_options=" -A 127.0.0.1"
+pathd_options=" -A 127.0.0.1"

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	pb "frr-playground/frrgrpc"
 	"io"
 	"log"
 	"net"
@@ -14,8 +15,6 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-
-	pb "frr-playground/proto"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -43,6 +42,11 @@ func main() {
 	mux.HandleFunc(
 		"/frr/grpc/check",
 		grpcCheckHandler,
+	)
+
+	mux.HandleFunc(
+		"/frr/grpc/create-candidate",
+		grpcCreateCandidateHandler,
 	)
 
 	server := &http.Server{
@@ -389,4 +393,55 @@ func writeResponse(
 	encoder.SetIndent("", "  ")
 
 	_ = encoder.Encode(result)
+}
+
+func grpcCreateCandidateHandler(
+	w http.ResponseWriter,
+	r *http.Request,
+) {
+	ctx, cancel := context.WithTimeout(
+		r.Context(),
+		10*time.Second,
+	)
+	defer cancel()
+
+	conn, err := grpc.DialContext(
+		ctx,
+		"localhost:50051",
+		grpc.WithTransportCredentials(
+			insecure.NewCredentials(),
+		),
+		grpc.WithBlock(),
+	)
+
+	if err != nil {
+		writeResponse(w, nil, err)
+		return
+	}
+
+	defer conn.Close()
+
+	client := pb.NewNorthboundClient(conn)
+
+	/*
+		Создаем candidate config
+	*/
+
+	resp, err := client.CreateCandidate(
+		ctx,
+		&pb.CreateCandidateRequest{},
+	)
+
+	if err != nil {
+		writeResponse(w, nil, err)
+		return
+	}
+
+	writeResponse(
+		w,
+		map[string]any{
+			"candidateId": resp.CandidateId,
+		},
+		nil,
+	)
 }

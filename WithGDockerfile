@@ -1,13 +1,8 @@
-FROM debian:13
-
-ENV DEBIAN_FRONTEND=noninteractive
+FROM golang:1.26
 
 RUN apt update && apt install -y \
     git \
-    curl \
-    ca-certificates \
     build-essential \
-    cmake \
     protobuf-compiler \
     protobuf-c-compiler \
     protobuf-compiler-grpc \
@@ -21,22 +16,19 @@ RUN apt update && apt install -y \
     libreadline-dev \
     libcap-dev \
     python3-dev \
-    python3-pip \
     bison \
     flex \
     autoconf \
     automake \
     libtool \
     pkg-config \
-    && rm -rf /var/lib/apt/lists/*
+    ca-certificates
 
 RUN groupadd -r frr && useradd -r -g frr frr
 
 WORKDIR /src
 
-RUN git clone \
-    --branch frr-10.6.1 \
-    https://github.com/FRRouting/frr.git
+RUN git clone --branch frr-10.6.1 https://github.com/FRRouting/frr.git
 
 WORKDIR /src/frr
 
@@ -44,21 +36,24 @@ RUN ./bootstrap.sh
 
 RUN ./configure \
     --enable-grpc \
-    --enable-pimd \
-    --enable-multipath=64 \
-    --enable-user=frr \
-    --enable-group=frr \
-    --enable-vty-group=frr \
     --prefix=/usr \
-    --sysconfdir=/etc \
-    --localstatedir=/var \
-    --sbindir=/usr/lib/frr
+    --sysconfdir=/etc/frr \
+    --sbindir=/usr/lib/frr \
+    --localstatedir=/var/run/frr
 
 RUN make -j$(nproc)
 
 RUN make install
 
 RUN ldconfig
+
+WORKDIR /app
+
+COPY . .
+
+RUN go mod tidy
+
+RUN CGO_ENABLED=0 go build -o app .
 
 RUN mkdir -p /etc/frr
 RUN mkdir -p /var/run/frr
@@ -68,24 +63,16 @@ COPY ./configs/frr/frr.conf /etc/frr/frr.conf
 COPY ./configs/frr/daemons /etc/frr/daemons
 COPY ./configs/frr/vtysh.conf /etc/frr/vtysh.conf
 
-RUN chown -R frr:frr /etc/frr
-
-RUN chmod 640 /etc/frr/*
-
+EXPOSE 8081
 EXPOSE 50051
 
 CMD ["/bin/sh", "-c", "\
 chown -R frr:frr /var/run/frr && \
 chmod -R 775 /var/run/frr && \
-
-/usr/lib/frr/frrinit.sh start && \
-
+/usr/lib/frr/zebra -d && \
+/usr/lib/frr/staticd -d && \
+/usr/lib/frr/bgpd -d -M grpc:50051 && \
 sleep 5 && \
-
-echo '=====================================' && \
-echo 'FRR STARTED SUCCESSFULLY' && \
-echo 'gRPC PORT: 50051' && \
-echo '=====================================' && \
-
-tail -f /dev/null \
+vtysh -b && \
+./app \
 "]
