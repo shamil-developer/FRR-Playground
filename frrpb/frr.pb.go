@@ -29,9 +29,9 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v7.34.1
-// source: frrgrpc/frr.proto
+// source: frrpb/frr.proto
 
-package frrgrpc
+package frrpb
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -79,11 +79,11 @@ func (x Encoding) String() string {
 }
 
 func (Encoding) Descriptor() protoreflect.EnumDescriptor {
-	return file_frrgrpc_frr_proto_enumTypes[0].Descriptor()
+	return file_frrpb_frr_proto_enumTypes[0].Descriptor()
 }
 
 func (Encoding) Type() protoreflect.EnumType {
-	return &file_frrgrpc_frr_proto_enumTypes[0]
+	return &file_frrpb_frr_proto_enumTypes[0]
 }
 
 func (x Encoding) Number() protoreflect.EnumNumber {
@@ -92,7 +92,7 @@ func (x Encoding) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Encoding.Descriptor instead.
 func (Encoding) EnumDescriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{0}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{0}
 }
 
 // Type of elements within the data tree.
@@ -132,11 +132,11 @@ func (x GetRequest_DataType) String() string {
 }
 
 func (GetRequest_DataType) Descriptor() protoreflect.EnumDescriptor {
-	return file_frrgrpc_frr_proto_enumTypes[1].Descriptor()
+	return file_frrpb_frr_proto_enumTypes[1].Descriptor()
 }
 
 func (GetRequest_DataType) Type() protoreflect.EnumType {
-	return &file_frrgrpc_frr_proto_enumTypes[1]
+	return &file_frrpb_frr_proto_enumTypes[1]
 }
 
 func (x GetRequest_DataType) Number() protoreflect.EnumNumber {
@@ -145,7 +145,7 @@ func (x GetRequest_DataType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use GetRequest_DataType.Descriptor instead.
 func (GetRequest_DataType) EnumDescriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{2, 0}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{2, 0}
 }
 
 type LoadToCandidateRequest_LoadType int32
@@ -180,11 +180,11 @@ func (x LoadToCandidateRequest_LoadType) String() string {
 }
 
 func (LoadToCandidateRequest_LoadType) Descriptor() protoreflect.EnumDescriptor {
-	return file_frrgrpc_frr_proto_enumTypes[2].Descriptor()
+	return file_frrpb_frr_proto_enumTypes[2].Descriptor()
 }
 
 func (LoadToCandidateRequest_LoadType) Type() protoreflect.EnumType {
-	return &file_frrgrpc_frr_proto_enumTypes[2]
+	return &file_frrpb_frr_proto_enumTypes[2]
 }
 
 func (x LoadToCandidateRequest_LoadType) Number() protoreflect.EnumNumber {
@@ -193,7 +193,7 @@ func (x LoadToCandidateRequest_LoadType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use LoadToCandidateRequest_LoadType.Descriptor instead.
 func (LoadToCandidateRequest_LoadType) EnumDescriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{12, 0}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{12, 0}
 }
 
 type CommitRequest_Phase int32
@@ -244,11 +244,11 @@ func (x CommitRequest_Phase) String() string {
 }
 
 func (CommitRequest_Phase) Descriptor() protoreflect.EnumDescriptor {
-	return file_frrgrpc_frr_proto_enumTypes[3].Descriptor()
+	return file_frrpb_frr_proto_enumTypes[3].Descriptor()
 }
 
 func (CommitRequest_Phase) Type() protoreflect.EnumType {
-	return &file_frrgrpc_frr_proto_enumTypes[3]
+	return &file_frrpb_frr_proto_enumTypes[3]
 }
 
 func (x CommitRequest_Phase) Number() protoreflect.EnumNumber {
@@ -257,7 +257,7 @@ func (x CommitRequest_Phase) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use CommitRequest_Phase.Descriptor instead.
 func (CommitRequest_Phase) EnumDescriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{14, 0}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{14, 0}
 }
 
 // RPC: GetCapabilities()
@@ -269,7 +269,7 @@ type GetCapabilitiesRequest struct {
 
 func (x *GetCapabilitiesRequest) Reset() {
 	*x = GetCapabilitiesRequest{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[0]
+	mi := &file_frrpb_frr_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -281,7 +281,7 @@ func (x *GetCapabilitiesRequest) String() string {
 func (*GetCapabilitiesRequest) ProtoMessage() {}
 
 func (x *GetCapabilitiesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[0]
+	mi := &file_frrpb_frr_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -294,7 +294,7 @@ func (x *GetCapabilitiesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCapabilitiesRequest.ProtoReflect.Descriptor instead.
 func (*GetCapabilitiesRequest) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{0}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{0}
 }
 
 type GetCapabilitiesResponse struct {
@@ -314,7 +314,7 @@ type GetCapabilitiesResponse struct {
 
 func (x *GetCapabilitiesResponse) Reset() {
 	*x = GetCapabilitiesResponse{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[1]
+	mi := &file_frrpb_frr_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -326,7 +326,7 @@ func (x *GetCapabilitiesResponse) String() string {
 func (*GetCapabilitiesResponse) ProtoMessage() {}
 
 func (x *GetCapabilitiesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[1]
+	mi := &file_frrpb_frr_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -339,7 +339,7 @@ func (x *GetCapabilitiesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCapabilitiesResponse.ProtoReflect.Descriptor instead.
 func (*GetCapabilitiesResponse) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{1}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *GetCapabilitiesResponse) GetFrrVersion() string {
@@ -387,7 +387,7 @@ type GetRequest struct {
 
 func (x *GetRequest) Reset() {
 	*x = GetRequest{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[2]
+	mi := &file_frrpb_frr_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -399,7 +399,7 @@ func (x *GetRequest) String() string {
 func (*GetRequest) ProtoMessage() {}
 
 func (x *GetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[2]
+	mi := &file_frrpb_frr_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -412,7 +412,7 @@ func (x *GetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRequest.ProtoReflect.Descriptor instead.
 func (*GetRequest) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{2}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *GetRequest) GetType() GetRequest_DataType {
@@ -455,7 +455,7 @@ type GetResponse struct {
 
 func (x *GetResponse) Reset() {
 	*x = GetResponse{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[3]
+	mi := &file_frrpb_frr_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -467,7 +467,7 @@ func (x *GetResponse) String() string {
 func (*GetResponse) ProtoMessage() {}
 
 func (x *GetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[3]
+	mi := &file_frrpb_frr_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -480,7 +480,7 @@ func (x *GetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetResponse.ProtoReflect.Descriptor instead.
 func (*GetResponse) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{3}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GetResponse) GetTimestamp() int64 {
@@ -506,7 +506,7 @@ type CreateCandidateRequest struct {
 
 func (x *CreateCandidateRequest) Reset() {
 	*x = CreateCandidateRequest{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[4]
+	mi := &file_frrpb_frr_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -518,7 +518,7 @@ func (x *CreateCandidateRequest) String() string {
 func (*CreateCandidateRequest) ProtoMessage() {}
 
 func (x *CreateCandidateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[4]
+	mi := &file_frrpb_frr_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -531,7 +531,7 @@ func (x *CreateCandidateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateCandidateRequest.ProtoReflect.Descriptor instead.
 func (*CreateCandidateRequest) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{4}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{4}
 }
 
 type CreateCandidateResponse struct {
@@ -544,7 +544,7 @@ type CreateCandidateResponse struct {
 
 func (x *CreateCandidateResponse) Reset() {
 	*x = CreateCandidateResponse{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[5]
+	mi := &file_frrpb_frr_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -556,7 +556,7 @@ func (x *CreateCandidateResponse) String() string {
 func (*CreateCandidateResponse) ProtoMessage() {}
 
 func (x *CreateCandidateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[5]
+	mi := &file_frrpb_frr_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -569,7 +569,7 @@ func (x *CreateCandidateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateCandidateResponse.ProtoReflect.Descriptor instead.
 func (*CreateCandidateResponse) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{5}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *CreateCandidateResponse) GetCandidateId() uint32 {
@@ -590,7 +590,7 @@ type DeleteCandidateRequest struct {
 
 func (x *DeleteCandidateRequest) Reset() {
 	*x = DeleteCandidateRequest{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[6]
+	mi := &file_frrpb_frr_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -602,7 +602,7 @@ func (x *DeleteCandidateRequest) String() string {
 func (*DeleteCandidateRequest) ProtoMessage() {}
 
 func (x *DeleteCandidateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[6]
+	mi := &file_frrpb_frr_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -615,7 +615,7 @@ func (x *DeleteCandidateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteCandidateRequest.ProtoReflect.Descriptor instead.
 func (*DeleteCandidateRequest) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{6}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *DeleteCandidateRequest) GetCandidateId() uint32 {
@@ -633,7 +633,7 @@ type DeleteCandidateResponse struct {
 
 func (x *DeleteCandidateResponse) Reset() {
 	*x = DeleteCandidateResponse{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[7]
+	mi := &file_frrpb_frr_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -645,7 +645,7 @@ func (x *DeleteCandidateResponse) String() string {
 func (*DeleteCandidateResponse) ProtoMessage() {}
 
 func (x *DeleteCandidateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[7]
+	mi := &file_frrpb_frr_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -658,7 +658,7 @@ func (x *DeleteCandidateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteCandidateResponse.ProtoReflect.Descriptor instead.
 func (*DeleteCandidateResponse) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{7}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{7}
 }
 
 // RPC: UpdateCandidate()
@@ -672,7 +672,7 @@ type UpdateCandidateRequest struct {
 
 func (x *UpdateCandidateRequest) Reset() {
 	*x = UpdateCandidateRequest{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[8]
+	mi := &file_frrpb_frr_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -684,7 +684,7 @@ func (x *UpdateCandidateRequest) String() string {
 func (*UpdateCandidateRequest) ProtoMessage() {}
 
 func (x *UpdateCandidateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[8]
+	mi := &file_frrpb_frr_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -697,7 +697,7 @@ func (x *UpdateCandidateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateCandidateRequest.ProtoReflect.Descriptor instead.
 func (*UpdateCandidateRequest) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{8}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *UpdateCandidateRequest) GetCandidateId() uint32 {
@@ -715,7 +715,7 @@ type UpdateCandidateResponse struct {
 
 func (x *UpdateCandidateResponse) Reset() {
 	*x = UpdateCandidateResponse{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[9]
+	mi := &file_frrpb_frr_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -727,7 +727,7 @@ func (x *UpdateCandidateResponse) String() string {
 func (*UpdateCandidateResponse) ProtoMessage() {}
 
 func (x *UpdateCandidateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[9]
+	mi := &file_frrpb_frr_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -740,7 +740,7 @@ func (x *UpdateCandidateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateCandidateResponse.ProtoReflect.Descriptor instead.
 func (*UpdateCandidateResponse) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{9}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{9}
 }
 
 // RPC: EditCandidate()
@@ -758,7 +758,7 @@ type EditCandidateRequest struct {
 
 func (x *EditCandidateRequest) Reset() {
 	*x = EditCandidateRequest{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[10]
+	mi := &file_frrpb_frr_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -770,7 +770,7 @@ func (x *EditCandidateRequest) String() string {
 func (*EditCandidateRequest) ProtoMessage() {}
 
 func (x *EditCandidateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[10]
+	mi := &file_frrpb_frr_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -783,7 +783,7 @@ func (x *EditCandidateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EditCandidateRequest.ProtoReflect.Descriptor instead.
 func (*EditCandidateRequest) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{10}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *EditCandidateRequest) GetCandidateId() uint32 {
@@ -815,7 +815,7 @@ type EditCandidateResponse struct {
 
 func (x *EditCandidateResponse) Reset() {
 	*x = EditCandidateResponse{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[11]
+	mi := &file_frrpb_frr_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -827,7 +827,7 @@ func (x *EditCandidateResponse) String() string {
 func (*EditCandidateResponse) ProtoMessage() {}
 
 func (x *EditCandidateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[11]
+	mi := &file_frrpb_frr_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -840,7 +840,7 @@ func (x *EditCandidateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EditCandidateResponse.ProtoReflect.Descriptor instead.
 func (*EditCandidateResponse) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{11}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{11}
 }
 
 // RPC: LoadToCandidate()
@@ -858,7 +858,7 @@ type LoadToCandidateRequest struct {
 
 func (x *LoadToCandidateRequest) Reset() {
 	*x = LoadToCandidateRequest{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[12]
+	mi := &file_frrpb_frr_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -870,7 +870,7 @@ func (x *LoadToCandidateRequest) String() string {
 func (*LoadToCandidateRequest) ProtoMessage() {}
 
 func (x *LoadToCandidateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[12]
+	mi := &file_frrpb_frr_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -883,7 +883,7 @@ func (x *LoadToCandidateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoadToCandidateRequest.ProtoReflect.Descriptor instead.
 func (*LoadToCandidateRequest) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{12}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *LoadToCandidateRequest) GetCandidateId() uint32 {
@@ -915,7 +915,7 @@ type LoadToCandidateResponse struct {
 
 func (x *LoadToCandidateResponse) Reset() {
 	*x = LoadToCandidateResponse{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[13]
+	mi := &file_frrpb_frr_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -927,7 +927,7 @@ func (x *LoadToCandidateResponse) String() string {
 func (*LoadToCandidateResponse) ProtoMessage() {}
 
 func (x *LoadToCandidateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[13]
+	mi := &file_frrpb_frr_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -940,7 +940,7 @@ func (x *LoadToCandidateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoadToCandidateResponse.ProtoReflect.Descriptor instead.
 func (*LoadToCandidateResponse) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{13}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{13}
 }
 
 // RPC: Commit()
@@ -958,7 +958,7 @@ type CommitRequest struct {
 
 func (x *CommitRequest) Reset() {
 	*x = CommitRequest{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[14]
+	mi := &file_frrpb_frr_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -970,7 +970,7 @@ func (x *CommitRequest) String() string {
 func (*CommitRequest) ProtoMessage() {}
 
 func (x *CommitRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[14]
+	mi := &file_frrpb_frr_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -983,7 +983,7 @@ func (x *CommitRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommitRequest.ProtoReflect.Descriptor instead.
 func (*CommitRequest) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{14}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *CommitRequest) GetCandidateId() uint32 {
@@ -1020,7 +1020,7 @@ type CommitResponse struct {
 
 func (x *CommitResponse) Reset() {
 	*x = CommitResponse{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[15]
+	mi := &file_frrpb_frr_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1032,7 +1032,7 @@ func (x *CommitResponse) String() string {
 func (*CommitResponse) ProtoMessage() {}
 
 func (x *CommitResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[15]
+	mi := &file_frrpb_frr_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1045,7 +1045,7 @@ func (x *CommitResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommitResponse.ProtoReflect.Descriptor instead.
 func (*CommitResponse) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{15}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *CommitResponse) GetTransactionId() uint32 {
@@ -1071,7 +1071,7 @@ type ListTransactionsRequest struct {
 
 func (x *ListTransactionsRequest) Reset() {
 	*x = ListTransactionsRequest{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[16]
+	mi := &file_frrpb_frr_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1083,7 +1083,7 @@ func (x *ListTransactionsRequest) String() string {
 func (*ListTransactionsRequest) ProtoMessage() {}
 
 func (x *ListTransactionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[16]
+	mi := &file_frrpb_frr_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1096,7 +1096,7 @@ func (x *ListTransactionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTransactionsRequest.ProtoReflect.Descriptor instead.
 func (*ListTransactionsRequest) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{16}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{16}
 }
 
 type ListTransactionsResponse struct {
@@ -1115,7 +1115,7 @@ type ListTransactionsResponse struct {
 
 func (x *ListTransactionsResponse) Reset() {
 	*x = ListTransactionsResponse{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[17]
+	mi := &file_frrpb_frr_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1127,7 +1127,7 @@ func (x *ListTransactionsResponse) String() string {
 func (*ListTransactionsResponse) ProtoMessage() {}
 
 func (x *ListTransactionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[17]
+	mi := &file_frrpb_frr_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1140,7 +1140,7 @@ func (x *ListTransactionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTransactionsResponse.ProtoReflect.Descriptor instead.
 func (*ListTransactionsResponse) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{17}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ListTransactionsResponse) GetId() uint32 {
@@ -1186,7 +1186,7 @@ type GetTransactionRequest struct {
 
 func (x *GetTransactionRequest) Reset() {
 	*x = GetTransactionRequest{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[18]
+	mi := &file_frrpb_frr_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1198,7 +1198,7 @@ func (x *GetTransactionRequest) String() string {
 func (*GetTransactionRequest) ProtoMessage() {}
 
 func (x *GetTransactionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[18]
+	mi := &file_frrpb_frr_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1211,7 +1211,7 @@ func (x *GetTransactionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTransactionRequest.ProtoReflect.Descriptor instead.
 func (*GetTransactionRequest) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{18}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *GetTransactionRequest) GetTransactionId() uint32 {
@@ -1244,7 +1244,7 @@ type GetTransactionResponse struct {
 
 func (x *GetTransactionResponse) Reset() {
 	*x = GetTransactionResponse{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[19]
+	mi := &file_frrpb_frr_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1256,7 +1256,7 @@ func (x *GetTransactionResponse) String() string {
 func (*GetTransactionResponse) ProtoMessage() {}
 
 func (x *GetTransactionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[19]
+	mi := &file_frrpb_frr_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1269,7 +1269,7 @@ func (x *GetTransactionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTransactionResponse.ProtoReflect.Descriptor instead.
 func (*GetTransactionResponse) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{19}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *GetTransactionResponse) GetConfig() *DataTree {
@@ -1288,7 +1288,7 @@ type LockConfigRequest struct {
 
 func (x *LockConfigRequest) Reset() {
 	*x = LockConfigRequest{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[20]
+	mi := &file_frrpb_frr_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1300,7 +1300,7 @@ func (x *LockConfigRequest) String() string {
 func (*LockConfigRequest) ProtoMessage() {}
 
 func (x *LockConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[20]
+	mi := &file_frrpb_frr_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1313,7 +1313,7 @@ func (x *LockConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LockConfigRequest.ProtoReflect.Descriptor instead.
 func (*LockConfigRequest) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{20}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{20}
 }
 
 type LockConfigResponse struct {
@@ -1324,7 +1324,7 @@ type LockConfigResponse struct {
 
 func (x *LockConfigResponse) Reset() {
 	*x = LockConfigResponse{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[21]
+	mi := &file_frrpb_frr_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1336,7 +1336,7 @@ func (x *LockConfigResponse) String() string {
 func (*LockConfigResponse) ProtoMessage() {}
 
 func (x *LockConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[21]
+	mi := &file_frrpb_frr_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1349,7 +1349,7 @@ func (x *LockConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LockConfigResponse.ProtoReflect.Descriptor instead.
 func (*LockConfigResponse) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{21}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{21}
 }
 
 // RPC: UnlockConfig()
@@ -1361,7 +1361,7 @@ type UnlockConfigRequest struct {
 
 func (x *UnlockConfigRequest) Reset() {
 	*x = UnlockConfigRequest{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[22]
+	mi := &file_frrpb_frr_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1373,7 +1373,7 @@ func (x *UnlockConfigRequest) String() string {
 func (*UnlockConfigRequest) ProtoMessage() {}
 
 func (x *UnlockConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[22]
+	mi := &file_frrpb_frr_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1386,7 +1386,7 @@ func (x *UnlockConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnlockConfigRequest.ProtoReflect.Descriptor instead.
 func (*UnlockConfigRequest) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{22}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{22}
 }
 
 type UnlockConfigResponse struct {
@@ -1397,7 +1397,7 @@ type UnlockConfigResponse struct {
 
 func (x *UnlockConfigResponse) Reset() {
 	*x = UnlockConfigResponse{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[23]
+	mi := &file_frrpb_frr_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1409,7 +1409,7 @@ func (x *UnlockConfigResponse) String() string {
 func (*UnlockConfigResponse) ProtoMessage() {}
 
 func (x *UnlockConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[23]
+	mi := &file_frrpb_frr_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1422,7 +1422,7 @@ func (x *UnlockConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnlockConfigResponse.ProtoReflect.Descriptor instead.
 func (*UnlockConfigResponse) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{23}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{23}
 }
 
 // RPC: Execute()
@@ -1438,7 +1438,7 @@ type ExecuteRequest struct {
 
 func (x *ExecuteRequest) Reset() {
 	*x = ExecuteRequest{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[24]
+	mi := &file_frrpb_frr_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1450,7 +1450,7 @@ func (x *ExecuteRequest) String() string {
 func (*ExecuteRequest) ProtoMessage() {}
 
 func (x *ExecuteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[24]
+	mi := &file_frrpb_frr_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1463,7 +1463,7 @@ func (x *ExecuteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecuteRequest.ProtoReflect.Descriptor instead.
 func (*ExecuteRequest) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{24}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ExecuteRequest) GetPath() string {
@@ -1490,7 +1490,7 @@ type ExecuteResponse struct {
 
 func (x *ExecuteResponse) Reset() {
 	*x = ExecuteResponse{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[25]
+	mi := &file_frrpb_frr_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1502,7 +1502,7 @@ func (x *ExecuteResponse) String() string {
 func (*ExecuteResponse) ProtoMessage() {}
 
 func (x *ExecuteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[25]
+	mi := &file_frrpb_frr_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1515,7 +1515,7 @@ func (x *ExecuteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecuteResponse.ProtoReflect.Descriptor instead.
 func (*ExecuteResponse) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{25}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *ExecuteResponse) GetOutput() []*PathValue {
@@ -1540,7 +1540,7 @@ type ModuleData struct {
 
 func (x *ModuleData) Reset() {
 	*x = ModuleData{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[26]
+	mi := &file_frrpb_frr_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1552,7 +1552,7 @@ func (x *ModuleData) String() string {
 func (*ModuleData) ProtoMessage() {}
 
 func (x *ModuleData) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[26]
+	mi := &file_frrpb_frr_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1565,7 +1565,7 @@ func (x *ModuleData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ModuleData.ProtoReflect.Descriptor instead.
 func (*ModuleData) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{26}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ModuleData) GetName() string {
@@ -1602,7 +1602,7 @@ type PathValue struct {
 
 func (x *PathValue) Reset() {
 	*x = PathValue{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[27]
+	mi := &file_frrpb_frr_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1614,7 +1614,7 @@ func (x *PathValue) String() string {
 func (*PathValue) ProtoMessage() {}
 
 func (x *PathValue) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[27]
+	mi := &file_frrpb_frr_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1627,7 +1627,7 @@ func (x *PathValue) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PathValue.ProtoReflect.Descriptor instead.
 func (*PathValue) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{27}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *PathValue) GetPath() string {
@@ -1655,7 +1655,7 @@ type DataTree struct {
 
 func (x *DataTree) Reset() {
 	*x = DataTree{}
-	mi := &file_frrgrpc_frr_proto_msgTypes[28]
+	mi := &file_frrpb_frr_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1667,7 +1667,7 @@ func (x *DataTree) String() string {
 func (*DataTree) ProtoMessage() {}
 
 func (x *DataTree) ProtoReflect() protoreflect.Message {
-	mi := &file_frrgrpc_frr_proto_msgTypes[28]
+	mi := &file_frrpb_frr_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1680,7 +1680,7 @@ func (x *DataTree) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DataTree.ProtoReflect.Descriptor instead.
 func (*DataTree) Descriptor() ([]byte, []int) {
-	return file_frrgrpc_frr_proto_rawDescGZIP(), []int{28}
+	return file_frrpb_frr_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *DataTree) GetEncoding() Encoding {
@@ -1697,11 +1697,11 @@ func (x *DataTree) GetData() string {
 	return ""
 }
 
-var File_frrgrpc_frr_proto protoreflect.FileDescriptor
+var File_frrpb_frr_proto protoreflect.FileDescriptor
 
-const file_frrgrpc_frr_proto_rawDesc = "" +
+const file_frrpb_frr_proto_rawDesc = "" +
 	"\n" +
-	"\x11frrgrpc/frr.proto\x12\x03frr\"\x18\n" +
+	"\x0ffrrpb/frr.proto\x12\x03frr\"\x18\n" +
 	"\x16GetCapabilitiesRequest\"\xe3\x01\n" +
 	"\x17GetCapabilitiesResponse\x12\x1f\n" +
 	"\vfrr_version\x18\x01 \x01(\tR\n" +
@@ -1811,20 +1811,20 @@ const file_frrgrpc_frr_proto_rawDesc = "" +
 	"\aExecute\x12\x13.frr.ExecuteRequest\x1a\x14.frr.ExecuteResponse\"\x00b\x06proto3"
 
 var (
-	file_frrgrpc_frr_proto_rawDescOnce sync.Once
-	file_frrgrpc_frr_proto_rawDescData []byte
+	file_frrpb_frr_proto_rawDescOnce sync.Once
+	file_frrpb_frr_proto_rawDescData []byte
 )
 
-func file_frrgrpc_frr_proto_rawDescGZIP() []byte {
-	file_frrgrpc_frr_proto_rawDescOnce.Do(func() {
-		file_frrgrpc_frr_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_frrgrpc_frr_proto_rawDesc), len(file_frrgrpc_frr_proto_rawDesc)))
+func file_frrpb_frr_proto_rawDescGZIP() []byte {
+	file_frrpb_frr_proto_rawDescOnce.Do(func() {
+		file_frrpb_frr_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_frrpb_frr_proto_rawDesc), len(file_frrpb_frr_proto_rawDesc)))
 	})
-	return file_frrgrpc_frr_proto_rawDescData
+	return file_frrpb_frr_proto_rawDescData
 }
 
-var file_frrgrpc_frr_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_frrgrpc_frr_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
-var file_frrgrpc_frr_proto_goTypes = []any{
+var file_frrpb_frr_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
+var file_frrpb_frr_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
+var file_frrpb_frr_proto_goTypes = []any{
 	(Encoding)(0),                        // 0: frr.Encoding
 	(GetRequest_DataType)(0),             // 1: frr.GetRequest.DataType
 	(LoadToCandidateRequest_LoadType)(0), // 2: frr.LoadToCandidateRequest.LoadType
@@ -1859,7 +1859,7 @@ var file_frrgrpc_frr_proto_goTypes = []any{
 	(*PathValue)(nil),                    // 31: frr.PathValue
 	(*DataTree)(nil),                     // 32: frr.DataTree
 }
-var file_frrgrpc_frr_proto_depIdxs = []int32{
+var file_frrpb_frr_proto_depIdxs = []int32{
 	30, // 0: frr.GetCapabilitiesResponse.supported_modules:type_name -> frr.ModuleData
 	0,  // 1: frr.GetCapabilitiesResponse.supported_encodings:type_name -> frr.Encoding
 	1,  // 2: frr.GetRequest.type:type_name -> frr.GetRequest.DataType
@@ -1908,27 +1908,27 @@ var file_frrgrpc_frr_proto_depIdxs = []int32{
 	0,  // [0:15] is the sub-list for field type_name
 }
 
-func init() { file_frrgrpc_frr_proto_init() }
-func file_frrgrpc_frr_proto_init() {
-	if File_frrgrpc_frr_proto != nil {
+func init() { file_frrpb_frr_proto_init() }
+func file_frrpb_frr_proto_init() {
+	if File_frrpb_frr_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_frrgrpc_frr_proto_rawDesc), len(file_frrgrpc_frr_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_frrpb_frr_proto_rawDesc), len(file_frrpb_frr_proto_rawDesc)),
 			NumEnums:      4,
 			NumMessages:   29,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_frrgrpc_frr_proto_goTypes,
-		DependencyIndexes: file_frrgrpc_frr_proto_depIdxs,
-		EnumInfos:         file_frrgrpc_frr_proto_enumTypes,
-		MessageInfos:      file_frrgrpc_frr_proto_msgTypes,
+		GoTypes:           file_frrpb_frr_proto_goTypes,
+		DependencyIndexes: file_frrpb_frr_proto_depIdxs,
+		EnumInfos:         file_frrpb_frr_proto_enumTypes,
+		MessageInfos:      file_frrpb_frr_proto_msgTypes,
 	}.Build()
-	File_frrgrpc_frr_proto = out.File
-	file_frrgrpc_frr_proto_goTypes = nil
-	file_frrgrpc_frr_proto_depIdxs = nil
+	File_frrpb_frr_proto = out.File
+	file_frrpb_frr_proto_goTypes = nil
+	file_frrpb_frr_proto_depIdxs = nil
 }

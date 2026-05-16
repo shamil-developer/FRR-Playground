@@ -1,0 +1,33 @@
+daemons:
+  zebra:
+    target: localhost:50051
+
+  bgpd:
+    target: localhost:50052
+
+  staticd:
+    target: localhost:50053
+
+  bfdd:
+    target: localhost:50054
+
+  ospfd:
+    target: localhost:50055
+
+  ospf6d:
+    target: localhost:50056
+
+  isisd:
+    target: localhost:50057
+
+  pimd:
+    target: localhost:50058
+
+  pbrd:
+    target: localhost:50059
+
+  fabricd:
+    target: localhost:50060
+
+  pathd:
+    target: localhost:50061

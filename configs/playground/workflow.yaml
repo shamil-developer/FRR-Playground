@@ -1,0 +1,602 @@
+steps:
+  #
+  # STEP 1 — Interfaces (CONFIG + STATE)
+  #
+
+  - type: get
+    daemon: zebra
+
+    description: |
+      STEP 1
+
+      Получение полного дерева interface данных из zebra.
+
+      Возвращает одновременно:
+      - CONFIG данные
+      - STATE данные
+
+      Максимально близко к:
+
+      vtysh:
+      show running-config
+      show interface json
+
+      Используется для:
+      - изучения YANG tree
+      - просмотра interfaces
+      - понимания operational state
+      - изучения структуры данных FRR
+
+      requestType:
+      0 = CONFIG + STATE
+
+    params:
+      requestType: 0
+
+      path:
+        - "/frr-interface:lib"
+
+  #
+  # STEP 2 — Interfaces CONFIG
+  #
+
+  - type: get
+    daemon: zebra
+
+    description: |
+      STEP 2
+
+      Получение только CONFIG interface данных.
+
+      Возвращает:
+      - interface configuration
+      - addresses
+      - vrf bindings
+      - interface settings
+
+      Аналог через vtysh:
+
+      show running-config
+
+      requestType:
+      1 = CONFIG ONLY
+
+    params:
+      requestType: 1
+
+      path:
+        - "/frr-interface:lib"
+
+  #
+  # STEP 3 — Interfaces STATE
+  #
+
+  - type: get
+    daemon: zebra
+
+    description: |
+      STEP 3
+
+      Получение только STATE interface данных.
+
+      Возвращает runtime состояние:
+      - UP/DOWN
+      - MTU
+      - counters
+      - speed
+      - operational state
+
+      Аналог через vtysh:
+
+      show interface json
+
+      requestType:
+      2 = STATE ONLY
+
+    params:
+      requestType: 2
+
+      path:
+        - "/frr-interface:lib"
+
+  #
+  # STEP 4 — Capabilities
+  #
+
+  - type: getCapabilities
+    daemon: zebra
+
+    description: |
+      STEP 4
+
+      Получение возможностей gRPC API FRR.
+
+      Возвращает:
+      - версию FRR
+      - supported YANG modules
+      - supported encodings
+      - supported trees
+
+      Аналога во vtysh нет.
+
+      Используется для:
+      - discovery
+      - понимания API
+      - поиска доступных YANG modules
+
+  #
+  # STEP 5 — Operational Routing Table (RIB)
+  #
+
+  - type: get
+    daemon: zebra
+
+    description: |
+      STEP 5
+
+      Получение operational routing table (RIB).
+
+      Аналог:
+
+      vtysh:
+      show ip route
+      show ip route json
+
+      Важно:
+      routes находятся внутри:
+
+      /frr-vrf:lib
+
+      requestType:
+      2 = STATE ONLY
+
+    params:
+      requestType: 2
+
+      path:
+        - "/frr-vrf:lib"
+
+  #
+  # STEP 6 — Static Routes CONFIG
+  #
+
+  - type: get
+    daemon: staticd
+
+    description: |
+      STEP 6
+
+      Чтение CONFIG static routes из staticd.
+
+      Возвращает:
+      - static routes
+      - route-list
+      - path-list
+      - nexthops
+
+      Используется для:
+      - изучения структуры static routes
+      - поиска required keys
+      - изучения edit paths
+      - проверки applied config
+
+      Аналог через vtysh:
+
+      show running-config
+
+      Важно:
+      requestType=1 используется специально,
+      потому что requestType=0 иногда вызывает
+      проблемы merge CONFIG + STATE
+      в FRR mgmtd/staticd.
+
+      requestType:
+      1 = CONFIG ONLY
+
+    params:
+      requestType: 1
+
+      path:
+        - "/frr-routing:routing/control-plane-protocols"
+
+  #
+  # STEP 7 — Create Candidate
+  #
+
+  - type: createCandidate
+    daemon: staticd
+
+    description: |
+      STEP 7
+
+      Создание candidate configuration session.
+
+      Candidate configuration:
+      - временная конфигурация
+      - staging area
+      - transaction buffer
+      - изменения до commit
+
+      Аналогично режиму:
+
+      vtysh:
+      configure terminal
+
+      Но через:
+      - gRPC
+      - YANG
+      - transaction model
+
+  #
+  # STEP 8 — Create Static Route
+  #
+
+  - type: editCandidate
+    daemon: staticd
+
+    description: |
+      STEP 8
+
+      Создание static route через YANG edit.
+
+      Создается:
+      - route-list
+      - prefix
+      - src-prefix
+      - afi-safi
+
+      Аналог через vtysh:
+
+      configure terminal
+      ip route 10.10.10.0/24 192.168.1.1
+
+      Важно:
+      В FRR mgmtd/staticd nested YANG objects
+      часто создаются нестабильно.
+
+      Поэтому:
+      - route-list
+      - path-list
+      - nexthop
+
+      создаются отдельными шагами.
+
+      Это НЕ ошибка workflow —
+      это особенность FRR northbound/mgmtd.
+
+    params:
+      update:
+        - path: "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.10.10.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']"
+
+          value: |
+            {
+              "prefix": "10.10.10.0/24",
+              "src-prefix": "::/0",
+              "afi-safi": "frr-routing:ipv4-unicast"
+            }
+
+  #
+  # STEP 8.1 — Create Path List
+  #
+
+  - type: editCandidate
+    daemon: staticd
+
+    description: |
+      STEP 8.1
+
+      Добавление path-list
+      для static route.
+
+      Создается:
+      - table-id
+      - distance
+      - tag
+
+      Аналог через vtysh:
+
+      configure terminal
+      ip route 10.10.10.0/24 192.168.1.1 1
+
+      Важно:
+      tag НЕ является key полем
+      в YANG path-list.
+
+      Поэтому:
+      - table-id
+      - distance
+
+      используются в path predicates,
+
+      а:
+      - tag
+
+      передается внутри value object.
+
+    params:
+      update:
+        - path: "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.10.10.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']/path-list[table-id='0'][distance='1']"
+
+          value: |
+            {
+              "table-id": 0,
+              "distance": 1,
+              "tag": 0
+            }
+
+  #
+  # STEP 8.2 — Create Nexthop
+  #
+
+  - type: editCandidate
+    daemon: staticd
+
+    description: |
+      STEP 8.2
+
+      Добавление nexthop
+      для static route.
+
+      Создается:
+      - nh-type
+      - gateway
+      - vrf
+      - interface
+
+      Аналог через vtysh:
+
+      configure terminal
+      ip route 10.10.10.0/24 192.168.1.1
+
+      Важно:
+      path-list keys:
+      - table-id
+      - distance
+
+      nexthop keys:
+      - nh-type
+      - gateway
+      - vrf
+      - interface
+
+      tag НЕ является key.
+
+    params:
+      update:
+        - path: "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.10.10.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']/path-list[table-id='0'][distance='1']/frr-nexthops/nexthop[nh-type='ip4'][gateway='192.168.1.1'][vrf='default'][interface='']"
+
+          value: |
+            {
+              "nh-type": "ip4",
+              "gateway": "192.168.1.1",
+              "vrf": "default",
+              "interface": ""
+            }
+
+  #
+  # STEP 9 — Verify Candidate CONFIG
+  #
+
+  - type: get
+    daemon: staticd
+
+    description: |
+      STEP 9
+
+      Проверка candidate/static route
+      до commit.
+
+      Используется чтобы проверить:
+      - появился ли route-list
+      - появился ли path-list
+      - появился ли nexthop
+      - candidate configuration
+
+      Это CONFIG tree,
+      а не operational RIB.
+
+      Аналог через vtysh:
+
+      show running-config
+
+      requestType:
+      1 = CONFIG ONLY
+
+      Важно:
+      FRR mgmtd нестабильно работает
+      с deep subtree lookups.
+
+      Поэтому читается весь:
+      control-plane-protocols tree.
+
+    params:
+      requestType: 1
+
+      path:
+        - "/frr-routing:routing/control-plane-protocols"
+
+  #
+  # STEP 10 — Commit Candidate
+  #
+
+  - type: commitCandidate
+    daemon: staticd
+
+    description: |
+      STEP 10
+
+      Commit candidate configuration.
+
+      После commit:
+      - candidate применяется
+      - route попадает в running config
+      - staticd передает route в zebra
+      - zebra обновляет kernel routing
+
+      Аналог через vtysh:
+
+      exit
+      write memory
+
+      или:
+
+      end
+      write memory
+
+      Используется transaction model:
+      - prepare
+      - validate
+      - apply
+
+    params:
+      comment: |
+        add static route
+
+  #
+  # STEP 11 — Verify Running CONFIG
+  #
+
+  - type: get
+    daemon: staticd
+
+    description: |
+      STEP 11
+
+      Проверка что static route появился
+      в running configuration.
+
+      Используется чтобы убедиться:
+      - что commit успешно применился
+      - что route-list существует
+      - что path-list существует
+      - что nexthop существует
+
+      Это CONFIG verification,
+      а не operational routing table.
+
+      Аналог через vtysh:
+
+      show running-config
+
+      requestType:
+      1 = CONFIG ONLY
+
+      Важно:
+      Используется конкретный subtree path,
+      потому что FRR mgmtd иногда не показывает
+      nested objects на верхнем уровне tree.
+
+    params:
+      requestType: 1
+
+      path:
+        - "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list"
+
+        
+
+  #
+  # STEP 1 — Read VRF CONFIG (before)
+  #
+
+  - type: get
+    daemon: zebra
+
+    description: |
+      STEP 1
+
+      Чтение VRF configuration до изменений.
+
+      Аналог:
+
+      vtysh:
+      show vrf
+
+      Используется чтобы:
+      - проверить что VRF еще не существует
+      - изучить VRF tree
+      - посмотреть текущий state
+
+    params:
+      requestType: 0
+
+      path:
+        - "/frr-vrf:lib"
+
+  #
+  # STEP 2 — Create Candidate
+  #
+
+  - type: createCandidate
+    daemon: zebra
+
+    description: |
+      STEP 2
+
+      Создание candidate transaction.
+
+  #
+  # STEP 3 — Create VRF
+  #
+
+  - type: editCandidate
+    daemon: zebra
+
+    description: |
+      STEP 3
+
+      Создание VRF BLUE через northbound API.
+
+      Аналог:
+
+      vtysh:
+      configure terminal
+
+      vrf BLUE
+
+    params:
+      update:
+        - path: "/frr-vrf:lib/vrf[name='BLUE']"
+
+          value: |
+            {
+              "name": "BLUE"
+            }
+
+  #
+  # STEP 4 — Commit Candidate
+  #
+
+  - type: commitCandidate
+    daemon: zebra
+
+    description: |
+      STEP 4
+
+      Commit candidate configuration.
+
+    params:
+      comment: |
+        create vrf BLUE
+
+  #
+  # STEP 5 — Read VRF CONFIG (after)
+  #
+
+  - type: get
+    daemon: zebra
+
+    description: |
+      STEP 5
+
+      Проверка что VRF появился.
+
+      Аналог:
+
+      vtysh:
+      show vrf
+
+    params:
+      requestType: 0
+
+      path:
+        - "/frr-vrf:lib"

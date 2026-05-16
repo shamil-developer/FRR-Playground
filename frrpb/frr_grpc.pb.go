@@ -29,9 +29,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v7.34.1
-// source: frrgrpc/frr.proto
+// source: frrpb/frr.proto
 
-package frrgrpc
+package frrpb
 
 import (
 	context "context"
@@ -651,5 +651,5 @@ var Northbound_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 	},
-	Metadata: "frrgrpc/frr.proto",
+	Metadata: "frrpb/frr.proto",
 }

@@ -1,0 +1,107 @@
+steps:
+  #
+  # STEP 1 — Read VRF CONFIG (before)
+  #
+
+  - type: get
+    daemon: zebra
+
+    description: |
+      STEP 1
+
+      Чтение VRF configuration до изменений.
+
+      Аналог:
+
+      vtysh:
+      show vrf
+
+      Используется чтобы:
+      - проверить что VRF еще не существует
+      - изучить VRF tree
+      - посмотреть текущий state
+
+    params:
+      requestType: 0
+
+      path:
+        - "/frr-vrf:lib"
+
+  #
+  # STEP 2 — Create Candidate
+  #
+
+  - type: createCandidate
+    daemon: zebra
+
+    description: |
+      STEP 2
+
+      Создание candidate transaction.
+
+  #
+  # STEP 3 — Create VRF
+  #
+
+  - type: editCandidate
+    daemon: zebra
+
+    description: |
+      STEP 3
+
+      Создание VRF BLUE через northbound API.
+
+      Аналог:
+
+      vtysh:
+      configure terminal
+
+      vrf BLUE
+
+    params:
+      update:
+        - path: "/frr-vrf:lib/vrf[name='BLUE']"
+
+          value: |
+            {
+              "name": "BLUE"
+            }
+
+  #
+  # STEP 4 — Commit Candidate
+  #
+
+  - type: commitCandidate
+    daemon: zebra
+
+    description: |
+      STEP 4
+
+      Commit candidate configuration.
+
+    params:
+      comment: |
+        create vrf BLUE
+
+  #
+  # STEP 5 — Read VRF CONFIG (after)
+  #
+
+  - type: get
+    daemon: zebra
+
+    description: |
+      STEP 5
+
+      Проверка что VRF появился.
+
+      Аналог:
+
+      vtysh:
+      show vrf
+
+    params:
+      requestType: 0
+
+      path:
+        - "/frr-vrf:lib"
