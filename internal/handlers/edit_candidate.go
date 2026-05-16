@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 
 	"google.golang.org/grpc"
 
@@ -28,29 +29,53 @@ func (h *EditCandidateHandler) Execute(
 	candidateId := flow["candidateId"].(uint32)
 
 	var updates []*frrpb.PathValue
+	var deletes []*frrpb.PathValue
 
-	rawUpdates := step.Params["update"].([]any)
+	if rawUpdates, ok := step.Params["update"]; ok {
 
-	for _, item := range rawUpdates {
+		for _, item := range rawUpdates.([]any) {
 
-		update := item.(map[string]any)
+			update := item.(map[string]any)
 
-		updates = append(
-			updates,
-			&frrpb.PathValue{
-				Path: update["path"].(string),
+			path := update["path"].(string)
 
-				Value: update["value"].(string),
-			},
-		)
+			value := ""
+
+			if v, ok := update["value"]; ok && v != nil {
+				value = fmt.Sprint(v)
+			}
+
+			updates = append(
+				updates,
+				&frrpb.PathValue{
+					Path:  path,
+					Value: value,
+				},
+			)
+		}
+	}
+
+	if rawDeletes, ok := step.Params["delete"]; ok {
+
+		for _, item := range rawDeletes.([]any) {
+
+			del := item.(map[string]any)
+
+			deletes = append(
+				deletes,
+				&frrpb.PathValue{
+					Path: del["path"].(string),
+				},
+			)
+		}
 	}
 
 	response, err := client.EditCandidate(
 		ctx,
 		&frrpb.EditCandidateRequest{
 			CandidateId: candidateId,
-
-			Update: updates,
+			Update:      updates,
+			Delete:      deletes,
 		},
 	)
 

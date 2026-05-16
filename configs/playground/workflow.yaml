@@ -600,3 +600,408 @@ steps:
 
       path:
         - "/frr-vrf:lib"
+
+
+
+  #
+  # STEP 12 — Read Prefix Lists CONFIG (before)
+  #
+
+  - type: get
+    daemon: zebra
+
+    description: |
+      STEP 12
+
+      Чтение prefix-list configuration
+      до изменений.
+
+      Аналог:
+
+      vtysh:
+      show ip prefix-list
+      show ip prefix-list json
+
+      Используется чтобы:
+      - изучить YANG tree
+      - посмотреть текущие prefix-list
+      - понять структуру entries
+      - изучить keys/predicates
+
+      requestType:
+      1 = CONFIG ONLY
+
+      Важно:
+      Prefix-lists находятся внутри:
+
+      /frr-filter:lib
+
+    params:
+      requestType: 1
+
+      path:
+        - "/frr-filter:lib"
+
+  #
+  # STEP 13 — Create Candidate
+  #
+
+  - type: createCandidate
+    daemon: zebra
+
+    description: |
+      STEP 13
+
+      Создание candidate transaction
+      для prefix-list изменений.
+
+  #
+  # STEP 14 — Create Prefix List + Permit Entry
+  #
+
+  - type: editCandidate
+    daemon: zebra
+
+    description: |
+      STEP 14
+
+      Создание prefix-list TEST7
+      и permit entry.
+
+      Аналог:
+
+      vtysh:
+      configure terminal
+
+      ip prefix-list TEST7 seq 70 permit 70.70.0.0/16 le 32
+
+      Важно:
+      FRR mgmtd/northbound
+      нестабильно работает
+      с nested YANG object creation.
+
+      Поэтому:
+      - prefix-list node
+      - action
+      - ipv4-prefix
+      - le/ge values
+
+      создаются отдельными leaf updates.
+
+      Это нормальная практика
+      для FRR northbound API.
+
+    params:
+      update:
+        - path: "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']"
+
+        - path: "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']/entry[sequence='70']/action"
+
+          value: "permit"
+
+        - path: "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']/entry[sequence='70']/ipv4-prefix"
+
+          value: "70.70.0.0/16"
+
+        - path: "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']/entry[sequence='70']/ipv4-prefix-length-lesser-or-equal"
+
+          value: "32"
+
+  #
+  # STEP 15 — Commit Prefix List
+  #
+
+  - type: commitCandidate
+    daemon: zebra
+
+    description: |
+      STEP 15
+
+      Commit prefix-list configuration.
+
+      После commit:
+      - prefix-list попадает в running config
+      - zebra обновляет filter tree
+      - prefix-list становится operational
+
+      Аналог:
+
+      vtysh:
+      end
+      write memory
+
+    params:
+      comment: |
+        create TEST7
+
+  #
+  # STEP 16 — Verify Prefix List CONFIG
+  #
+
+  - type: get
+    daemon: zebra
+
+    description: |
+      STEP 16
+
+      Проверка что prefix-list TEST7
+      успешно создался.
+
+      Аналог:
+
+      vtysh:
+      show ip prefix-list json
+
+      Используется чтобы проверить:
+      - появился ли prefix-list
+      - появился ли entry
+      - sequence
+      - action
+      - prefix
+      - le/ge values
+
+    params:
+      requestType: 1
+
+      path:
+        - "/frr-filter:lib"
+
+  #
+  # STEP 17 — Create Candidate
+  #
+
+  - type: createCandidate
+    daemon: zebra
+
+    description: |
+      STEP 17
+
+      Создание candidate transaction
+      для добавления deny entry.
+
+  #
+  # STEP 18 — Add Deny Entry
+  #
+
+  - type: editCandidate
+    daemon: zebra
+
+    description: |
+      STEP 18
+
+      Добавление deny entry
+      в prefix-list TEST7.
+
+      Аналог:
+
+      vtysh:
+      configure terminal
+
+      ip prefix-list TEST7 seq 80 deny 80.80.0.0/16 le 32
+
+    params:
+      update:
+        - path: "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']/entry[sequence='80']/action"
+
+          value: "deny"
+
+        - path: "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']/entry[sequence='80']/ipv4-prefix"
+
+          value: "80.80.0.0/16"
+
+        - path: "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']/entry[sequence='80']/ipv4-prefix-length-lesser-or-equal"
+
+          value: "32"
+
+  #
+  # STEP 19 — Commit Deny Entry
+  #
+
+  - type: commitCandidate
+    daemon: zebra
+
+    description: |
+      STEP 19
+
+      Commit deny entry configuration.
+
+    params:
+      comment: |
+        add deny entry
+
+  #
+  # STEP 20 — Verify Deny Entry
+  #
+
+  - type: get
+    daemon: zebra
+
+    description: |
+      STEP 20
+
+      Проверка что deny entry
+      успешно появился в TEST7.
+
+      Аналог:
+
+      vtysh:
+      show ip prefix-list json
+
+    params:
+      requestType: 1
+
+      path:
+        - "/frr-filter:lib"
+
+  #
+  # STEP 21 — Create Candidate
+  #
+
+  - type: createCandidate
+    daemon: zebra
+
+    description: |
+      STEP 21
+
+      Создание candidate transaction
+      для удаления entry.
+
+  #
+  # STEP 22 — Delete Deny Entry
+  #
+
+  - type: editCandidate
+    daemon: zebra
+
+    description: |
+      STEP 22
+
+      Удаление deny entry
+      из prefix-list TEST7.
+
+      Аналог:
+
+      vtysh:
+      configure terminal
+
+      no ip prefix-list TEST7 seq 80 deny 80.80.0.0/16 le 32
+
+    params:
+      delete:
+        - path: "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']/entry[sequence='80']"
+
+  #
+  # STEP 23 — Commit Delete Entry
+  #
+
+  - type: commitCandidate
+    daemon: zebra
+
+    description: |
+      STEP 23
+
+      Commit удаления deny entry.
+
+    params:
+      comment: |
+        delete deny entry
+
+  #
+  # STEP 24 — Verify Entry Deleted
+  #
+
+  - type: get
+    daemon: zebra
+
+    description: |
+      STEP 24
+
+      Проверка что deny entry
+      успешно удалился.
+
+      Аналог:
+
+      vtysh:
+      show ip prefix-list json
+
+    params:
+      requestType: 1
+
+      path:
+        - "/frr-filter:lib"
+
+  #
+  # STEP 25 — Create Candidate
+  #
+
+  - type: createCandidate
+    daemon: zebra
+
+    description: |
+      STEP 25
+
+      Создание candidate transaction
+      для удаления prefix-list.
+
+  #
+  # STEP 26 — Delete Prefix List
+  #
+
+  - type: editCandidate
+    daemon: zebra
+
+    description: |
+      STEP 26
+
+      Удаление prefix-list TEST7.
+
+      Аналог:
+
+      vtysh:
+      configure terminal
+
+      no ip prefix-list TEST7
+
+    params:
+      delete:
+        - path: "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']"
+
+  #
+  # STEP 27 — Commit Delete Prefix List
+  #
+
+  - type: commitCandidate
+    daemon: zebra
+
+    description: |
+      STEP 27
+
+      Commit удаления prefix-list TEST7.
+
+    params:
+      comment: |
+        delete TEST7
+
+  #
+  # STEP 28 — Verify Prefix List Deleted
+  #
+
+  - type: get
+    daemon: zebra
+
+    description: |
+      STEP 28
+
+      Проверка что prefix-list TEST7
+      полностью удалился.
+
+      Аналог:
+
+      vtysh:
+      show ip prefix-list json
+
+    params:
+      requestType: 1
+
+      path:
+        - "/frr-filter:lib"
