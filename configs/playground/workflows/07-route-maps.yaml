@@ -166,6 +166,28 @@ steps:
       path:
         - "/frr-route-map:lib"
 
+  - type: assertJsonExists
+    daemon: zebra
+    description: |
+      STEP 39.1
+
+      Автоматическая проверка что route-map TEST
+      содержит entry 10, match prefix-list TEST7
+      и set metric 100.
+    params:
+      requestType: 1
+      path:
+        - "/frr-route-map:lib"
+      checks:
+        - path: 'frr-route-map:lib.route-map.#(name=="TEST").name'
+          equals: TEST
+        - path: 'frr-route-map:lib.route-map.#(name=="TEST").entry.#(sequence==10).action'
+          equals: permit
+        - path: 'frr-route-map:lib.route-map.#(name=="TEST").entry.#(sequence==10).match-condition.#(condition=="ipv4-prefix-list").rmap-match-condition.list-name'
+          equals: TEST7
+        - path: 'frr-route-map:lib.route-map.#(name=="TEST").entry.#(sequence==10).set-action.#(action=="set-metric").rmap-set-action.value'
+          equals: "100"
+
   - type: createCandidate
     daemon: zebra
     description: |
@@ -293,6 +315,39 @@ steps:
       requestType: 1
       path:
         - "/frr-route-map:lib"
+
+  - type: assertJsonMissing
+    daemon: zebra
+    description: |
+      STEP 50.1
+
+      Автоматическая проверка что entry 20
+      удалился из route-map TEST.
+    params:
+      requestType: 1
+      path:
+        - "/frr-route-map:lib"
+      checks:
+        - path: 'frr-route-map:lib.route-map.#(name=="TEST").entry.#(sequence==20).sequence'
+
+  - type: assertJsonExists
+    daemon: zebra
+    description: |
+      STEP 50.2
+
+      Автоматическая проверка что entry 10
+      остался в route-map TEST после удаления entry 20.
+    params:
+      requestType: 1
+      path:
+        - "/frr-route-map:lib"
+      checks:
+        - path: 'frr-route-map:lib.route-map.#(name=="TEST").entry.#(sequence==10).action'
+          equals: permit
+        - path: 'frr-route-map:lib.route-map.#(name=="TEST").entry.#(sequence==10).match-condition.#(condition=="ipv4-prefix-list").rmap-match-condition.list-name'
+          equals: TEST7
+        - path: 'frr-route-map:lib.route-map.#(name=="TEST").entry.#(sequence==10).set-action.#(action=="set-metric").rmap-set-action.value'
+          equals: "100"
 
   - type: createCandidate
     daemon: zebra
