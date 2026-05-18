@@ -29,6 +29,7 @@ steps:
       requestType: 1
       path:
         - "/frr-route-map:lib"
+
   - type: createCandidate
     daemon: zebra
     description: |
@@ -36,6 +37,7 @@ steps:
 
       Создание candidate transaction
       для route-map изменений.
+
   - type: editCandidate
     daemon: zebra
     description: |
@@ -47,7 +49,6 @@ steps:
 
       vtysh:
       configure terminal
-
       route-map TEST permit 10
 
       Важно:
@@ -60,6 +61,7 @@ steps:
       update:
         - path: "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='10']/action"
           value: permit
+
   - type: commitCandidate
     daemon: zebra
     description: |
@@ -68,6 +70,7 @@ steps:
       Commit создания route-map TEST permit 10.
     params:
       comment: create route-map TEST permit 10
+
   - type: createCandidate
     daemon: zebra
     description: |
@@ -75,6 +78,7 @@ steps:
 
       Создание candidate transaction
       для добавления match rule.
+
   - type: editCandidate
     daemon: zebra
     description: |
@@ -96,6 +100,7 @@ steps:
       update:
         - path: "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='10']/match-condition[condition='frr-route-map:ipv4-prefix-list']/rmap-match-condition/list-name"
           value: TEST7
+
   - type: commitCandidate
     daemon: zebra
     description: |
@@ -104,6 +109,7 @@ steps:
       Commit match правила route-map.
     params:
       comment: add route-map match rule
+
   - type: createCandidate
     daemon: zebra
     description: |
@@ -111,6 +117,7 @@ steps:
 
       Создание candidate transaction
       для добавления set action.
+
   - type: editCandidate
     daemon: zebra
     description: |
@@ -131,7 +138,8 @@ steps:
     params:
       update:
         - path: "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='10']/set-action[action='frr-route-map:set-metric']/rmap-set-action/value"
-          value: '100'
+          value: "100"
+
   - type: commitCandidate
     daemon: zebra
     description: |
@@ -140,6 +148,7 @@ steps:
       Commit set действия route-map.
     params:
       comment: add route-map set action
+
   - type: get
     daemon: zebra
     description: |
@@ -156,6 +165,7 @@ steps:
       requestType: 1
       path:
         - "/frr-route-map:lib"
+
   - type: createCandidate
     daemon: zebra
     description: |
@@ -163,6 +173,7 @@ steps:
 
       Создание candidate transaction
       для добавления второго entry.
+
   - type: editCandidate
     daemon: zebra
     description: |
@@ -179,6 +190,7 @@ steps:
       update:
         - path: "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='20']/action"
           value: deny
+
   - type: commitCandidate
     daemon: zebra
     description: |
@@ -187,6 +199,7 @@ steps:
       Commit второго entry route-map.
     params:
       comment: add route-map deny 20
+
   - type: get
     daemon: zebra
     description: |
@@ -203,6 +216,34 @@ steps:
       requestType: 1
       path:
         - "/frr-route-map:lib"
+
+  - type: assertJsonExists
+    daemon: zebra
+    description: |
+      STEP 44
+
+      Автоматическая проверка JSON дерева:
+        - route-map TEST существует
+        - entry 10 permit существует
+        - entry 10 содержит match prefix-list TEST7
+        - entry 10 содержит set metric 100
+        - entry 20 deny существует
+    params:
+      requestType: 1
+      path:
+        - "/frr-route-map:lib"
+      checks:
+        - path: 'frr-route-map:lib.route-map.#(name=="TEST").name'
+          equals: TEST
+        - path: 'frr-route-map:lib.route-map.#(name=="TEST").entry.#(sequence==10).action'
+          equals: permit
+        - path: 'frr-route-map:lib.route-map.#(name=="TEST").entry.#(sequence==10).match-condition.#(condition=="ipv4-prefix-list").rmap-match-condition.list-name'
+          equals: TEST7
+        - path: 'frr-route-map:lib.route-map.#(name=="TEST").entry.#(sequence==10).set-action.#(action=="set-metric").rmap-set-action.value'
+          equals: "100"
+        - path: 'frr-route-map:lib.route-map.#(name=="TEST").entry.#(sequence==20).action'
+          equals: deny
+
   - type: createCandidate
     daemon: zebra
     description: |
@@ -210,6 +251,7 @@ steps:
 
       Создание candidate transaction
       для удаления entry 20.
+
   - type: editCandidate
     daemon: zebra
     description: |
@@ -225,6 +267,7 @@ steps:
     params:
       delete:
         - path: "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='20']"
+
   - type: commitCandidate
     daemon: zebra
     description: |
@@ -233,6 +276,7 @@ steps:
       Commit удаления entry 20.
     params:
       comment: delete route-map entry 20
+
   - type: get
     daemon: zebra
     description: |
@@ -249,6 +293,7 @@ steps:
       requestType: 1
       path:
         - "/frr-route-map:lib"
+
   - type: createCandidate
     daemon: zebra
     description: |
@@ -256,6 +301,7 @@ steps:
 
       Создание candidate transaction
       для удаления route-map TEST.
+
   - type: editCandidate
     daemon: zebra
     description: |
@@ -270,6 +316,7 @@ steps:
     params:
       delete:
         - path: "/frr-route-map:lib/route-map[name='TEST']"
+
   - type: commitCandidate
     daemon: zebra
     description: |
@@ -278,6 +325,7 @@ steps:
       Commit удаления route-map TEST.
     params:
       comment: delete route-map TEST
+
   - type: get
     daemon: zebra
     description: |
@@ -294,3 +342,17 @@ steps:
       requestType: 1
       path:
         - "/frr-route-map:lib"
+
+  - type: assertJsonMissing
+    daemon: zebra
+    description: |
+      STEP 55
+
+      Автоматическая проверка JSON дерева:
+      route-map TEST отсутствует после удаления.
+    params:
+      requestType: 1
+      path:
+        - "/frr-route-map:lib"
+      checks:
+        - path: 'frr-route-map:lib.route-map.#(name=="TEST").name'
