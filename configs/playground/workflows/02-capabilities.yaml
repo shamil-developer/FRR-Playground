@@ -1,0 +1,21 @@
+---
+steps:
+  - type: getCapabilities
+    daemon: zebra
+    description: |
+      STEP 4
+
+      Получение возможностей gRPC API FRR.
+
+      Возвращает:
+        - версию FRR
+        - supported YANG modules
+        - supported encodings
+        - supported trees
+
+      Аналога во vtysh нет.
+
+      Используется для:
+        - discovery
+        - понимания API
+        - поиска доступных YANG modules

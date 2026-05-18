@@ -1,0 +1,20 @@
+---
+steps:
+  - type: get
+    daemon: zebra
+    description: |
+      1. Проверка подключения
+
+      gRPC проверка чтения CONFIG tree.
+
+      Аналог частично близок к:
+
+      vtysh:
+      show running-config
+
+      requestType:
+      1 = CONFIG ONLY
+    params:
+      requestType: 1
+      path:
+        - "/frr-vrf:lib"

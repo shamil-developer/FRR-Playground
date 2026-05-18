@@ -1,0 +1,296 @@
+---
+steps:
+  - type: get
+    daemon: zebra
+    description: |
+      STEP 29
+
+      Чтение текущих route-map до изменений.
+
+      Аналог:
+
+      vtysh:
+      show route-map
+
+      Используется чтобы:
+        - изучить YANG tree route-map
+        - посмотреть текущие entries
+        - проверить match/set rules
+        - понять keys/predicates
+
+      requestType:
+      1 = CONFIG ONLY
+
+      Важно:
+      Route-map находятся внутри:
+
+      /frr-route-map:lib
+    params:
+      requestType: 1
+      path:
+        - "/frr-route-map:lib"
+  - type: createCandidate
+    daemon: zebra
+    description: |
+      STEP 30
+
+      Создание candidate transaction
+      для route-map изменений.
+  - type: editCandidate
+    daemon: zebra
+    description: |
+      STEP 31
+
+      Создание route-map TEST permit 10.
+
+      Аналог:
+
+      vtysh:
+      configure terminal
+
+      route-map TEST permit 10
+
+      Важно:
+      В YANG route-map entry key:
+        - sequence
+
+      А action является mandatory leaf,
+      поэтому задается отдельным update.
+    params:
+      update:
+        - path: "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='10']/action"
+          value: permit
+  - type: commitCandidate
+    daemon: zebra
+    description: |
+      STEP 32
+
+      Commit создания route-map TEST permit 10.
+    params:
+      comment: create route-map TEST permit 10
+  - type: createCandidate
+    daemon: zebra
+    description: |
+      STEP 33
+
+      Создание candidate transaction
+      для добавления match rule.
+  - type: editCandidate
+    daemon: zebra
+    description: |
+      STEP 34
+
+      Добавление match правила
+      в route-map TEST permit 10.
+
+      Аналог:
+
+      vtysh:
+      route-map TEST permit 10
+      match ip address prefix-list TEST7
+
+      В YANG:
+        - condition = frr-route-map:ipv4-prefix-list
+        - list-name = TEST7
+    params:
+      update:
+        - path: "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='10']/match-condition[condition='frr-route-map:ipv4-prefix-list']/rmap-match-condition/list-name"
+          value: TEST7
+  - type: commitCandidate
+    daemon: zebra
+    description: |
+      STEP 35
+
+      Commit match правила route-map.
+    params:
+      comment: add route-map match rule
+  - type: createCandidate
+    daemon: zebra
+    description: |
+      STEP 36
+
+      Создание candidate transaction
+      для добавления set action.
+  - type: editCandidate
+    daemon: zebra
+    description: |
+      STEP 37
+
+      Добавление set действия
+      в route-map TEST permit 10.
+
+      Аналог:
+
+      vtysh:
+      route-map TEST permit 10
+      set metric 100
+
+      В YANG:
+        - action = frr-route-map:set-metric
+        - value = 100
+    params:
+      update:
+        - path: "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='10']/set-action[action='frr-route-map:set-metric']/rmap-set-action/value"
+          value: '100'
+  - type: commitCandidate
+    daemon: zebra
+    description: |
+      STEP 38
+
+      Commit set действия route-map.
+    params:
+      comment: add route-map set action
+  - type: get
+    daemon: zebra
+    description: |
+      STEP 39
+
+      Проверка что route-map TEST
+      содержит permit 10, match и set.
+
+      Аналог:
+
+      vtysh:
+      show route-map
+    params:
+      requestType: 1
+      path:
+        - "/frr-route-map:lib"
+  - type: createCandidate
+    daemon: zebra
+    description: |
+      STEP 40
+
+      Создание candidate transaction
+      для добавления второго entry.
+  - type: editCandidate
+    daemon: zebra
+    description: |
+      STEP 41
+
+      Добавление второго entry
+      route-map TEST deny 20.
+
+      Аналог:
+
+      vtysh:
+      route-map TEST deny 20
+    params:
+      update:
+        - path: "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='20']/action"
+          value: deny
+  - type: commitCandidate
+    daemon: zebra
+    description: |
+      STEP 42
+
+      Commit второго entry route-map.
+    params:
+      comment: add route-map deny 20
+  - type: get
+    daemon: zebra
+    description: |
+      STEP 43
+
+      Проверка что route-map TEST
+      содержит entries 10 и 20.
+
+      Аналог:
+
+      vtysh:
+      show route-map
+    params:
+      requestType: 1
+      path:
+        - "/frr-route-map:lib"
+  - type: createCandidate
+    daemon: zebra
+    description: |
+      STEP 47
+
+      Создание candidate transaction
+      для удаления entry 20.
+  - type: editCandidate
+    daemon: zebra
+    description: |
+      STEP 48
+
+      Удаление entry 20
+      из route-map TEST.
+
+      Аналог:
+
+      vtysh:
+      no route-map TEST deny 20
+    params:
+      delete:
+        - path: "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='20']"
+  - type: commitCandidate
+    daemon: zebra
+    description: |
+      STEP 49
+
+      Commit удаления entry 20.
+    params:
+      comment: delete route-map entry 20
+  - type: get
+    daemon: zebra
+    description: |
+      STEP 50
+
+      Проверка что entry 20
+      удалился из route-map TEST.
+
+      Аналог:
+
+      vtysh:
+      show route-map
+    params:
+      requestType: 1
+      path:
+        - "/frr-route-map:lib"
+  - type: createCandidate
+    daemon: zebra
+    description: |
+      STEP 51
+
+      Создание candidate transaction
+      для удаления route-map TEST.
+  - type: editCandidate
+    daemon: zebra
+    description: |
+      STEP 52
+
+      Удаление route-map TEST.
+
+      Аналог:
+
+      vtysh:
+      no route-map TEST
+    params:
+      delete:
+        - path: "/frr-route-map:lib/route-map[name='TEST']"
+  - type: commitCandidate
+    daemon: zebra
+    description: |
+      STEP 53
+
+      Commit удаления route-map TEST.
+    params:
+      comment: delete route-map TEST
+  - type: get
+    daemon: zebra
+    description: |
+      STEP 54
+
+      Проверка что route-map TEST
+      полностью удалился.
+
+      Аналог:
+
+      vtysh:
+      show route-map
+    params:
+      requestType: 1
+      path:
+        - "/frr-route-map:lib"

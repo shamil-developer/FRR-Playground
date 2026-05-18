@@ -1,0 +1,43 @@
+---
+steps:
+  - type: get
+    daemon: zebra
+    description: |
+      3. Interfaces CONFIG
+
+      Чтение CONFIG interface tree через gRPC.
+
+      Аналог:
+
+      vtysh:
+      show running-config
+
+      requestType:
+      1 = CONFIG ONLY
+    params:
+      requestType: 1
+      path:
+        - "/frr-interface:lib"
+  - type: get
+    daemon: zebra
+    description: |
+      3. Interfaces STATE
+
+      Чтение operational state конкретного interface.
+
+      Аналог:
+
+      vtysh:
+      show interface eth0 json
+
+      requestType:
+      2 = STATE ONLY
+
+      Важно:
+      весь /frr-interface:lib в текущем FRR может падать
+      на одном из kernel/tunnel interfaces, поэтому для
+      рабочей проверки читается конкретный eth0.
+    params:
+      requestType: 2
+      path:
+        - "/frr-interface:lib/interface[name='eth0']/state"

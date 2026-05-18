@@ -27,6 +27,7 @@ func CreateHandlersRegistry() map[string]Handler {
 		"commitCandidate": handlers.NewCommitCandidateHandler(),
 		"getTransactions": handlers.NewGetTransactionsHandler(),
 		"getTransaction":  handlers.NewGetTransactionHandler(),
+		"sleep":           handlers.NewSleepHandler(),
 	}
 
 }

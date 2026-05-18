@@ -1,0 +1,64 @@
+---
+steps:
+  - type: get
+    daemon: zebra
+    description: |
+      5. VRF CONFIG before
+
+      Чтение VRF configuration до изменений.
+
+      Аналог:
+
+      vtysh:
+      show vrf
+    params:
+      requestType: 0
+      path:
+        - "/frr-vrf:lib"
+  - type: createCandidate
+    daemon: zebra
+    description: |
+      5. VRF create candidate
+
+      Создание candidate transaction.
+  - type: editCandidate
+    daemon: zebra
+    description: |
+      5. VRF create BLUE
+
+      Создание VRF BLUE через northbound API.
+
+      Аналог:
+
+      vtysh:
+      vrf BLUE
+    params:
+      update:
+        - path: "/frr-vrf:lib/vrf[name='BLUE']"
+          value: |
+            {
+            "name": "BLUE"
+            }
+  - type: commitCandidate
+    daemon: zebra
+    description: |
+      5. VRF commit
+
+      Commit candidate configuration.
+    params:
+      comment: create vrf BLUE
+  - type: get
+    daemon: zebra
+    description: |
+      5. VRF verify
+
+      Проверка что VRF BLUE появился.
+
+      Аналог:
+
+      vtysh:
+      show vrf
+    params:
+      requestType: 1
+      path:
+        - "/frr-vrf:lib/vrf[name='BLUE']"

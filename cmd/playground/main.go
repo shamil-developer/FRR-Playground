@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -17,7 +18,9 @@ import (
 
 func main() {
 
-	plan := loadPlan()
+	plan := loadPlan(
+		getWorkflowPath(),
+	)
 
 	options := loadOptions()
 
@@ -41,10 +44,29 @@ func main() {
 	)
 }
 
-func loadPlan() models.Plan {
+func getWorkflowPath() string {
+
+	workflowPath := flag.String(
+		"workflow",
+		"configs/playground/workflows/01-check.yaml",
+		"path to workflow yaml",
+	)
+
+	flag.Parse()
+
+	if flag.NArg() > 0 {
+		return flag.Arg(0)
+	}
+
+	return *workflowPath
+}
+
+func loadPlan(
+	workflowPath string,
+) models.Plan {
 
 	rawPlan, err := os.ReadFile(
-		"configs/playground/workflow.yaml",
+		workflowPath,
 	)
 
 	if err != nil {

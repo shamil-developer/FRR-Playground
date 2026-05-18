@@ -1,0 +1,330 @@
+---
+steps:
+  - type: get
+    daemon: zebra
+    description: |
+      STEP 5
+
+      Получение operational routing table (RIB).
+
+      Аналог:
+
+      vtysh:
+      show ip route
+      show ip route json
+
+      Важно:
+      routes находятся внутри:
+
+      /frr-vrf:lib
+
+      requestType:
+      2 = STATE ONLY
+    params:
+      requestType: 2
+      path:
+        - "/frr-vrf:lib"
+  - type: get
+    daemon: staticd
+    description: |
+      STEP 6
+
+      Чтение CONFIG static routes из staticd.
+
+      Возвращает:
+        - static routes
+        - route-list
+        - path-list
+        - nexthops
+
+      Используется для:
+        - изучения структуры static routes
+        - поиска required keys
+        - изучения edit paths
+        - проверки applied config
+
+      Аналог через vtysh:
+
+      show running-config
+
+      Важно:
+      requestType=1 используется специально,
+      потому что requestType=0 иногда вызывает
+      проблемы merge CONFIG + STATE
+      в FRR mgmtd/staticd.
+
+      requestType:
+      1 = CONFIG ONLY
+    params:
+      requestType: 1
+      path:
+        - "/frr-routing:routing/control-plane-protocols"
+  - type: createCandidate
+    daemon: staticd
+    description: |
+      STEP 7
+
+      Создание candidate configuration session.
+
+      Candidate configuration:
+        - временная конфигурация
+        - staging area
+        - transaction buffer
+        - изменения до commit
+
+      Аналогично режиму:
+
+      vtysh:
+      configure terminal
+
+      Но через:
+        - gRPC
+        - YANG
+        - transaction model
+  - type: editCandidate
+    daemon: staticd
+    description: |
+      STEP 8
+
+      Создание static route через YANG edit.
+
+      Создается:
+        - route-list
+        - prefix
+        - src-prefix
+        - afi-safi
+
+      Аналог через vtysh:
+
+      configure terminal
+      ip route 10.10.10.0/24 192.168.1.1
+
+      Важно:
+      В FRR mgmtd/staticd nested YANG objects
+      часто создаются нестабильно.
+
+      Поэтому:
+        - route-list
+        - path-list
+        - nexthop
+
+      создаются отдельными шагами.
+
+      Это НЕ ошибка workflow —
+      это особенность FRR northbound/mgmtd.
+    params:
+      update:
+        - path: "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.10.10.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']"
+          value: |
+            {
+            "prefix": "10.10.10.0/24",
+            "src-prefix": "::/0",
+            "afi-safi": "frr-routing:ipv4-unicast"
+            }
+  - type: editCandidate
+    daemon: staticd
+    description: |
+      STEP 8.1
+
+      Добавление path-list
+      для static route.
+
+      Создается:
+        - table-id
+        - distance
+        - tag
+
+      Аналог через vtysh:
+
+      configure terminal
+      ip route 10.10.10.0/24 192.168.1.1 1
+
+      Важно:
+      tag НЕ является key полем
+      в YANG path-list.
+
+      Поэтому:
+        - table-id
+        - distance
+
+      используются в path predicates,
+
+      а:
+        - tag
+
+      передается внутри value object.
+    params:
+      update:
+        - path: "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.10.10.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']/path-list[table-id='0'][distance='1']"
+          value: |
+            {
+            "table-id": 0,
+            "distance": 1,
+            "tag": 0
+            }
+  - type: editCandidate
+    daemon: staticd
+    description: |
+      STEP 8.2
+
+      Добавление nexthop
+      для static route.
+
+      Создается:
+        - nh-type
+        - gateway
+        - vrf
+        - interface
+
+      Аналог через vtysh:
+
+      configure terminal
+      ip route 10.10.10.0/24 192.168.1.1
+
+      Важно:
+      path-list keys:
+        - table-id
+        - distance
+
+      nexthop keys:
+        - nh-type
+        - gateway
+        - vrf
+        - interface
+
+      tag НЕ является key.
+    params:
+      update:
+        - path: "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.10.10.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']/path-list[table-id='0'][distance='1']/frr-nexthops/nexthop[nh-type='ip4'][gateway='192.168.1.1'][vrf='default'][interface='']"
+          value: |
+            {
+            "nh-type": "ip4",
+            "gateway": "192.168.1.1",
+            "vrf": "default",
+            "interface": ""
+            }
+  - type: get
+    daemon: staticd
+    description: |
+      STEP 9
+
+      Проверка candidate/static route
+      до commit.
+
+      Используется чтобы проверить:
+        - появился ли route-list
+        - появился ли path-list
+        - появился ли nexthop
+        - candidate configuration
+
+      Это CONFIG tree,
+      а не operational RIB.
+
+      Аналог через vtysh:
+
+      show running-config
+
+      requestType:
+      1 = CONFIG ONLY
+
+      Важно:
+      FRR mgmtd нестабильно работает
+      с deep subtree lookups.
+
+      Поэтому читается весь:
+      control-plane-protocols tree.
+    params:
+      requestType: 1
+      path:
+        - "/frr-routing:routing/control-plane-protocols"
+  - type: commitCandidate
+    daemon: staticd
+    description: |
+      STEP 10
+
+      Commit candidate configuration.
+
+      После commit:
+        - candidate применяется
+        - route попадает в running config
+        - staticd передает route в zebra
+        - zebra обновляет kernel routing
+
+      Аналог через vtysh:
+
+      exit
+      write memory
+
+      или:
+
+      end
+      write memory
+
+      Используется transaction model:
+        - prepare
+        - validate
+        - apply
+    params:
+      comment: add static route
+  - type: get
+    daemon: staticd
+    description: |
+      STEP 11
+
+      Проверка что static route появился
+      в running configuration.
+
+      Используется чтобы убедиться:
+        - что commit успешно применился
+        - что route-list существует
+        - что path-list существует
+        - что nexthop существует
+
+      Это CONFIG verification,
+      а не operational routing table.
+
+      Аналог через vtysh:
+
+      show running-config
+
+      requestType:
+      1 = CONFIG ONLY
+
+      Важно:
+      Используется конкретный subtree path,
+      потому что FRR mgmtd иногда не показывает
+      nested objects на верхнем уровне tree.
+    params:
+      requestType: 1
+      path:
+        - "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list"
+  - type: sleep
+    daemon: zebra
+    description: |
+      STEP 12
+
+      Небольшая пауза, чтобы staticd успел
+      передать route в zebra RIB.
+    params:
+      seconds: 1
+  - type: get
+    daemon: zebra
+    description: |
+      STEP 13
+
+      Проверка что static route попал
+      в operational RIB zebra.
+
+      Аналог:
+
+      vtysh:
+      show ip route
+      show ip route json
+
+      requestType:
+      2 = STATE ONLY
+    params:
+      requestType: 2
+      withDefaults: false
+      path:
+        - "/frr-vrf:lib/vrf[name='default']/frr-zebra:zebra/ribs/rib[afi-safi-name='frr-routing:ipv4-unicast'][table-id='254']/route[prefix='10.10.10.0/24']"

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 
 	"google.golang.org/grpc"
 
@@ -27,6 +28,12 @@ func (h *CommitCandidateHandler) Execute(
 
 	candidateId := flow["candidateId"].(uint32)
 
+	comment := "workflow commit"
+
+	if rawComment, ok := step.Params["comment"]; ok && rawComment != nil {
+		comment = fmt.Sprint(rawComment)
+	}
+
 	response, err := client.Commit(
 		ctx,
 		&frrpb.CommitRequest{
@@ -34,7 +41,7 @@ func (h *CommitCandidateHandler) Execute(
 
 			Phase: frrpb.CommitRequest_ALL,
 
-			Comment: "static route commit",
+			Comment: comment,
 		},
 	)
 

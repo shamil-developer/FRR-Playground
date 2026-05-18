@@ -32,6 +32,39 @@ go-deps:
 go-run:
 	go run cmd/playground/main.go
 
+workflow:
+	go run cmd/playground/main.go $(FILE)
+
+workflow-01-check:
+	go run cmd/playground/main.go configs/playground/workflows/01-check.yaml
+
+workflow-02-capabilities:
+	go run cmd/playground/main.go configs/playground/workflows/02-capabilities.yaml
+
+workflow-03-interfaces:
+	go run cmd/playground/main.go configs/playground/workflows/03-interfaces.yaml
+
+workflow-04-routes:
+	go run cmd/playground/main.go configs/playground/workflows/04-routes.yaml
+
+workflow-05-vrf:
+	go run cmd/playground/main.go configs/playground/workflows/05-vrf.yaml
+
+workflow-06-prefix-lists:
+	go run cmd/playground/main.go configs/playground/workflows/06-prefix-lists.yaml
+
+workflow-07-route-maps:
+	go run cmd/playground/main.go configs/playground/workflows/07-route-maps.yaml
+
+workflow-all:
+	$(MAKE) workflow-01-check
+	$(MAKE) workflow-02-capabilities
+	$(MAKE) workflow-03-interfaces
+	$(MAKE) workflow-04-routes
+	$(MAKE) workflow-05-vrf
+	$(MAKE) workflow-06-prefix-lists
+	$(MAKE) workflow-07-route-maps
+
 # ╱╱╭╮╱╱╱╱╱╭╮
 # ╱╱┃┃╱╱╱╱╱┃┃
 # ╭━╯┣━━┳━━┫┃╭┳━━┳━╮

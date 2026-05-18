@@ -44,6 +44,12 @@ func (h *GetHandler) Execute(
 		)
 	}
 
+	withDefaults := true
+
+	if rawWithDefaults, ok := step.Params["withDefaults"]; ok {
+		withDefaults = rawWithDefaults.(bool)
+	}
+
 	stream, err := client.Get(
 		ctx,
 		&frrpb.GetRequest{
@@ -51,7 +57,7 @@ func (h *GetHandler) Execute(
 
 			Encoding: frrpb.Encoding_JSON,
 
-			WithDefaults: true,
+			WithDefaults: withDefaults,
 
 			Path: paths,
 		},
