@@ -12,7 +12,7 @@ steps:
       vtysh:
       show vrf
     params:
-      requestType: 0
+      requestType: 1
       path:
         - "/frr-vrf:lib"
   - type: createCandidate
@@ -62,3 +62,86 @@ steps:
       requestType: 1
       path:
         - "/frr-vrf:lib/vrf[name='BLUE']"
+
+  - type: assertJsonExists
+    daemon: zebra
+    description: |
+      5. VRF create assert
+
+      Автоматическая проверка что VRF BLUE
+      появился в running configuration.
+    params:
+      requestType: 1
+      path:
+        - "/frr-vrf:lib/vrf[name='BLUE']"
+      checks:
+        - path: 'frr-vrf:vrf.#(name=="BLUE").name'
+          equals: BLUE
+
+  - type: createCandidate
+    daemon: zebra
+    description: |
+      5. VRF cleanup candidate
+
+      Создание candidate transaction
+      для удаления тестового VRF.
+
+  - type: editCandidate
+    daemon: zebra
+    description: |
+      5. VRF delete BLUE
+
+      Удаление VRF BLUE через northbound API.
+
+      Аналог:
+
+      vtysh:
+      no vrf BLUE
+
+      После этого workflow должен вернуть
+      состояние VRF config обратно.
+    params:
+      delete:
+        - path: "/frr-vrf:lib/vrf[name='BLUE']"
+
+  - type: commitCandidate
+    daemon: zebra
+    description: |
+      5. VRF cleanup commit
+
+      Commit удаления VRF BLUE.
+    params:
+      comment: delete vrf BLUE
+
+  - type: get
+    daemon: zebra
+    description: |
+      5. VRF cleanup verify
+
+      Проверка VRF configuration после cleanup.
+
+      Здесь читается весь VRF tree,
+      чтобы глазами увидеть что BLUE отсутствует.
+
+      Аналог:
+
+      vtysh:
+      show vrf
+    params:
+      requestType: 1
+      path:
+        - "/frr-vrf:lib"
+
+  - type: assertJsonMissing
+    daemon: zebra
+    description: |
+      5. VRF cleanup assert
+
+      Автоматическая проверка что VRF BLUE
+      отсутствует в running configuration после cleanup.
+    params:
+      requestType: 1
+      path:
+        - "/frr-vrf:lib"
+      checks:
+        - path: 'frr-vrf:lib.vrf.#(name=="BLUE").name'

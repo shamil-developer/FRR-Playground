@@ -3,41 +3,40 @@ steps:
   - type: get
     daemon: zebra
     description: |
-      3. Interfaces CONFIG
-
-      Чтение CONFIG interface tree через gRPC.
+      3. Interfaces lo STATE
 
       Аналог:
 
       vtysh:
-      show running-config
-
-      requestType:
-      1 = CONFIG ONLY
-    params:
-      requestType: 1
-      path:
-        - "/frr-interface:lib"
-  - type: get
-    daemon: zebra
-    description: |
-      3. Interfaces STATE
-
-      Чтение operational state конкретного interface.
-
-      Аналог:
-
-      vtysh:
-      show interface eth0 json
+      show interface lo json
 
       requestType:
       2 = STATE ONLY
 
-      Важно:
-      весь /frr-interface:lib в текущем FRR может падать
-      на одном из kernel/tunnel interfaces, поэтому для
-      рабочей проверки читается конкретный eth0.
+      Это основной аналог show interface
+      через gRPC/YANG tree.
+
+      Для переносимости используется loopback interface lo,
+      потому что он есть практически в любом Linux/container
+      окружении.
     params:
       requestType: 2
       path:
-        - "/frr-interface:lib/interface[name='eth0']/state"
+        - "/frr-interface:lib/interface[name='lo']/state"
+
+  - type: assertJsonExists
+    daemon: zebra
+    description: |
+      3. Interfaces lo STATE assert
+
+      Проверка что gRPC реально вернул lo
+      и основные operational state поля interface.
+    params:
+      requestType: 2
+      path:
+        - "/frr-interface:lib/interface[name='lo']/state"
+      checks:
+        - path: 'frr-interface:lib.interface.#(name=="lo").name'
+          equals: lo
+        - path: 'frr-interface:lib.interface.#(name=="lo").state.if-index'
+        - path: 'frr-interface:lib.interface.#(name=="lo").state.mtu'

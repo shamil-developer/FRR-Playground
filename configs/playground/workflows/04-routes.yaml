@@ -203,40 +203,6 @@ steps:
             "vrf": "default",
             "interface": ""
             }
-  - type: get
-    daemon: staticd
-    description: |
-      STEP 9
-
-      Проверка candidate/static route
-      до commit.
-
-      Используется чтобы проверить:
-        - появился ли route-list
-        - появился ли path-list
-        - появился ли nexthop
-        - candidate configuration
-
-      Это CONFIG tree,
-      а не operational RIB.
-
-      Аналог через vtysh:
-
-      show running-config
-
-      requestType:
-      1 = CONFIG ONLY
-
-      Важно:
-      FRR mgmtd нестабильно работает
-      с deep subtree lookups.
-
-      Поэтому читается весь:
-      control-plane-protocols tree.
-    params:
-      requestType: 1
-      path:
-        - "/frr-routing:routing/control-plane-protocols"
   - type: commitCandidate
     daemon: staticd
     description: |
@@ -298,6 +264,31 @@ steps:
       requestType: 1
       path:
         - "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list"
+
+  - type: assertJsonExists
+    daemon: staticd
+    description: |
+      STEP 11.1
+
+      Автоматическая проверка static route
+      в running configuration после commit.
+
+      Проверяет:
+        - prefix
+        - distance
+        - nexthop gateway
+    params:
+      requestType: 1
+      path:
+        - "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list"
+      checks:
+        - path: 'frr-staticd:route-list.#(prefix=="10.10.10.0/24").prefix'
+          equals: 10.10.10.0/24
+        - path: 'frr-staticd:route-list.#(prefix=="10.10.10.0/24").path-list.0.distance'
+          equals: "1"
+        - path: 'frr-staticd:route-list.#(prefix=="10.10.10.0/24").path-list.0.frr-nexthops.nexthop.0.gateway'
+          equals: 192.168.1.1
+
   - type: sleep
     daemon: zebra
     description: |
@@ -328,3 +319,140 @@ steps:
       withDefaults: false
       path:
         - "/frr-vrf:lib/vrf[name='default']/frr-zebra:zebra/ribs/rib[afi-safi-name='frr-routing:ipv4-unicast'][table-id='254']/route[prefix='10.10.10.0/24']"
+
+  - type: assertJsonExists
+    daemon: zebra
+    description: |
+      STEP 13.1
+
+      Автоматическая проверка static route
+      в operational RIB zebra после commit.
+
+      Проверяет:
+        - prefix
+        - protocol static
+    params:
+      requestType: 2
+      withDefaults: false
+      path:
+        - "/frr-vrf:lib/vrf[name='default']/frr-zebra:zebra/ribs/rib[afi-safi-name='frr-routing:ipv4-unicast'][table-id='254']/route[prefix='10.10.10.0/24']"
+      checks:
+        - path: 'frr-vrf:lib.vrf.#(name=="default").frr-zebra:zebra.ribs.rib.#(afi-safi-name=="frr-routing:ipv4-unicast").route.#(prefix=="10.10.10.0/24").prefix'
+          equals: 10.10.10.0/24
+        - path: 'frr-vrf:lib.vrf.#(name=="default").frr-zebra:zebra.ribs.rib.#(afi-safi-name=="frr-routing:ipv4-unicast").route.#(prefix=="10.10.10.0/24").route-entry.0.protocol'
+          equals: static
+
+  - type: createCandidate
+    daemon: staticd
+    description: |
+      STEP 14
+
+      Создание candidate configuration session
+      для cleanup static route.
+
+  - type: editCandidate
+    daemon: staticd
+    description: |
+      STEP 15
+
+      Удаление static route из running configuration.
+
+      Аналог через vtysh:
+
+      configure terminal
+      no ip route 10.10.10.0/24 192.168.1.1
+
+      Удаляется весь route-list для тестового prefix,
+      чтобы после workflow состояние вернулось обратно.
+    params:
+      delete:
+        - path: "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.10.10.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']"
+
+  - type: commitCandidate
+    daemon: staticd
+    description: |
+      STEP 16
+
+      Commit удаления static route.
+    params:
+      comment: delete static route
+
+  - type: get
+    daemon: staticd
+    description: |
+      STEP 17
+
+      Проверка running configuration после cleanup.
+
+      Здесь читается весь control-plane-protocols tree,
+      чтобы глазами увидеть что route-list 10.10.10.0/24
+      больше не находится в staticd config.
+
+      Аналог через vtysh:
+
+      show running-config
+    params:
+      requestType: 1
+      path:
+        - "/frr-routing:routing/control-plane-protocols"
+
+  - type: assertJsonMissing
+    daemon: staticd
+    description: |
+      STEP 17.1
+
+      Автоматическая проверка что static route
+      отсутствует в running configuration после cleanup.
+    params:
+      requestType: 1
+      path:
+        - "/frr-routing:routing/control-plane-protocols"
+      checks:
+        - path: 'frr-routing:control-plane-protocols.control-plane-protocol.#(name=="staticd").frr-staticd:staticd.route-list.#(prefix=="10.10.10.0/24").prefix'
+
+  - type: sleep
+    daemon: zebra
+    description: |
+      STEP 18
+
+      Небольшая пауза, чтобы staticd успел
+      убрать route из zebra RIB.
+    params:
+      seconds: 1
+
+  - type: get
+    daemon: zebra
+    description: |
+      STEP 19
+
+      Проверка operational RIB после cleanup.
+
+      Здесь читается весь IPv4 unicast RIB default VRF,
+      чтобы глазами увидеть что тестовый prefix
+      10.10.10.0/24 больше не установлен.
+
+      Аналог:
+
+      vtysh:
+      show ip route
+      show ip route json
+    params:
+      requestType: 2
+      withDefaults: false
+      path:
+        - "/frr-vrf:lib/vrf[name='default']/frr-zebra:zebra/ribs/rib[afi-safi-name='frr-routing:ipv4-unicast'][table-id='254']"
+
+  - type: assertJsonMissing
+    daemon: zebra
+    description: |
+      STEP 19.1
+
+      Автоматическая проверка что static route
+      отсутствует в operational RIB zebra после cleanup.
+    params:
+      requestType: 2
+      withDefaults: false
+      path:
+        - "/frr-vrf:lib/vrf[name='default']/frr-zebra:zebra/ribs/rib[afi-safi-name='frr-routing:ipv4-unicast'][table-id='254']"
+      checks:
+        - path: 'frr-vrf:lib.vrf.#(name=="default").frr-zebra:zebra.ribs.rib.#(afi-safi-name=="frr-routing:ipv4-unicast").route.#(prefix=="10.10.10.0/24").prefix'
