@@ -120,6 +120,28 @@ steps:
       requestType: 1
       path:
         - "/frr-filter:lib"
+
+  - type: assertJsonExists
+    daemon: zebra
+    description: |
+      STEP 16.1
+
+      Автоматическая проверка что prefix-list TEST7
+      и permit entry 70 появились в running configuration.
+    params:
+      requestType: 1
+      path:
+        - "/frr-filter:lib"
+      checks:
+        - path: 'frr-filter:lib.prefix-list.#(name=="TEST7").name'
+          equals: TEST7
+        - path: 'frr-filter:lib.prefix-list.#(name=="TEST7").entry.#(sequence==70).action'
+          equals: permit
+        - path: 'frr-filter:lib.prefix-list.#(name=="TEST7").entry.#(sequence==70).ipv4-prefix'
+          equals: 70.70.0.0/16
+        - path: 'frr-filter:lib.prefix-list.#(name=="TEST7").entry.#(sequence==70).ipv4-prefix-length-lesser-or-equal'
+          equals: "32"
+
   - type: createCandidate
     daemon: zebra
     description: |
@@ -173,6 +195,26 @@ steps:
       requestType: 1
       path:
         - "/frr-filter:lib"
+
+  - type: assertJsonExists
+    daemon: zebra
+    description: |
+      STEP 20.1
+
+      Автоматическая проверка что deny entry 80
+      появился в prefix-list TEST7.
+    params:
+      requestType: 1
+      path:
+        - "/frr-filter:lib"
+      checks:
+        - path: 'frr-filter:lib.prefix-list.#(name=="TEST7").entry.#(sequence==80).action'
+          equals: deny
+        - path: 'frr-filter:lib.prefix-list.#(name=="TEST7").entry.#(sequence==80).ipv4-prefix'
+          equals: 80.80.0.0/16
+        - path: 'frr-filter:lib.prefix-list.#(name=="TEST7").entry.#(sequence==80).ipv4-prefix-length-lesser-or-equal'
+          equals: "32"
+
   - type: createCandidate
     daemon: zebra
     description: |
@@ -221,6 +263,21 @@ steps:
       requestType: 1
       path:
         - "/frr-filter:lib"
+
+  - type: assertJsonMissing
+    daemon: zebra
+    description: |
+      STEP 24.1
+
+      Автоматическая проверка что deny entry 80
+      удалился из prefix-list TEST7.
+    params:
+      requestType: 1
+      path:
+        - "/frr-filter:lib"
+      checks:
+        - path: 'frr-filter:lib.prefix-list.#(name=="TEST7").entry.#(sequence==80).sequence'
+
   - type: createCandidate
     daemon: zebra
     description: |
@@ -268,3 +325,17 @@ steps:
       requestType: 1
       path:
         - "/frr-filter:lib"
+
+  - type: assertJsonMissing
+    daemon: zebra
+    description: |
+      STEP 28.1
+
+      Автоматическая проверка что prefix-list TEST7
+      полностью отсутствует после cleanup.
+    params:
+      requestType: 1
+      path:
+        - "/frr-filter:lib"
+      checks:
+        - path: 'frr-filter:lib.prefix-list.#(name=="TEST7").name'
