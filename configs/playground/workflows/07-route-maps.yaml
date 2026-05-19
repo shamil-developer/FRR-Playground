@@ -966,3 +966,236 @@ steps:
         - "/frr-route-map:lib"
       checks:
         - path: 'frr-route-map:lib.route-map.#(name=="TEST").name'
+
+  - type: createCandidate
+    daemon: zebra
+    description: |
+      STEP 56
+
+      Extra route-map candidate.
+
+      ✅ Аналог:
+      vtysh:
+      route-map TEST-EXTRA permit 10
+       match interface lo
+       match metric 100
+       match ip address TEST
+       match ipv6 address prefix-list TEST6
+       set ip next-hop 192.0.2.254
+       set tag 100
+    params: {}
+
+  - type: editCandidate
+    daemon: zebra
+    description: |
+      STEP 57
+      Create route-map TEST-EXTRA with extra generic match/set rules.
+    params:
+      update:
+        - path: "/frr-route-map:lib/route-map[name='TEST-EXTRA']/entry[sequence='10']/action"
+          value: permit
+        - path: "/frr-route-map:lib/route-map[name='TEST-EXTRA']/entry[sequence='10']/match-condition[condition='frr-route-map:interface']/rmap-match-condition/interface"
+          value: lo
+        - path: "/frr-route-map:lib/route-map[name='TEST-EXTRA']/entry[sequence='10']/match-condition[condition='frr-route-map:match-metric']/rmap-match-condition/metric"
+          value: '100'
+        - path: "/frr-route-map:lib/route-map[name='TEST-EXTRA']/entry[sequence='10']/match-condition[condition='frr-route-map:ipv4-address-list']/rmap-match-condition/list-name"
+          value: TEST
+        - path: "/frr-route-map:lib/route-map[name='TEST-EXTRA']/entry[sequence='10']/match-condition[condition='frr-route-map:ipv6-prefix-list']/rmap-match-condition/list-name"
+          value: TEST6
+        - path: "/frr-route-map:lib/route-map[name='TEST-EXTRA']/entry[sequence='10']/set-action[action='frr-route-map:ipv4-next-hop']/rmap-set-action/ipv4-address"
+          value: 192.0.2.254
+        - path: "/frr-route-map:lib/route-map[name='TEST-EXTRA']/entry[sequence='10']/set-action[action='frr-route-map:set-tag']/rmap-set-action/tag"
+          value: '100'
+
+  - type: commitCandidate
+    daemon: zebra
+    description: |
+      STEP 58
+      Commit route-map TEST-EXTRA.
+    params:
+      comment: add route-map TEST-EXTRA extra generic rules
+
+  - type: get
+    daemon: zebra
+    description: |
+      STEP 59
+
+      ✅ Аналог:
+      vtysh:
+      show route-map json
+    params:
+      requestType: 1
+      path:
+        - "/frr-route-map:lib"
+
+  - type: assertJsonExists
+    daemon: zebra
+    description: |
+      STEP 59.1
+      Assert route-map TEST-EXTRA generic rules.
+    params:
+      requestType: 1
+      path:
+        - "/frr-route-map:lib"
+      checks:
+        - path: 'frr-route-map:lib.route-map.#(name=="TEST-EXTRA").entry.#(sequence==10).match-condition.#(condition=="interface").rmap-match-condition.interface'
+          equals: lo
+        - path: 'frr-route-map:lib.route-map.#(name=="TEST-EXTRA").entry.#(sequence==10).match-condition.#(condition=="match-metric").rmap-match-condition.metric'
+          equals: "100"
+        - path: 'frr-route-map:lib.route-map.#(name=="TEST-EXTRA").entry.#(sequence==10).set-action.#(action=="ipv4-next-hop").rmap-set-action.ipv4-address'
+          equals: 192.0.2.254
+        - path: 'frr-route-map:lib.route-map.#(name=="TEST-EXTRA").entry.#(sequence==10).set-action.#(action=="set-tag").rmap-set-action.tag'
+          equals: "100"
+
+  - type: createCandidate
+    daemon: bgpd
+    description: |
+      STEP 60
+
+      BGP route-map extension candidate.
+
+      ✅ Аналог:
+      vtysh:
+      route-map TEST-BGP permit 10
+       match community TEST
+       match as-path TEST
+       set local-preference 200
+       set community 65001:100
+       set weight 100
+       set origin igp
+    params: {}
+
+  - type: editCandidate
+    daemon: bgpd
+    description: |
+      STEP 61
+      Create bgpd route-map TEST-BGP with BGP-specific extensions.
+    params:
+      update:
+        - path: "/frr-route-map:lib/route-map[name='TEST-BGP']/entry[sequence='10']/action"
+          value: permit
+        - path: "/frr-route-map:lib/route-map[name='TEST-BGP']/entry[sequence='10']/match-condition[condition='frr-bgp-route-map:match-community']/rmap-match-condition/frr-bgp-route-map:comm-list/comm-list-name"
+          value: TEST
+        - path: "/frr-route-map:lib/route-map[name='TEST-BGP']/entry[sequence='10']/match-condition[condition='frr-bgp-route-map:as-path-list']/rmap-match-condition/frr-bgp-route-map:list-name"
+          value: TEST
+        - path: "/frr-route-map:lib/route-map[name='TEST-BGP']/entry[sequence='10']/set-action[action='frr-bgp-route-map:set-local-preference']/rmap-set-action/frr-bgp-route-map:local-pref"
+          value: '200'
+        - path: "/frr-route-map:lib/route-map[name='TEST-BGP']/entry[sequence='10']/set-action[action='frr-bgp-route-map:set-community']/rmap-set-action/frr-bgp-route-map:community-string"
+          value: 65001:100
+        - path: "/frr-route-map:lib/route-map[name='TEST-BGP']/entry[sequence='10']/set-action[action='frr-bgp-route-map:weight']/rmap-set-action/frr-bgp-route-map:weight"
+          value: '100'
+        - path: "/frr-route-map:lib/route-map[name='TEST-BGP']/entry[sequence='10']/set-action[action='frr-bgp-route-map:set-origin']/rmap-set-action/frr-bgp-route-map:origin"
+          value: igp
+
+  - type: commitCandidate
+    daemon: bgpd
+    description: |
+      STEP 62
+      Commit bgpd route-map TEST-BGP.
+    params:
+      comment: add bgpd route-map extensions
+
+  - type: get
+    daemon: bgpd
+    description: |
+      STEP 63
+      Read bgpd route-map extensions.
+    params:
+      requestType: 1
+      path:
+        - "/frr-route-map:lib"
+
+  - type: assertJsonExists
+    daemon: bgpd
+    description: |
+      STEP 63.1
+      Assert bgpd route-map extensions.
+    params:
+      requestType: 1
+      path:
+        - "/frr-route-map:lib"
+      checks:
+        - path: 'frr-route-map:lib.route-map.#(name=="TEST-BGP").entry.#(sequence==10).match-condition.#(condition=="frr-bgp-route-map:match-community").rmap-match-condition.frr-bgp-route-map:comm-list.comm-list-name'
+          equals: TEST
+        - path: 'frr-route-map:lib.route-map.#(name=="TEST-BGP").entry.#(sequence==10).match-condition.#(condition=="frr-bgp-route-map:as-path-list").rmap-match-condition.frr-bgp-route-map:list-name'
+          equals: TEST
+        - path: 'frr-route-map:lib.route-map.#(name=="TEST-BGP").entry.#(sequence==10).set-action.#(action=="frr-bgp-route-map:set-local-preference").rmap-set-action.frr-bgp-route-map:local-pref'
+          equals: "200"
+        - path: 'frr-route-map:lib.route-map.#(name=="TEST-BGP").entry.#(sequence==10).set-action.#(action=="frr-bgp-route-map:set-community").rmap-set-action.frr-bgp-route-map:community-string'
+          equals: 65001:100
+        - path: 'frr-route-map:lib.route-map.#(name=="TEST-BGP").entry.#(sequence==10).set-action.#(action=="frr-bgp-route-map:weight").rmap-set-action.frr-bgp-route-map:weight'
+          equals: 100
+        - path: 'frr-route-map:lib.route-map.#(name=="TEST-BGP").entry.#(sequence==10).set-action.#(action=="frr-bgp-route-map:set-origin").rmap-set-action.frr-bgp-route-map:origin'
+          equals: igp
+
+  - type: createCandidate
+    daemon: bgpd
+    description: |
+      STEP 64
+      Cleanup bgpd route-map TEST-BGP candidate.
+    params: {}
+
+  - type: editCandidate
+    daemon: bgpd
+    description: |
+      STEP 65
+      Cleanup bgpd route-map TEST-BGP.
+    params:
+      delete:
+        - path: "/frr-route-map:lib/route-map[name='TEST-BGP']"
+
+  - type: commitCandidate
+    daemon: bgpd
+    description: |
+      STEP 66
+      Commit cleanup bgpd route-map TEST-BGP.
+    params:
+      comment: cleanup bgpd route-map extensions
+
+  - type: assertJsonMissing
+    daemon: bgpd
+    description: |
+      STEP 66.1
+      Assert bgpd route-map TEST-BGP removed.
+    params:
+      requestType: 1
+      path:
+        - "/frr-route-map:lib"
+      checks:
+        - path: 'frr-route-map:lib.route-map.#(name=="TEST-BGP").name'
+
+  - type: createCandidate
+    daemon: zebra
+    description: |
+      STEP 67
+      Cleanup route-map TEST-EXTRA candidate.
+    params: {}
+
+  - type: editCandidate
+    daemon: zebra
+    description: |
+      STEP 68
+      Cleanup route-map TEST-EXTRA.
+    params:
+      delete:
+        - path: "/frr-route-map:lib/route-map[name='TEST-EXTRA']"
+
+  - type: commitCandidate
+    daemon: zebra
+    description: |
+      STEP 69
+      Commit cleanup route-map TEST-EXTRA.
+    params:
+      comment: cleanup route-map TEST-EXTRA
+
+  - type: assertJsonMissing
+    daemon: zebra
+    description: |
+      STEP 69.1
+      Assert route-map TEST-EXTRA removed.
+    params:
+      requestType: 1
+      path:
+        - "/frr-route-map:lib"
+      checks:
+        - path: 'frr-route-map:lib.route-map.#(name=="TEST-EXTRA").name'

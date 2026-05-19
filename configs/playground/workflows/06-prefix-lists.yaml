@@ -89,6 +89,7 @@ steps:
       configure terminal
 
       ip prefix-list TEST7 seq 70 permit 70.70.0.0/16 le 32
+      ip prefix-list TEST7 seq 90 permit 90.90.0.0/16 ge 24 le 32
 
       Важно:
       FRR mgmtd/northbound
@@ -140,6 +141,14 @@ steps:
         - path: "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']/entry[sequence='70']/ipv4-prefix"
           value: 70.70.0.0/16
         - path: "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']/entry[sequence='70']/ipv4-prefix-length-lesser-or-equal"
+          value: '32'
+        - path: "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']/entry[sequence='90']/action"
+          value: permit
+        - path: "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']/entry[sequence='90']/ipv4-prefix"
+          value: 90.90.0.0/16
+        - path: "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']/entry[sequence='90']/ipv4-prefix-length-greater-or-equal"
+          value: '24'
+        - path: "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']/entry[sequence='90']/ipv4-prefix-length-lesser-or-equal"
           value: '32'
   - type: commitCandidate
     daemon: zebra
@@ -230,7 +239,7 @@ steps:
       STEP 16.1
 
       Автоматическая проверка что prefix-list TEST7
-      и permit entry 70 появились в running configuration.
+      и permit entries 70/90 появились в running configuration.
 
 
       Демон: zebra
@@ -259,6 +268,14 @@ steps:
         - path: 'frr-filter:lib.prefix-list.#(name=="TEST7").entry.#(sequence==70).ipv4-prefix'
           equals: 70.70.0.0/16
         - path: 'frr-filter:lib.prefix-list.#(name=="TEST7").entry.#(sequence==70).ipv4-prefix-length-lesser-or-equal'
+          equals: "32"
+        - path: 'frr-filter:lib.prefix-list.#(name=="TEST7").entry.#(sequence==90).action'
+          equals: permit
+        - path: 'frr-filter:lib.prefix-list.#(name=="TEST7").entry.#(sequence==90).ipv4-prefix'
+          equals: 90.90.0.0/16
+        - path: 'frr-filter:lib.prefix-list.#(name=="TEST7").entry.#(sequence==90).ipv4-prefix-length-greater-or-equal'
+          equals: "24"
+        - path: 'frr-filter:lib.prefix-list.#(name=="TEST7").entry.#(sequence==90).ipv4-prefix-length-lesser-or-equal'
           equals: "32"
 
   - type: createCandidate
@@ -760,3 +777,137 @@ steps:
         - "/frr-filter:lib"
       checks:
         - path: 'frr-filter:lib.prefix-list.#(name=="TEST7").name'
+
+  - type: createCandidate
+    daemon: zebra
+    description: |
+      STEP 29
+
+      Extra filter candidate.
+
+      ✅ Аналог:
+      vtysh:
+      ipv6 prefix-list TEST6 seq 10 permit 2001:db8::/32 le 64
+      ip access-list standard TEST
+       permit 10.0.0.0/8
+      access-list 10 permit 10.0.0.0/8
+    params: {}
+
+  - type: editCandidate
+    daemon: zebra
+    description: |
+      STEP 30
+      Create IPv6 prefix-list and access-lists.
+    params:
+      update:
+        - path: "/frr-filter:lib/prefix-list[type='ipv6'][name='TEST6']"
+        - path: "/frr-filter:lib/prefix-list[type='ipv6'][name='TEST6']/entry[sequence='10']/action"
+          value: permit
+        - path: "/frr-filter:lib/prefix-list[type='ipv6'][name='TEST6']/entry[sequence='10']/ipv6-prefix"
+          value: 2001:db8::/32
+        - path: "/frr-filter:lib/prefix-list[type='ipv6'][name='TEST6']/entry[sequence='10']/ipv6-prefix-length-lesser-or-equal"
+          value: '64'
+        - path: "/frr-filter:lib/access-list[type='ipv4'][name='TEST']/entry[sequence='10']/action"
+          value: permit
+        - path: "/frr-filter:lib/access-list[type='ipv4'][name='TEST']/entry[sequence='10']/network/address"
+          value: 10.0.0.0
+        - path: "/frr-filter:lib/access-list[type='ipv4'][name='TEST']/entry[sequence='10']/network/mask"
+          value: 0.255.255.255
+        - path: "/frr-filter:lib/access-list[type='ipv4'][name='10']/entry[sequence='10']/action"
+          value: permit
+        - path: "/frr-filter:lib/access-list[type='ipv4'][name='10']/entry[sequence='10']/network/address"
+          value: 10.0.0.0
+        - path: "/frr-filter:lib/access-list[type='ipv4'][name='10']/entry[sequence='10']/network/mask"
+          value: 0.255.255.255
+
+  - type: commitCandidate
+    daemon: zebra
+    description: |
+      STEP 31
+      Commit extra filter config.
+    params:
+      comment: add ipv6 prefix-list and access-lists
+
+  - type: get
+    daemon: zebra
+    description: |
+      STEP 32
+
+      ✅ Аналог:
+      vtysh:
+      show ipv6 prefix-list
+      show access-list
+      show ip prefix-list detail
+    params:
+      requestType: 1
+      path:
+        - "/frr-filter:lib"
+
+  - type: assertJsonExists
+    daemon: zebra
+    description: |
+      STEP 32.1
+      Assert extra filter config.
+    params:
+      requestType: 1
+      path:
+        - "/frr-filter:lib"
+      checks:
+        - path: 'frr-filter:lib.prefix-list.#(name=="TEST6").entry.#(sequence==10).ipv6-prefix'
+          equals: 2001:db8::/32
+        - path: 'frr-filter:lib.prefix-list.#(name=="TEST6").entry.#(sequence==10).ipv6-prefix-length-lesser-or-equal'
+          equals: "64"
+        - path: 'frr-filter:lib.access-list.#(name=="TEST").entry.#(sequence==10).network.address'
+          equals: 10.0.0.0
+        - path: 'frr-filter:lib.access-list.#(name=="10").entry.#(sequence==10).network.address'
+          equals: 10.0.0.0
+
+  - type: createCandidate
+    daemon: zebra
+    description: |
+      STEP 33
+      Cleanup extra filter candidate.
+    params: {}
+
+  - type: editCandidate
+    daemon: zebra
+    description: |
+      STEP 34
+      Cleanup extra filter config.
+    params:
+      delete:
+        - path: "/frr-filter:lib/prefix-list[type='ipv6'][name='TEST6']"
+        - path: "/frr-filter:lib/access-list[type='ipv4'][name='TEST']"
+        - path: "/frr-filter:lib/access-list[type='ipv4'][name='10']"
+
+  - type: commitCandidate
+    daemon: zebra
+    description: |
+      STEP 35
+      Commit cleanup extra filter config.
+    params:
+      comment: cleanup ipv6 prefix-list and access-lists
+
+  - type: get
+    daemon: zebra
+    description: |
+      STEP 36
+      Read filter config after cleanup.
+    params:
+      requestType: 1
+      path:
+        - "/frr-filter:lib"
+
+  - type: assertJsonMissing
+    daemon: zebra
+    description: |
+      STEP 36.1
+      Assert extra filter config removed.
+    params:
+      requestType: 1
+      path:
+        - "/frr-filter:lib"
+      checks:
+        - path: 'frr-filter:lib.prefix-list.#(name=="TEST6").name'
+        - path: 'frr-filter:lib.access-list.#(name=="TEST").name'
+        - path: 'frr-filter:lib.access-list.#(name=="10").name'

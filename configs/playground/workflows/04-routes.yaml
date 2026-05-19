@@ -410,9 +410,9 @@ steps:
       1 = CONFIG ONLY
 
       Важно:
-      Используется конкретный subtree path,
-      потому что FRR mgmtd иногда не показывает
-      nested objects на верхнем уровне tree.
+      Читается control-plane-protocols tree,
+      потому что direct route-list subtree path
+      в FRR mgmtd/staticd может быть нестабилен.
 
 
       Демон: staticd
@@ -432,14 +432,14 @@ steps:
         "type": "CONFIG",
         "encoding": "JSON",
         "path": [
-          "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list"
+          "/frr-routing:routing/control-plane-protocols"
         ]
       }
       JSON
     params:
       requestType: 1
       path:
-        - "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list"
+        - "/frr-routing:routing/control-plane-protocols"
 
   - type: assertJsonExists
     daemon: staticd
@@ -473,13 +473,13 @@ steps:
     params:
       requestType: 1
       path:
-        - "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list"
+        - "/frr-routing:routing/control-plane-protocols"
       checks:
-        - path: 'frr-staticd:route-list.#(prefix=="10.10.10.0/24").prefix'
+        - path: 'frr-routing:control-plane-protocols.control-plane-protocol.#(name=="staticd").frr-staticd:staticd.route-list.#(prefix=="10.10.10.0/24").prefix'
           equals: 10.10.10.0/24
-        - path: 'frr-staticd:route-list.#(prefix=="10.10.10.0/24").path-list.0.distance'
-          equals: "1"
-        - path: 'frr-staticd:route-list.#(prefix=="10.10.10.0/24").path-list.0.frr-nexthops.nexthop.0.gateway'
+        - path: 'frr-routing:control-plane-protocols.control-plane-protocol.#(name=="staticd").frr-staticd:staticd.route-list.#(prefix=="10.10.10.0/24").path-list.0.distance'
+          equals: 1
+        - path: 'frr-routing:control-plane-protocols.control-plane-protocol.#(name=="staticd").frr-staticd:staticd.route-list.#(prefix=="10.10.10.0/24").path-list.0.frr-nexthops.nexthop.0.gateway'
           equals: 192.168.1.1
 
   - type: sleep
@@ -862,3 +862,206 @@ steps:
         - "/frr-vrf:lib/vrf[name='default']/frr-zebra:zebra/ribs/rib[afi-safi-name='frr-routing:ipv4-unicast'][table-id='254']"
       checks:
         - path: 'frr-vrf:lib.vrf.#(name=="default").frr-zebra:zebra.ribs.rib.#(afi-safi-name=="frr-routing:ipv4-unicast").route.#(prefix=="10.10.10.0/24").prefix'
+
+  - type: createCandidate
+    daemon: staticd
+    description: |
+      STEP 20
+
+      Extra static routes candidate.
+
+      ✅ Аналог:
+      vtysh:
+      ip route 10.20.20.0/24 192.168.1.1 10
+      ip route 10.30.30.0/24 192.168.1.1 tag 100
+      ipv6 route 2001:db8:100::/64 2001:db8::1
+    params: {}
+
+  - type: editCandidate
+    daemon: staticd
+    description: |
+      STEP 21
+
+      Создание дополнительных IPv4/IPv6 static routes.
+    params:
+      update:
+        - path: "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.20.20.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']"
+          value: |
+            {
+            "prefix": "10.20.20.0/24",
+            "src-prefix": "::/0",
+            "afi-safi": "frr-routing:ipv4-unicast"
+            }
+        - path: "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.20.20.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']/path-list[table-id='0'][distance='10']"
+          value: |
+            {
+            "table-id": 0,
+            "distance": 10,
+            "tag": 0
+            }
+        - path: "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.20.20.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']/path-list[table-id='0'][distance='10']/frr-nexthops/nexthop[nh-type='ip4'][gateway='192.168.1.1'][vrf='default'][interface='']"
+          value: |
+            {
+            "nh-type": "ip4",
+            "gateway": "192.168.1.1",
+            "vrf": "default",
+            "interface": ""
+            }
+        - path: "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.30.30.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']"
+          value: |
+            {
+            "prefix": "10.30.30.0/24",
+            "src-prefix": "::/0",
+            "afi-safi": "frr-routing:ipv4-unicast"
+            }
+        - path: "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.30.30.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']/path-list[table-id='0'][distance='1']"
+          value: |
+            {
+            "table-id": 0,
+            "distance": 1
+            }
+        - path: "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.30.30.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']/path-list[table-id='0'][distance='1']/tag"
+          value: "100"
+        - path: "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.30.30.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']/path-list[table-id='0'][distance='1']/frr-nexthops/nexthop[nh-type='ip4'][gateway='192.168.1.1'][vrf='default'][interface='']"
+          value: |
+            {
+            "nh-type": "ip4",
+            "gateway": "192.168.1.1",
+            "vrf": "default",
+            "interface": ""
+            }
+        - path: "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='2001:db8:100::/64'][src-prefix='::/0'][afi-safi='frr-routing:ipv6-unicast']"
+          value: |
+            {
+            "prefix": "2001:db8:100::/64",
+            "src-prefix": "::/0",
+            "afi-safi": "frr-routing:ipv6-unicast"
+            }
+        - path: "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='2001:db8:100::/64'][src-prefix='::/0'][afi-safi='frr-routing:ipv6-unicast']/path-list[table-id='0'][distance='1']"
+          value: |
+            {
+            "table-id": 0,
+            "distance": 1,
+            "tag": 0
+            }
+        - path: "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='2001:db8:100::/64'][src-prefix='::/0'][afi-safi='frr-routing:ipv6-unicast']/path-list[table-id='0'][distance='1']/frr-nexthops/nexthop[nh-type='ip6'][gateway='2001:db8::1'][vrf='default'][interface='']"
+          value: |
+            {
+            "nh-type": "ip6",
+            "gateway": "2001:db8::1",
+            "vrf": "default",
+            "interface": ""
+            }
+
+  - type: commitCandidate
+    daemon: staticd
+    description: |
+      STEP 22
+      Commit extra static routes.
+    params:
+      comment: add extra static routes
+
+  - type: get
+    daemon: staticd
+    description: |
+      STEP 23
+
+      ✅ Аналог:
+      vtysh:
+      show running-config
+    params:
+      requestType: 1
+      path:
+        - "/frr-routing:routing/control-plane-protocols"
+
+  - type: assertJsonExists
+    daemon: staticd
+    description: |
+      STEP 23.1
+      Assert extra static routes in config.
+    params:
+      requestType: 1
+      path:
+        - "/frr-routing:routing/control-plane-protocols"
+      checks:
+        - path: 'frr-routing:control-plane-protocols.control-plane-protocol.#(name=="staticd").frr-staticd:staticd.route-list.#(prefix=="10.20.20.0/24").path-list.0.distance'
+          equals: 10
+        - path: 'frr-routing:control-plane-protocols.control-plane-protocol.#(name=="staticd").frr-staticd:staticd.route-list.#(prefix=="10.30.30.0/24").path-list.0.tag'
+          equals: 100
+        - path: 'frr-routing:control-plane-protocols.control-plane-protocol.#(name=="staticd").frr-staticd:staticd.route-list.#(prefix=="2001:db8:100::/64").path-list.0.frr-nexthops.nexthop.0.gateway'
+          equals: 2001:db8::1
+
+  - type: sleep
+    daemon: zebra
+    description: |
+      STEP 24
+      Wait for zebra RIB update.
+    params:
+      seconds: 1
+
+  - type: get
+    daemon: zebra
+    description: |
+      STEP 25
+
+      ✅ Аналог:
+      vtysh:
+      show ip route static
+      show ipv6 route
+      show ipv6 route json
+    params:
+      requestType: 2
+      withDefaults: false
+      path:
+        - "/frr-vrf:lib/vrf[name='default']/frr-zebra:zebra/ribs"
+
+  - type: createCandidate
+    daemon: staticd
+    description: |
+      STEP 26
+      Cleanup extra static routes candidate.
+    params: {}
+
+  - type: editCandidate
+    daemon: staticd
+    description: |
+      STEP 27
+
+      Cleanup extra static routes.
+    params:
+      delete:
+        - path: "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.20.20.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']"
+        - path: "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.30.30.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']"
+        - path: "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='2001:db8:100::/64'][src-prefix='::/0'][afi-safi='frr-routing:ipv6-unicast']"
+
+  - type: commitCandidate
+    daemon: staticd
+    description: |
+      STEP 28
+      Commit cleanup extra static routes.
+    params:
+      comment: cleanup extra static routes
+
+  - type: get
+    daemon: staticd
+    description: |
+      STEP 29
+      Read config after extra route cleanup.
+    params:
+      requestType: 1
+      path:
+        - "/frr-routing:routing/control-plane-protocols"
+
+  - type: assertJsonMissing
+    daemon: staticd
+    description: |
+      STEP 29.1
+      Assert extra static routes removed.
+    params:
+      requestType: 1
+      path:
+        - "/frr-routing:routing/control-plane-protocols"
+      checks:
+        - path: 'frr-routing:control-plane-protocols.control-plane-protocol.#(name=="staticd").frr-staticd:staticd.route-list.#(prefix=="10.20.20.0/24").prefix'
+        - path: 'frr-routing:control-plane-protocols.control-plane-protocol.#(name=="staticd").frr-staticd:staticd.route-list.#(prefix=="10.30.30.0/24").prefix'
+        - path: 'frr-routing:control-plane-protocols.control-plane-protocol.#(name=="staticd").frr-staticd:staticd.route-list.#(prefix=="2001:db8:100::/64").prefix'

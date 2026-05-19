@@ -29,9 +29,26 @@ func (h *CommitCandidateHandler) Execute(
 	candidateId := flow["candidateId"].(uint32)
 
 	comment := "workflow commit"
+	phase := frrpb.CommitRequest_ALL
 
 	if rawComment, ok := step.Params["comment"]; ok && rawComment != nil {
 		comment = fmt.Sprint(rawComment)
+	}
+	if rawPhase, ok := step.Params["phase"]; ok && rawPhase != nil {
+		switch fmt.Sprint(rawPhase) {
+		case "VALIDATE":
+			phase = frrpb.CommitRequest_VALIDATE
+		case "PREPARE":
+			phase = frrpb.CommitRequest_PREPARE
+		case "ABORT":
+			phase = frrpb.CommitRequest_ABORT
+		case "APPLY":
+			phase = frrpb.CommitRequest_APPLY
+		case "ALL":
+			phase = frrpb.CommitRequest_ALL
+		default:
+			return fmt.Errorf("unknown commit phase %q", rawPhase)
+		}
 	}
 
 	response, err := client.Commit(
@@ -39,7 +56,7 @@ func (h *CommitCandidateHandler) Execute(
 		&frrpb.CommitRequest{
 			CandidateId: candidateId,
 
-			Phase: frrpb.CommitRequest_ALL,
+			Phase: phase,
 
 			Comment: comment,
 		},

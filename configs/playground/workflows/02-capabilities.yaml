@@ -30,3 +30,270 @@ steps:
 
       grpcurl пример:
       grpcurl -plaintext localhost:50051 frr.Northbound/GetCapabilities
+
+  - type: get
+    daemon: zebra
+    description: |
+      STEP 4.1
+
+      Чтение zebra global config/state.
+
+      ✅ Аналог:
+      vtysh:
+      show zebra
+    params:
+      requestType: 0
+      path:
+        - "/frr-zebra:zebra"
+
+  - type: getTransactions
+    daemon: zebra
+    description: |
+      STEP 4.2
+
+      Чтение списка northbound transactions.
+
+      ✅ Аналог:
+      vtysh:
+      show configuration transaction
+    params: {}
+
+  - type: createCandidate
+    daemon: zebra
+    description: |
+      STEP 4.2.1
+
+      Candidate для проверки northbound workflow control RPC.
+
+      ✅ Аналог:
+      vtysh:
+      configure terminal
+    params: {}
+
+  - type: loadToCandidate
+    daemon: zebra
+    description: |
+      STEP 4.2.2
+
+      Проверка LoadToCandidate MERGE.
+
+      ✅ Аналог:
+      vtysh:
+      configuration load
+
+      Здесь загружается пустой JSON object,
+      чтобы проверить сам RPC без изменения running config.
+    params:
+      type: MERGE
+      data: "{}"
+
+  - type: commitCandidate
+    daemon: zebra
+    description: |
+      STEP 4.2.3
+
+      Validate candidate без применения.
+
+      ✅ Аналог:
+      vtysh:
+      commit check
+    params:
+      phase: VALIDATE
+      comment: validate empty loaded candidate
+
+  - type: deleteCandidate
+    daemon: zebra
+    description: |
+      STEP 4.2.4
+
+      Удаление candidate без commit.
+
+      ✅ Аналог:
+      vtysh:
+      discard
+    params: {}
+
+  - type: createCandidate
+    daemon: zebra
+    description: |
+      STEP 4.3
+
+      Candidate для zebra debug flags.
+    params: {}
+
+  - type: editCandidate
+    daemon: zebra
+    description: |
+      STEP 4.4
+
+      ✅ Аналог:
+      vtysh:
+      debug zebra events
+      debug zebra kernel
+    params:
+      update:
+        - path: "/frr-zebra:zebra/debugs/debug-events"
+          value: 'true'
+        - path: "/frr-zebra:zebra/debugs/debug-kernel"
+          value: 'true'
+
+  - type: commitCandidate
+    daemon: zebra
+    description: |
+      STEP 4.5
+      Commit zebra debug flags.
+    params:
+      comment: enable zebra debug flags
+
+  - type: get
+    daemon: zebra
+    description: |
+      STEP 4.6
+      Read zebra debug flags.
+    params:
+      requestType: 1
+      path:
+        - "/frr-zebra:zebra/debugs"
+
+  - type: assertJsonExists
+    daemon: zebra
+    description: |
+      STEP 4.6.1
+      Assert zebra debug flags.
+    params:
+      requestType: 1
+      path:
+        - "/frr-zebra:zebra/debugs"
+      checks:
+        - path: 'frr-zebra:debugs.debug-events'
+          equals: 'true'
+        - path: 'frr-zebra:debugs.debug-kernel'
+          equals: 'true'
+
+  - type: createCandidate
+    daemon: zebra
+    description: |
+      STEP 4.7
+      Cleanup zebra debug flags candidate.
+    params: {}
+
+  - type: editCandidate
+    daemon: zebra
+    description: |
+      STEP 4.8
+      Cleanup zebra debug flags.
+    params:
+      delete:
+        - path: "/frr-zebra:zebra/debugs/debug-events"
+        - path: "/frr-zebra:zebra/debugs/debug-kernel"
+
+  - type: commitCandidate
+    daemon: zebra
+    description: |
+      STEP 4.9
+      Commit cleanup zebra debug flags.
+    params:
+      comment: cleanup zebra debug flags
+
+  - type: assertJsonMissing
+    daemon: zebra
+    description: |
+      STEP 4.9.1
+      Assert zebra debug flags removed.
+    params:
+      requestType: 1
+      path:
+        - "/frr-zebra:zebra/debugs"
+      checks:
+        - path: 'frr-zebra:debugs.debug-events'
+        - path: 'frr-zebra:debugs.debug-kernel'
+
+  - type: createCandidate
+    daemon: ospfd
+    description: |
+      STEP 4.10
+
+      Candidate для key-chain.
+    params: {}
+
+  - type: editCandidate
+    daemon: ospfd
+    description: |
+      STEP 4.11
+
+      ✅ Аналог:
+      vtysh:
+      key chain TEST
+       key 1
+        key-string SECRET
+    params:
+      update:
+        - path: "/ietf-key-chain:key-chains/key-chain[name='TEST']/key[key-id='1']/key-string/keystring"
+          value: SECRET
+
+  - type: commitCandidate
+    daemon: ospfd
+    description: |
+      STEP 4.12
+      Commit key-chain TEST.
+    params:
+      comment: add key-chain TEST
+
+  - type: get
+    daemon: ospfd
+    description: |
+      STEP 4.13
+      Read key-chain config.
+    params:
+      requestType: 1
+      path:
+        - "/ietf-key-chain:key-chains"
+
+  - type: assertJsonExists
+    daemon: ospfd
+    description: |
+      STEP 4.13.1
+      Assert key-chain TEST.
+    params:
+      requestType: 1
+      path:
+        - "/ietf-key-chain:key-chains"
+      checks:
+        - path: 'ietf-key-chain:key-chains.key-chain.#(name=="TEST").key.#(key-id==1).key-string.keystring'
+          equals: SECRET
+
+  - type: createCandidate
+    daemon: ospfd
+    description: |
+      STEP 4.14
+      Cleanup key-chain TEST candidate.
+    params: {}
+
+  - type: editCandidate
+    daemon: ospfd
+    description: |
+      STEP 4.15
+      Cleanup key-chain TEST.
+    params:
+      delete:
+        - path: "/ietf-key-chain:key-chains/key-chain[name='TEST']"
+
+  - type: commitCandidate
+    daemon: ospfd
+    description: |
+      STEP 4.16
+      Commit cleanup key-chain TEST.
+    params:
+      comment: cleanup key-chain TEST
+
+  - type: assertJsonMissing
+    daemon: ospfd
+    description: |
+      STEP 4.16.1
+      Assert key-chain TEST removed.
+    params:
+      requestType: 1
+      path:
+        - "/ietf-key-chain:key-chains"
+      checks:
+        - path: 'ietf-key-chain:key-chains.key-chain.#(name=="TEST").name'

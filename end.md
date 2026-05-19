@@ -4,6 +4,10 @@
 
 ___
 
+## Base / Capabilities
+
+___
+
 > [!TIP]
 >
 > ```vtysh
@@ -34,13 +38,17 @@ ___
 > нет vtysh аналога
 > ```
 
-| yang module      | yang module path     | daemon  |
-| ---------------- | -------------------- | ------- |
-| `frr-zebra.yang` | `GetCapabilities()`  | `zebra` |
+| yang module      | yang module path    | daemon  |
+| ---------------- | ------------------- | ------- |
+| `frr-zebra.yang` | `GetCapabilities()` | `zebra` |
 
 ```bash
 grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto localhost:50051 frr.Northbound/GetCapabilities
 ```
+
+___
+
+## Interfaces
 
 ___
 
@@ -65,6 +73,78 @@ grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost
 }
 JSON
 ```
+
+___
+
+> [!TIP]
+>
+> ```vtysh
+> show interface
+> show ip interface brief
+> show running-config interface
+> ```
+
+| yang module          | yang module path                                   | daemon  |
+| -------------------- | -------------------------------------------------- | ------- |
+| `frr-interface.yang` | `/frr-interface:lib`                               | `zebra` |
+| `frr-zebra.yang`     | `/frr-interface:lib/interface/.../frr-zebra:zebra` | `zebra` |
+
+```bash
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+{
+    "type": "STATE",
+    "encoding": "JSON",
+    "withDefaults": true,
+    "path": [
+        "/frr-interface:lib"
+    ]
+}
+JSON
+```
+
+___
+
+> [!TIP]
+>
+> ```vtysh
+> configure terminal
+> interface lo
+>  description TEST
+>  ip address 192.0.2.1/32
+>  shutdown
+>  no shutdown
+>  no ip address 192.0.2.1/32
+> ```
+
+| yang module          | yang module path                                          | daemon  |
+| -------------------- | --------------------------------------------------------- | ------- |
+| `frr-interface.yang` | `/frr-interface:lib/interface[name='lo']/description`     | `zebra` |
+| `frr-zebra.yang`     | `/frr-interface:lib/interface[name='lo']/frr-zebra:zebra` | `zebra` |
+
+```bash
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
+{
+    "candidateId": 1,
+    "update": [
+        {
+            "path": "/frr-interface:lib/interface[name='lo']/description",
+            "value": "TEST"
+        },
+        {
+            "path": "/frr-interface:lib/interface[name='lo']/frr-zebra:zebra/ipv4-addrs[ip='192.0.2.1'][prefix-length='32']"
+        },
+        {
+            "path": "/frr-interface:lib/interface[name='lo']/frr-zebra:zebra/enabled",
+            "value": "false"
+        }
+    ]
+}
+JSON
+```
+
+___
+
+## Static Routes
 
 ___
 
@@ -124,9 +204,9 @@ ___
 > ip route 10.10.10.0/24 192.168.1.1
 > ```
 
-| yang module        | yang module path       | daemon    |
-| ------------------ | ---------------------- | --------- |
-| `frr-routing.yang` | `/frr-routing:routing` | `staticd` |
+| yang module        | yang module path                               | daemon    |
+| ------------------ | ---------------------------------------------- | --------- |
+| `frr-routing.yang` | `/frr-routing:routing`                         | `staticd` |
 | `frr-staticd.yang` | `/frr-routing:routing/.../frr-staticd:staticd` | `staticd` |
 
 ```bash
@@ -176,9 +256,9 @@ ___
 > no ip route 10.10.10.0/24 192.168.1.1
 > ```
 
-| yang module        | yang module path       | daemon    |
-| ------------------ | ---------------------- | --------- |
-| `frr-routing.yang` | `/frr-routing:routing` | `staticd` |
+| yang module        | yang module path                               | daemon    |
+| ------------------ | ---------------------------------------------- | --------- |
+| `frr-routing.yang` | `/frr-routing:routing`                         | `staticd` |
 | `frr-staticd.yang` | `/frr-routing:routing/.../frr-staticd:staticd` | `staticd` |
 
 ```bash
@@ -193,6 +273,44 @@ grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost
 }
 JSON
 ```
+
+___
+
+> [!TIP]
+>
+> ```vtysh
+> configure terminal
+> ip route 10.20.20.0/24 192.168.1.1 10
+> ip route 10.30.30.0/24 192.168.1.1 tag 100
+> ipv6 route 2001:db8:100::/64 2001:db8::1
+> show ip route static
+> show ip route 10.10.10.0/24 json
+> show ipv6 route
+> show ipv6 route json
+> ```
+
+| yang module        | yang module path                                          | daemon    |
+| ------------------ | --------------------------------------------------------- | --------- |
+| `frr-routing.yang` | `/frr-routing:routing`                                    | `staticd` |
+| `frr-staticd.yang` | `/frr-routing:routing/.../frr-staticd:staticd/route-list` | `staticd` |
+| `frr-vrf.yang`     | `/frr-vrf:lib/.../frr-zebra:zebra/ribs`                   | `zebra`   |
+
+```bash
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+{
+    "type": "STATE",
+    "encoding": "JSON",
+    "withDefaults": true,
+    "path": [
+        "/frr-vrf:lib/vrf[name='default']/frr-zebra:zebra/ribs"
+    ]
+}
+JSON
+```
+
+___
+
+## VRF
 
 ___
 
@@ -268,6 +386,10 @@ grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost
 }
 JSON
 ```
+
+___
+
+## Prefix Lists / ACL
 
 ___
 
@@ -417,6 +539,44 @@ grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost
 }
 JSON
 ```
+
+___
+
+> [!TIP]
+>
+> ```vtysh
+> configure terminal
+> ipv6 prefix-list TEST6 seq 10 permit 2001:db8::/32 le 64
+> ip access-list standard TEST
+>  permit 10.0.0.0/8
+> access-list 10 permit 10.0.0.0/8
+> show ipv6 prefix-list
+> show access-list
+> show ip prefix-list detail
+> ```
+
+| yang module       | yang module path              | daemon  |
+| ----------------- | ----------------------------- | ------- |
+| `frr-filter.yang` | `/frr-filter:lib`             | `zebra` |
+| `frr-filter.yang` | `/frr-filter:lib/prefix-list` | `zebra` |
+| `frr-filter.yang` | `/frr-filter:lib/access-list` | `zebra` |
+
+```bash
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+{
+    "type": "CONFIG",
+    "encoding": "JSON",
+    "withDefaults": true,
+    "path": [
+        "/frr-filter:lib"
+    ]
+}
+JSON
+```
+
+___
+
+## Route Maps
 
 ___
 
@@ -605,11 +765,82 @@ ___
 > [!TIP]
 >
 > ```vtysh
+> configure terminal
+> route-map TEST permit 10
+>  match interface lo
+>  match metric 100
+>  match ip address TEST
+>  match ipv6 address prefix-list TEST6
+>  set ip next-hop 192.0.2.254
+>  set tag 100
+> show route-map json
+> ```
+
+| yang module          | yang module path     | daemon  |
+| -------------------- | -------------------- | ------- |
+| `frr-route-map.yang` | `/frr-route-map:lib` | `zebra` |
+
+```bash
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+{
+    "type": "CONFIG",
+    "encoding": "JSON",
+    "withDefaults": true,
+    "path": [
+        "/frr-route-map:lib"
+    ]
+}
+JSON
+```
+
+___
+
+> [!TIP]
+>
+> ```vtysh
+> configure terminal
+> route-map TEST permit 10
+>  match community TEST
+>  match as-path TEST
+>  set local-preference 200
+>  set community 65001:100
+>  set weight 100
+>  set origin igp
+> ```
+
+| yang module              | yang module path                             | daemon |
+| ------------------------ | -------------------------------------------- | ------ |
+| `frr-route-map.yang`     | `/frr-route-map:lib`                         | `bgpd` |
+| `frr-bgp-route-map.yang` | `/frr-route-map:lib/.../frr-bgp-route-map:*` | `bgpd` |
+
+```bash
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50052 frr.Northbound/EditCandidate <<'JSON'
+{
+    "candidateId": 1,
+    "update": [
+        {
+            "path": "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='10']/set-action[action='frr-bgp-route-map:set-local-preference']/rmap-set-action/frr-bgp-route-map:local-pref",
+            "value": "200"
+        }
+    ]
+}
+JSON
+```
+
+___
+
+## ISIS
+
+___
+
+> [!TIP]
+>
+> ```vtysh
 > show isis
 > ```
 
-| yang module      | yang module path | daemon  |
-| ---------------- | ---------------- | ------- |
+| yang module      | yang module path  | daemon  |
+| ---------------- | ----------------- | ------- |
 | `frr-isisd.yang` | `/frr-isisd:isis` | `isisd` |
 
 ```bash
@@ -633,8 +864,8 @@ ___
 >  net 49.0001.0000.0000.0001.00
 > ```
 
-| yang module      | yang module path | daemon  |
-| ---------------- | ---------------- | ------- |
+| yang module      | yang module path  | daemon  |
+| ---------------- | ----------------- | ------- |
 | `frr-isisd.yang` | `/frr-isisd:isis` | `isisd` |
 
 ```bash
@@ -663,10 +894,10 @@ ___
 >  ip router isis TEST
 > ```
 
-| yang module           | yang module path                                      | daemon  |
-| --------------------- | ----------------------------------------------------- | ------- |
-| `frr-interface.yang`  | `/frr-interface:lib/interface[name='lo']`             | `isisd` |
-| `frr-isisd.yang`      | `/frr-interface:lib/interface[name='lo']/frr-isisd:isis` | `isisd` |
+| yang module          | yang module path                                         | daemon  |
+| -------------------- | -------------------------------------------------------- | ------- |
+| `frr-interface.yang` | `/frr-interface:lib/interface[name='lo']`                | `isisd` |
+| `frr-isisd.yang`     | `/frr-interface:lib/interface[name='lo']/frr-isisd:isis` | `isisd` |
 
 ```bash
 grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50057 frr.Northbound/EditCandidate <<'JSON'
@@ -694,9 +925,9 @@ ___
 > show isis neighbor
 > ```
 
-| yang module          | yang module path                                            | daemon  |
-| -------------------- | ----------------------------------------------------------- | ------- |
-| `frr-interface.yang` | `/frr-interface:lib/interface[name='lo']/state`             | `isisd` |
+| yang module          | yang module path                                               | daemon  |
+| -------------------- | -------------------------------------------------------------- | ------- |
+| `frr-interface.yang` | `/frr-interface:lib/interface[name='lo']/state`                | `isisd` |
 | `frr-isisd.yang`     | `/frr-interface:lib/interface[name='lo']/state/frr-isisd:isis` | `isisd` |
 
 ```bash
@@ -720,9 +951,9 @@ ___
 > no router isis TEST
 > ```
 
-| yang module          | yang module path                                      | daemon  |
-| -------------------- | ----------------------------------------------------- | ------- |
-| `frr-interface.yang` | `/frr-interface:lib/interface[name='lo']/frr-isisd:isis` | `isisd` |
+| yang module          | yang module path                                           | daemon  |
+| -------------------- | ---------------------------------------------------------- | ------- |
+| `frr-interface.yang` | `/frr-interface:lib/interface[name='lo']/frr-isisd:isis`   | `isisd` |
 | `frr-isisd.yang`     | `/frr-isisd:isis/instance[area-tag='TEST'][vrf='default']` | `isisd` |
 
 ```bash
@@ -740,6 +971,10 @@ grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost
 }
 JSON
 ```
+
+___
+
+## BFD
 
 ___
 
@@ -980,6 +1215,35 @@ ___
 > [!TIP]
 >
 > ```vtysh
+> show bfd peer 192.0.2.2 counters
+> ```
+
+| yang module     | yang module path                  | daemon |
+| --------------- | --------------------------------- | ------ |
+| `frr-bfdd.yang` | `/frr-bfdd:bfdd/bfd/sessions/...` | `bfdd` |
+
+```bash
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50054 frr.Northbound/Get <<'JSON'
+{
+    "type": "STATE",
+    "encoding": "JSON",
+    "withDefaults": true,
+    "path": [
+        "/frr-bfdd:bfdd/bfd/sessions/single-hop[peer='192.0.2.2'][interface='lo'][vrf='default'][local-address='']/stats"
+    ]
+}
+JSON
+```
+
+___
+
+## SBFD
+
+___
+
+> [!TIP]
+>
+> ```vtysh
 > bfd
 >  peer 2001:db8::1 bfd-mode sbfd-echo bfd-name TEST-ECHO multihop local-address 2001:db8::1 srv6-source-ipv6 2001:db8::1 srv6-encap-data 2001:db8::2
 >   detect-multiplier 3
@@ -1107,206 +1371,7 @@ JSON
 
 ___
 
-> [!TIP]
->
-> ```vtysh
-> show interface
-> show ip interface brief
-> show running-config interface
-> ```
-
-| yang module          | yang module path     | daemon  |
-| -------------------- | -------------------- | ------- |
-| `frr-interface.yang` | `/frr-interface:lib` | `zebra` |
-| `frr-zebra.yang`     | `/frr-interface:lib/interface/.../frr-zebra:zebra` | `zebra` |
-
-```bash
-grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/Get <<'JSON'
-{
-    "type": "STATE",
-    "encoding": "JSON",
-    "withDefaults": true,
-    "path": [
-        "/frr-interface:lib"
-    ]
-}
-JSON
-```
-
-___
-
-> [!TIP]
->
-> ```vtysh
-> configure terminal
-> interface lo
->  description TEST
->  ip address 192.0.2.1/32
->  shutdown
->  no shutdown
->  no ip address 192.0.2.1/32
-> ```
-
-| yang module          | yang module path     | daemon  |
-| -------------------- | -------------------- | ------- |
-| `frr-interface.yang` | `/frr-interface:lib/interface[name='lo']/description` | `zebra` |
-| `frr-zebra.yang`     | `/frr-interface:lib/interface[name='lo']/frr-zebra:zebra` | `zebra` |
-
-```bash
-grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
-{
-    "candidateId": 1,
-    "update": [
-        {
-            "path": "/frr-interface:lib/interface[name='lo']/description",
-            "value": "TEST"
-        },
-        {
-            "path": "/frr-interface:lib/interface[name='lo']/frr-zebra:zebra/ipv4-addrs[ip='192.0.2.1'][prefix-length='32']"
-        },
-        {
-            "path": "/frr-interface:lib/interface[name='lo']/frr-zebra:zebra/enabled",
-            "value": "false"
-        }
-    ]
-}
-JSON
-```
-
-___
-
-> [!TIP]
->
-> ```vtysh
-> configure terminal
-> ip route 10.20.20.0/24 192.168.1.1 10
-> ip route 10.30.30.0/24 192.168.1.1 tag 100
-> ipv6 route 2001:db8:100::/64 2001:db8::1
-> show ip route static
-> show ip route 10.10.10.0/24 json
-> show ipv6 route
-> show ipv6 route json
-> ```
-
-| yang module        | yang module path       | daemon    |
-| ------------------ | ---------------------- | --------- |
-| `frr-routing.yang` | `/frr-routing:routing` | `staticd` |
-| `frr-staticd.yang` | `/frr-routing:routing/.../frr-staticd:staticd/route-list` | `staticd` |
-| `frr-vrf.yang`     | `/frr-vrf:lib/.../frr-zebra:zebra/ribs` | `zebra` |
-
-```bash
-grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/Get <<'JSON'
-{
-    "type": "STATE",
-    "encoding": "JSON",
-    "withDefaults": true,
-    "path": [
-        "/frr-vrf:lib/vrf[name='default']/frr-zebra:zebra/ribs"
-    ]
-}
-JSON
-```
-
-___
-
-> [!TIP]
->
-> ```vtysh
-> configure terminal
-> ipv6 prefix-list TEST6 seq 10 permit 2001:db8::/32 le 64
-> ip access-list standard TEST
->  permit 10.0.0.0/8
-> access-list 10 permit 10.0.0.0/8
-> show ipv6 prefix-list
-> show access-list
-> show ip prefix-list detail
-> ```
-
-| yang module       | yang module path       | daemon  |
-| ----------------- | ---------------------- | ------- |
-| `frr-filter.yang` | `/frr-filter:lib`      | `zebra` |
-| `frr-filter.yang` | `/frr-filter:lib/prefix-list` | `zebra` |
-| `frr-filter.yang` | `/frr-filter:lib/access-list` | `zebra` |
-
-```bash
-grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/Get <<'JSON'
-{
-    "type": "CONFIG",
-    "encoding": "JSON",
-    "withDefaults": true,
-    "path": [
-        "/frr-filter:lib"
-    ]
-}
-JSON
-```
-
-___
-
-> [!TIP]
->
-> ```vtysh
-> configure terminal
-> route-map TEST permit 10
->  match interface lo
->  match metric 100
->  match ip address TEST
->  match ipv6 address prefix-list TEST6
->  set ip next-hop 192.0.2.254
->  set tag 100
-> show route-map json
-> ```
-
-| yang module          | yang module path       | daemon  |
-| -------------------- | ---------------------- | ------- |
-| `frr-route-map.yang` | `/frr-route-map:lib`   | `zebra` |
-
-```bash
-grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/Get <<'JSON'
-{
-    "type": "CONFIG",
-    "encoding": "JSON",
-    "withDefaults": true,
-    "path": [
-        "/frr-route-map:lib"
-    ]
-}
-JSON
-```
-
-___
-
-> [!TIP]
->
-> ```vtysh
-> configure terminal
-> route-map TEST permit 10
->  match community TEST
->  match as-path TEST
->  set local-preference 200
->  set community 65001:100
->  set weight 100
->  set origin igp
-> ```
-
-| yang module              | yang module path       | daemon  |
-| ------------------------ | ---------------------- | ------- |
-| `frr-route-map.yang`     | `/frr-route-map:lib`   | `bgpd`  |
-| `frr-bgp-route-map.yang` | `/frr-route-map:lib/.../frr-bgp-route-map:*` | `bgpd` |
-
-```bash
-grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50052 frr.Northbound/EditCandidate <<'JSON'
-{
-    "candidateId": 1,
-    "update": [
-        {
-            "path": "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='10']/set-action[action='frr-bgp-route-map:set-local-preference']/rmap-set-action/frr-bgp-route-map:local-pref",
-            "value": "200"
-        }
-    ]
-}
-JSON
-```
+## Key Chain
 
 ___
 
@@ -1318,9 +1383,9 @@ ___
 >   key-string SECRET
 > ```
 
-| yang module            | yang module path              | daemon         |
-| ---------------------- | ----------------------------- | -------------- |
-| `ietf-key-chain.yang`  | `/ietf-key-chain:key-chains`  | `ospfd/ospf6d` |
+| yang module           | yang module path             | daemon         |
+| --------------------- | ---------------------------- | -------------- |
+| `ietf-key-chain.yang` | `/ietf-key-chain:key-chains` | `ospfd/ospf6d` |
 
 ```bash
 grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50055 frr.Northbound/EditCandidate <<'JSON'
@@ -1338,28 +1403,7 @@ JSON
 
 ___
 
-> [!TIP]
->
-> ```vtysh
-> show bfd peer 192.0.2.2 counters
-> ```
-
-| yang module       | yang module path          | daemon |
-| ----------------- | ------------------------- | ------ |
-| `frr-bfdd.yang`   | `/frr-bfdd:bfdd/bfd/sessions/...` | `bfdd` |
-
-```bash
-grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50054 frr.Northbound/Get <<'JSON'
-{
-    "type": "STATE",
-    "encoding": "JSON",
-    "withDefaults": true,
-    "path": [
-        "/frr-bfdd:bfdd/bfd/sessions/single-hop[peer='192.0.2.2'][interface='lo'][vrf='default'][local-address='']/stats"
-    ]
-}
-JSON
-```
+## Configuration Transactions
 
 ___
 
@@ -1374,8 +1418,8 @@ ___
 > show configuration running
 > ```
 
-| yang module | yang module path | daemon |
-| ----------- | ---------------- | ------ |
+| yang module    | yang module path                                              | daemon         |
+| -------------- | ------------------------------------------------------------- | -------------- |
 | Northbound RPC | `Commit/ListTransactions/LoadToCandidate/DeleteCandidate/Get` | любой endpoint |
 
 ```bash
@@ -1383,6 +1427,10 @@ grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d '{"candidat
 grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d '{"candidateId":1}' localhost:50051 frr.Northbound/DeleteCandidate
 grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d '{}' localhost:50051 frr.Northbound/ListTransactions
 ```
+
+___
+
+## Zebra / Debug
 
 ___
 
@@ -1394,10 +1442,10 @@ ___
 > debug zebra kernel
 > ```
 
-| yang module      | yang module path           | daemon  |
-| ---------------- | -------------------------- | ------- |
-| `frr-zebra.yang` | `/frr-zebra:zebra`         | `zebra` |
-| `frr-zebra.yang` | `/frr-zebra:zebra/debugs`  | `zebra` |
+| yang module      | yang module path          | daemon  |
+| ---------------- | ------------------------- | ------- |
+| `frr-zebra.yang` | `/frr-zebra:zebra`        | `zebra` |
+| `frr-zebra.yang` | `/frr-zebra:zebra/debugs` | `zebra` |
 
 ```bash
 grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/Get <<'JSON'
@@ -1527,287 +1575,285 @@ JSON
 > show bfd peers counters
 > ```
 
+> [!WARNING]
+>
+> Частично: `frr-pim.yang` реально опубликован `pimd` на `localhost:50058`; `router pim` и `ip pim`-часть проходят через `EditCandidate`, но полного operational аналога `show ip pim neighbor/show ip mroute` как отдельного gRPC view нет.
+>
+> ```vtysh
+> router pim
+> show ip pim neighbor
+> show ip mroute
+> ```
+
+> [!WARNING]
+>
+> ✅ Можно реализовать: YANG и northbound registration есть в исходниках, но в текущем контейнере `ripd=no`, поэтому нужно включить `ripd` и добавить gRPC endpoint `-M grpc:<port>` в Docker/daemons.
+>
+> ```vtysh
+> router rip
+> show ip rip
+> ```
+
+> [!WARNING]
+>
+> ✅ Можно реализовать: YANG и northbound registration есть в исходниках, но в текущем контейнере `ripngd=no`, поэтому нужно включить `ripngd` и добавить gRPC endpoint `-M grpc:<port>` в Docker/daemons.
+>
+> ```vtysh
+> router ripng
+> show ipv6 ripng
+> ```
+
+> [!WARNING]
+>
+> ✅ Можно реализовать: YANG и northbound registration есть в исходниках, но в текущем контейнере `vrrpd=no`, поэтому нужно включить `vrrpd` и добавить gRPC endpoint `-M grpc:<port>` в Docker/daemons.
+>
+> ```vtysh
+> vrrp ...
+> show vrrp
+> ```
+
 # Не доступные команды
+
+## BGP
+
+| Доказательства                                                                                                                                                           |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| При запросе `GetCapabilities` не возвращает модуль `frr-bgp` а только `frr-bgp-route-map`                                                                                |
+| `grep -R "frr_bgp_info" /src/frr/bgpd` ничего не находит                                                                                                                 |
+| `grep -n "frr_bgp_route_map_info" /src/frr/bgpd/bgp_main.c` выодит `123: &frr_bgp_route_map_info,` а `grep -n "frr_bgp_info" /src/frr/bgpd/bgp_main.c` ничего не находит |
 
 > [!CAUTION]
 >
 > ```vtysh
 > router bgp 65001
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > bgp router-id
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > show bgp summary
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > show bgp neighbor
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > show bgp ipv4 unicast
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > show bgp ipv4 unicast summary
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > show bgp ipv4 unicast neighbors
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > show bgp ipv4 unicast json
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > neighbor x.x.x.x remote-as
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > neighbor description
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > neighbor timers
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > neighbor shutdown
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > neighbor route-map
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > neighbor x.x.x.x activate
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > neighbor x.x.x.x soft-reconfiguration inbound
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > neighbor x.x.x.x prefix-list ... in
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > neighbor x.x.x.x route-map ... in
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > address-family ipv4 unicast
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > network x.x.x.x/24
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > address-family ipv4 unicast
 >  redistribute static
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > aggregate-address ...
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > default-information originate
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > address-family l2vpn evpn
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > advertise-all-vni
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > show bgp l2vpn evpn
 > ```
+___
+
+## OSPF
+
+| Доказательства                                                                                                                                                                   |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| При запросе `GetCapabilities` не возвращает модуль `frr-ospf` а только `frr-ospf-route-map`                                                                                      |
+| `grep -R "frr_ospfd_info" /src/frr/ospfd` ничего не находит                                                                                                                      |
+| `grep -n "frr_ospf_route_map_info" /src/frr/ospfd/ospf_main.c` выодит `141:	&frr_ospf_route_map_info,` а `grep -n "frr_ospfd_info" /src/frr/ospfd/ospf_main.c` ничего не находит |
 
 > [!CAUTION]
 >
 > ```vtysh
 > show bgp l2vpn evpn json
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > router ospf
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > network ... area 0
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > passive-interface ...
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > area ... range ...
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > router ospf
 >  redistribute static
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > show ip ospf
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > show ip ospf interface
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > show ip ospf route
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > show ip ospf neighbor
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > show ip ospf database
 > ```
+
+## BGP Runtime / Debug Commands
+
+| Доказательства                                                                                                                           |
+| ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `grep -R "clear bgp" /src/frr/bgpd` находит реализации только в `bgp_vty.c` (`/* one clear bgp command to rule them all */`)             |
+| `grep -R "debug bgp" /src/frr/bgpd` находит реализации только в `bgp_debug.c`, `bgp_vty.c`, `bgpd.xref`                                  |
+| `grep -R "rpc clear" /src/frr/yang` не содержит BGP RPC, а содержит только `clear-rip-route`, `clear-ripng-route`, `clear-evpn-dup-addr` |
+| `grep -R "action clear" /src/frr/yang` ничего не находит                                                                                 |
+| При запросе `GetCapabilities` отсутствуют debug/runtime RPC или action для BGP                                                           |
+
 
 > [!CAUTION]
 >
 > ```vtysh
 > clear bgp *
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > clear bgp neighbor soft
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > clear ip bgp *
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > debug bgp updates
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > debug bgp neighbor-events
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > debug bgp bestpath
 > ```
+
+
+## Generic CLI / System Commands
+
+| Доказательства                                                                                                              |
+| --------------------------------------------------------------------------------------------------------------------------- |
+| `grep -R "rpc.*reload" /src/frr/yang` ничего не находит                                                                     |
+| `grep -R "rpc.*write" /src/frr/yang` ничего не находит                                                                      |
+| `grep -R "rpc.*tech" /src/frr/yang` ничего не находит                                                                       |
+| `grep -R "rpc.*monitor" /src/frr/yang` ничего не находит                                                                    |
+| `grep -R "action.*reload" /src/frr/yang` ничего не находит                                                                  |
+| `grep -R "action.*write" /src/frr/yang` ничего не находит                                                                   |
+| `grep -R "action.*tech" /src/frr/yang` ничего не находит                                                                    |
+| `grep -R "action.*monitor" /src/frr/yang` ничего не находит                                                                 |
+| `GetCapabilities` не возвращает runtime/system RPC или action для `reload`, `write memory`, `show tech`, `terminal monitor` |
 
 > [!CAUTION]
 >
 > ```vtysh
 > terminal monitor
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > reload
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > write memory
 > ```
-
-> [!CAUTION]
 >
 > ```vtysh
 > show tech
 > ```
 
 
+## Interface Configuration
+
 > [!CAUTION]
 >
 > ```vtysh
@@ -1815,17 +1861,53 @@ JSON
 >  mtu 1500
 > ```
 
+| Доказательства                                                                                         |
+| ------------------------------------------------------------------------------------------------------ |
+| `GetCapabilities` возвращает модуль `frr-interface`                                                    |
+| `grep -n "mtu" /src/frr/yang/frr-interface.yang` находит `leaf mtu`                                    |
+| `Get(type=STATE)` для `/frr-interface:lib` возвращает `state.mtu`                                      |
+| `Get(type=CONFIG)` для `/frr-interface:lib` не содержит `config.mtu`                                   |
+| `EditCandidate` для `/frr-interface:lib/interface[name='lo']/config/mtu` возвращает `Failed to update` |
+
+## Static Routes
+
+| Доказательства                                                                                                                       |
+| ------------------------------------------------------------------------------------------------------------------------------------ |
+| `frr-staticd.yang` содержит `route-list`, `path-list`, `tag`, `metric`, `weight`, `bfd`, но не содержит `leaf name` для static route |
+| `grep -n "leaf name" frr-lib/yang/frr-staticd.yang` не находит route name                                                            |
+| `grpcurl Get` для `/frr-staticd:staticd/.../path-list.../name` возвращает `Data path not found` на `staticd / localhost:50053`       |
+
 > [!CAUTION]
 >
 > ```vtysh
 > ip route 10.40.40.0/24 192.168.1.1 name TEST
 > ```
 
+
+## Configuration Transactions
+
+| Доказательства                                                                                                                    |
+| --------------------------------------------------------------------------------------------------------------------------------- |
+| `frr-northbound.proto` содержит `rollback_support` только в `GetCapabilitiesResponse`, отдельного `Rollback` RPC нет              |
+| `GetCapabilities` в контейнере не отдаёт `rollbackSupport: true`                                                                  |
+| `vtysh -c 'rollback configuration 1'` в контейнере возвращает `Unknown command`                                                   |
+| В исходниках `rollback configuration` завязан на `HAVE_CONFIG_ROLLBACKS`, то есть это compile-time CLI feature, не gRPC operation |
+
 > [!CAUTION]
 >
 > ```vtysh
 > rollback configuration
 > ```
+
+
+## Filter / Community / Policy Objects
+
+| Доказательства                                                                                                                        |
+| ------------------------------------------------------------------------------------------------------------------------------------- |
+| `frr-bgp-filter.yang` есть в дереве YANG, но `bgpd GetCapabilities` его не публикует                                                  |
+| `bgpd_yang_modules[]` регистрирует `frr_bgp_route_map_info`, но не регистрирует `frr_bgp_filter_info`                                 |
+| `grpcurl Get` для `/frr-bgp-filter:lib` на `bgpd / localhost:50052` возвращает `Data path not found`                                  |
+| Community/extcommunity/as-path CLI остаются в `bgpd` VTY-коде, но полноценного опубликованного gRPC tree для этих объектов сейчас нет |
 
 > [!CAUTION]
 >
@@ -1836,6 +1918,15 @@ JSON
 > show bgp community-list
 > ```
 
+
+## OSPF6
+
+| Доказательства                                                                                                                   |
+| -------------------------------------------------------------------------------------------------------------------------------- |
+| `ospf6d GetCapabilities` публикует `frr-ospf-route-map` и `frr-ospf6-route-map`, но не публикует полноценный `frr-ospf6d` module |
+| `ospf6d_yang_modules[]` регистрирует `frr_ospf6_route_map_info`, но не регистрирует `frr_ospf6d_info`                            |
+| `grpcurl Get` для `/frr-ospf6d:ospf6d` на `ospf6d / localhost:50056` возвращает `Data path not found`                            |
+
 > [!CAUTION]
 >
 > ```vtysh
@@ -1844,34 +1935,16 @@ JSON
 > show ipv6 ospf6 database
 > ```
 
-> [!CAUTION]
->
-> ```vtysh
-> router rip
-> show ip rip
-> ```
 
-> [!CAUTION]
->
-> ```vtysh
-> router ripng
-> show ipv6 ripng
-> ```
+## Internal Runtime / CPU / Memory Debug
 
-> [!CAUTION]
->
-> ```vtysh
-> router pim
-> show ip pim neighbor
-> show ip mroute
-> ```
-
-> [!CAUTION]
->
-> ```vtysh
-> vrrp ...
-> show vrrp
-> ```
+| Доказательства                                                                                                 |
+| -------------------------------------------------------------------------------------------------------------- |
+| `show memory` реализован как VTY command в `lib_vty.c` / `vtysh.c`, отдельного YANG module/RPC нет             |
+| `show event cpu` реализован как VTY command в `event.c` / `vtysh.c`, отдельного YANG module/RPC нет            |
+| `vtysh -c 'show thread cpu'` в текущем контейнере возвращает `Unknown command`                                 |
+| `GetCapabilities` не публикует runtime/system module для memory/thread/event CPU                               |
+| `grep -R "rpc.*memory\\|rpc.*thread\\|rpc.*event" frr-lib/yang` не находит подходящего RPC для этих CLI-команд |
 
 > [!CAUTION]
 >
@@ -1879,499 +1952,4 @@ JSON
 > show memory
 > show thread cpu
 > show event cpu
-> ```
-
-# Надо проверить
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> show interface
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> interface lo
->  description TEST
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> interface lo
->  ip address 192.0.2.1/32
-> ```
-
-> [!NOTE]
->
-> ❌ Недоступно
->
-> ```vtysh
-> interface lo
->  mtu 1500
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> interface lo
->  shutdown
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> interface lo
->  no shutdown
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> interface lo
->  no ip address 192.0.2.1/32
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> ip route 10.20.20.0/24 192.168.1.1 10
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> ip route 10.30.30.0/24 192.168.1.1 tag 100
-> ```
-
-> [!NOTE]
->
-> ❌ Недоступно
->
-> ```vtysh
-> ip route 10.40.40.0/24 192.168.1.1 name TEST
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> show ip route static
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> show ip route 10.10.10.0/24 json
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> ip prefix-list TEST7 seq 90 permit 90.90.0.0/16 ge 24 le 32
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> route-map TEST permit 10
->  match interface lo
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> route-map TEST permit 10
->  match metric 100
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> route-map TEST permit 10
->  set ip next-hop 192.0.2.254
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> route-map TEST permit 10
->  set local-preference 200
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> route-map TEST permit 10
->  set community 65001:100
-> ```
-
-> [!NOTE]
->
-> ⚠️ Частично
->
-> ```vtysh
-> show bfd peers brief
-> ```
-
-> [!NOTE]
->
-> ⚠️ Частично
->
-> ```vtysh
-> show bfd peers counters
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> commit check
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> commit
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> discard
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> show configuration transaction
-> ```
-
-> [!NOTE]
->
-> ❌ Недоступно
->
-> ```vtysh
-> rollback configuration
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> configuration load
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> show configuration running
-> ```
-
-> [!NOTE]
->
-> ⚠️ Частично
->
-> ```vtysh
-> show ip interface brief
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> show running-config interface
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> ipv6 route 2001:db8:100::/64 2001:db8::1
-> show ipv6 route
-> show ipv6 route json
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> ipv6 prefix-list TEST6 seq 10 permit 2001:db8::/32 le 64
-> show ipv6 prefix-list
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> ip access-list standard TEST
->  permit 10.0.0.0/8
-> show access-list
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> access-list 10 permit 10.0.0.0/8
-> ```
-
-> [!NOTE]
->
-> ❌ Недоступно
->
-> ```vtysh
-> bgp community-list standard TEST permit 65001:100
-> bgp extcommunity-list standard TEST permit rt 65001:100
-> bgp as-path access-list TEST permit .*
-> show bgp community-list
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> route-map TEST permit 10
->  match ip address TEST
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> route-map TEST permit 10
->  match ipv6 address prefix-list TEST6
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> route-map TEST permit 10
->  match community TEST
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> route-map TEST permit 10
->  match as-path TEST
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> route-map TEST permit 10
->  set tag 100
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> route-map TEST permit 10
->  set weight 100
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> route-map TEST permit 10
->  set origin igp
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> key chain TEST
->  key 1
->   key-string SECRET
-> ```
-
-> [!NOTE]
->
-> ⚠️ Частично
->
-> ```vtysh
-> show nexthop-group
-> ```
-
-> [!NOTE]
->
-> ⚠️ Частично
->
-> ```vtysh
-> show zebra
-> show zebra dplane
-> ```
-
-> [!NOTE]
->
-> ⚠️ Частично
->
-> ```vtysh
-> show northbound
-> show yang operational-data
-> ```
-
-> [!NOTE]
->
-> ❌ Недоступно
->
-> ```vtysh
-> router ospf6
-> show ipv6 ospf6 neighbor
-> show ipv6 ospf6 database
-> ```
-
-> [!NOTE]
->
-> ❌ Недоступно
->
-> ```vtysh
-> router rip
-> show ip rip
-> ```
-
-> [!NOTE]
->
-> ❌ Недоступно
->
-> ```vtysh
-> router ripng
-> show ipv6 ripng
-> ```
-
-> [!NOTE]
->
-> ❌ Недоступно
->
-> ```vtysh
-> router pim
-> show ip pim neighbor
-> show ip mroute
-> ```
-
-> [!NOTE]
->
-> ❌ Недоступно
->
-> ```vtysh
-> vrrp ...
-> show vrrp
-> ```
-
-> [!NOTE]
->
-> ⚠️ Частично
->
-> ```vtysh
-> segment-routing
-> show segment-routing srv6
-> ```
-
-> [!NOTE]
->
-> ⚠️ Частично
->
-> ```vtysh
-> show ip nht
-> show nexthop
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> show route-map json
-> show ip prefix-list detail
-> ```
-
-> [!NOTE]
->
-> ⚠️ Частично
->
-> ```vtysh
-> show running-config bgpd
-> show running-config ospfd
-> show running-config zebra
-> ```
-
-> [!NOTE]
->
-> ❌ Недоступно
->
-> ```vtysh
-> show memory
-> show thread cpu
-> show event cpu
-> ```
-
-> [!NOTE]
->
-> ✅ Доступно
->
-> ```vtysh
-> debug zebra events
-> debug zebra kernel
 > ```

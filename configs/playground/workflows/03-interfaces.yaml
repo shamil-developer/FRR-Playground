@@ -77,3 +77,126 @@ steps:
           equals: lo
         - path: 'frr-interface:lib.interface.#(name=="lo").state.if-index'
         - path: 'frr-interface:lib.interface.#(name=="lo").state.mtu'
+
+  - type: createCandidate
+    daemon: zebra
+    description: |
+      3. Interfaces CONFIG candidate
+
+      ✅ Аналог:
+      vtysh:
+      configure terminal
+    params: {}
+
+  - type: editCandidate
+    daemon: zebra
+    description: |
+      3. Interfaces CONFIG edit
+
+      ✅ Аналог:
+      vtysh:
+      interface lo
+       description TEST
+       ip address 192.0.2.1/32
+       shutdown
+       no shutdown
+
+      Важно:
+      ip address и admin status находятся в augment:
+      /frr-interface:lib/interface/.../frr-zebra:zebra
+    params:
+      update:
+        - path: "/frr-interface:lib/interface[name='lo']/description"
+          value: TEST
+        - path: "/frr-interface:lib/interface[name='lo']/frr-zebra:zebra/ipv4-addrs[ip='192.0.2.1'][prefix-length='32']"
+        - path: "/frr-interface:lib/interface[name='lo']/frr-zebra:zebra/enabled"
+          value: 'false'
+        - path: "/frr-interface:lib/interface[name='lo']/frr-zebra:zebra/enabled"
+          value: 'true'
+
+  - type: commitCandidate
+    daemon: zebra
+    description: |
+      3. Interfaces CONFIG commit
+    params:
+      comment: configure interface lo description address admin-state
+
+  - type: get
+    daemon: zebra
+    description: |
+      3. Interfaces CONFIG read
+
+      ✅ Аналог:
+      vtysh:
+      show running-config interface
+    params:
+      requestType: 1
+      path:
+        - "/frr-interface:lib/interface[name='lo']"
+
+  - type: assertJsonExists
+    daemon: zebra
+    description: |
+      3. Interfaces CONFIG assert
+    params:
+      requestType: 1
+      path:
+        - "/frr-interface:lib/interface[name='lo']"
+      checks:
+        - path: 'frr-interface:interface.#(name=="lo").description'
+          equals: TEST
+        - path: 'frr-interface:interface.#(name=="lo").frr-zebra:zebra.ipv4-addrs.#(ip=="192.0.2.1").ip'
+          equals: 192.0.2.1
+        - path: 'frr-interface:interface.#(name=="lo").frr-zebra:zebra.enabled'
+          equals: 'true'
+
+  - type: createCandidate
+    daemon: zebra
+    description: |
+      3. Interfaces CONFIG cleanup candidate
+    params: {}
+
+  - type: editCandidate
+    daemon: zebra
+    description: |
+      3. Interfaces CONFIG cleanup
+
+      ✅ Аналог:
+      vtysh:
+      interface lo
+       no ip address 192.0.2.1/32
+       no description
+    params:
+      delete:
+        - path: "/frr-interface:lib/interface[name='lo']/description"
+        - path: "/frr-interface:lib/interface[name='lo']/frr-zebra:zebra/ipv4-addrs[ip='192.0.2.1'][prefix-length='32']"
+        - path: "/frr-interface:lib/interface[name='lo']/frr-zebra:zebra/enabled"
+
+  - type: commitCandidate
+    daemon: zebra
+    description: |
+      3. Interfaces CONFIG cleanup commit
+    params:
+      comment: cleanup interface lo test config
+
+  - type: get
+    daemon: zebra
+    description: |
+      3. Interfaces CONFIG cleanup read
+    params:
+      requestType: 1
+      path:
+        - "/frr-interface:lib/interface[name='lo']"
+
+  - type: assertJsonMissing
+    daemon: zebra
+    description: |
+      3. Interfaces CONFIG cleanup assert
+    params:
+      requestType: 1
+      path:
+        - "/frr-interface:lib/interface[name='lo']"
+      checks:
+        - path: 'frr-interface:interface.#(name=="lo").description'
+        - path: 'frr-interface:interface.#(name=="lo").frr-zebra:zebra.ipv4-addrs.#(ip=="192.0.2.1").ip'
+        - path: 'frr-interface:interface.#(name=="lo").frr-zebra:zebra.enabled'
