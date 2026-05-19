@@ -15,7 +15,7 @@ ___
 | `frr-vrf.yang` | `/frr-vrf:lib`   | `zebra` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/Get <<'JSON'
 {
     "type": "CONFIG",
     "encoding": "JSON",
@@ -39,7 +39,7 @@ ___
 | `frr-zebra.yang` | `GetCapabilities()`  | `zebra` |
 
 ```bash
-grpcurl -plaintext localhost:50051 frr.Northbound/GetCapabilities
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto localhost:50051 frr.Northbound/GetCapabilities
 ```
 
 ___
@@ -55,7 +55,7 @@ ___
 | `frr-interface.yang` | `/frr-interface:lib` | `zebra` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/Get <<'JSON'
 {
     "type": "STATE",
     "encoding": "JSON",
@@ -80,7 +80,7 @@ ___
 
 
 ```bash
-grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/Get <<'JSON'
 {
 "type": "STATE",
 "encoding": "JSON",
@@ -104,7 +104,7 @@ ___
 | `frr-routing.yang` | `/frr-routing:routing` | `staticd` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50053 frr.Northbound/Get <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50053 frr.Northbound/Get <<'JSON'
 {
 "type": "CONFIG",
 "encoding": "JSON",
@@ -130,7 +130,7 @@ ___
 | `frr-staticd.yang` | `/frr-routing:routing/.../frr-staticd:staticd` | `staticd` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50053 frr.Northbound/EditCandidate <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50053 frr.Northbound/EditCandidate <<'JSON'
 {
     "candidateId": 1,
     "update": [
@@ -142,7 +142,7 @@ grpcurl -plaintext -d @ localhost:50053 frr.Northbound/EditCandidate <<'JSON'
 }
 JSON
 
-grpcurl -plaintext -d @ localhost:50053 frr.Northbound/EditCandidate <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50053 frr.Northbound/EditCandidate <<'JSON'
 {
     "candidateId": 1,
     "update": [
@@ -154,7 +154,7 @@ grpcurl -plaintext -d @ localhost:50053 frr.Northbound/EditCandidate <<'JSON'
 }
 JSON
 
-grpcurl -plaintext -d @ localhost:50053 frr.Northbound/EditCandidate <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50053 frr.Northbound/EditCandidate <<'JSON'
 {
     "candidateId": 1,
     "update": [
@@ -182,7 +182,7 @@ ___
 | `frr-staticd.yang` | `/frr-routing:routing/.../frr-staticd:staticd` | `staticd` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50053 frr.Northbound/EditCandidate <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50053 frr.Northbound/EditCandidate <<'JSON'
 {
 "candidateId": 1,
 "delete": [
@@ -207,7 +207,7 @@ ___
 | `frr-vrf.yang` | `/frr-vrf:lib`   | `zebra` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/Get <<'JSON'
 {
 "type": "CONFIG",
 "encoding": "JSON",
@@ -231,7 +231,7 @@ ___
 | `frr-vrf.yang` | `/frr-vrf:lib`   | `zebra` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
 {
 "candidateId": 1,
 "update": [
@@ -257,7 +257,7 @@ ___
 | `frr-vrf.yang` | `/frr-vrf:lib`   | `zebra` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
 {
 "candidateId": 1,
 "delete": [
@@ -282,7 +282,7 @@ ___
 | `frr-filter.yang` | `/frr-filter:lib` | `zebra` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/Get <<'JSON'
 {
 "type": "CONFIG",
 "encoding": "JSON",
@@ -307,7 +307,7 @@ ___
 | `frr-filter.yang` | `/frr-filter:lib` | `zebra` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
 {
 "candidateId": 1,
 "update": [
@@ -345,7 +345,7 @@ ___
 | `frr-filter.yang` | `/frr-filter:lib` | `zebra` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
 {
 "candidateId": 1,
 "update": [
@@ -380,7 +380,7 @@ ___
 | `frr-filter.yang` | `/frr-filter:lib` | `zebra` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
 {
 "candidateId": 1,
 "delete": [
@@ -406,7 +406,7 @@ ___
 | `frr-filter.yang` | `/frr-filter:lib` | `zebra` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
 {
 "candidateId": 1,
 "delete": [
@@ -431,7 +431,7 @@ ___
 | `frr-route-map.yang` | `/frr-route-map:lib` | `zebra` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/Get <<'JSON'
 {
 "type": "CONFIG",
 "encoding": "JSON",
@@ -456,7 +456,7 @@ ___
 | `frr-route-map.yang` | `/frr-route-map:lib` | `zebra` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
 {
 "candidateId": 1,
 "update": [
@@ -483,7 +483,7 @@ ___
 | `frr-route-map.yang` | `/frr-route-map:lib` | `zebra` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
 {
 "candidateId": 1,
 "update": [
@@ -510,7 +510,7 @@ ___
 | `frr-route-map.yang` | `/frr-route-map:lib` | `zebra` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
 {
 "candidateId": 1,
 "update": [
@@ -537,7 +537,7 @@ ___
 
 
 ```bash
-grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
 {
 "candidateId": 1,
 "update": [
@@ -563,7 +563,7 @@ ___
 | `frr-route-map.yang` | `/frr-route-map:lib` | `zebra` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
 {
 "candidateId": 1,
 "delete": [
@@ -588,7 +588,7 @@ ___
 | `frr-route-map.yang` | `/frr-route-map:lib` | `zebra` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
 {
 "candidateId": 1,
 "delete": [
@@ -613,7 +613,7 @@ ___
 | `frr-isisd.yang` | `/frr-isisd:isis` | `isisd` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50057 frr.Northbound/Get <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50057 frr.Northbound/Get <<'JSON'
 {
 "type": "CONFIG",
 "encoding": "JSON",
@@ -638,7 +638,7 @@ ___
 | `frr-isisd.yang` | `/frr-isisd:isis` | `isisd` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50057 frr.Northbound/EditCandidate <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50057 frr.Northbound/EditCandidate <<'JSON'
 {
 "candidateId": 1,
 "update": [
@@ -669,7 +669,7 @@ ___
 | `frr-isisd.yang`      | `/frr-interface:lib/interface[name='lo']/frr-isisd:isis` | `isisd` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50057 frr.Northbound/EditCandidate <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50057 frr.Northbound/EditCandidate <<'JSON'
 {
 "candidateId": 1,
 "update": [
@@ -700,7 +700,7 @@ ___
 | `frr-isisd.yang`     | `/frr-interface:lib/interface[name='lo']/state/frr-isisd:isis` | `isisd` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50057 frr.Northbound/Get <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50057 frr.Northbound/Get <<'JSON'
 {
 "type": "STATE",
 "encoding": "JSON",
@@ -726,7 +726,7 @@ ___
 | `frr-isisd.yang`     | `/frr-isisd:isis/instance[area-tag='TEST'][vrf='default']` | `isisd` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50057 frr.Northbound/EditCandidate <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50057 frr.Northbound/EditCandidate <<'JSON'
 {
 "candidateId": 1,
 "delete": [
@@ -754,7 +754,7 @@ ___
 | `frr-bfdd.yang` | `/frr-bfdd:bfdd` | `bfdd` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50054 frr.Northbound/Get <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50054 frr.Northbound/Get <<'JSON'
 {
 "type": "CONFIG",
 "encoding": "JSON",
@@ -787,7 +787,7 @@ ___
 | `frr-bfdd.yang` | `/frr-bfdd:bfdd` | `bfdd` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50054 frr.Northbound/EditCandidate <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50054 frr.Northbound/EditCandidate <<'JSON'
 {
 "candidateId": 1,
 "update": [
@@ -828,7 +828,7 @@ ___
 | `frr-bfdd.yang` | `/frr-bfdd:bfdd` | `bfdd` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50054 frr.Northbound/EditCandidate <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50054 frr.Northbound/EditCandidate <<'JSON'
 {
 "candidateId": 1,
 "update": [
@@ -870,7 +870,7 @@ ___
 | `frr-bfdd.yang` | `/frr-bfdd:bfdd` | `bfdd` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50054 frr.Northbound/EditCandidate <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50054 frr.Northbound/EditCandidate <<'JSON'
 {
 "candidateId": 1,
 "update": [
@@ -903,7 +903,7 @@ ___
 | `frr-bfdd.yang` | `/frr-bfdd:bfdd` | `bfdd` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50054 frr.Northbound/Get <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50054 frr.Northbound/Get <<'JSON'
 {
 "type": "STATE",
 "encoding": "JSON",
@@ -927,7 +927,7 @@ ___
 | `frr-bfdd.yang` | `/frr-bfdd:bfdd` | `bfdd` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50054 frr.Northbound/Get <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50054 frr.Northbound/Get <<'JSON'
 {
 "type": "STATE",
 "encoding": "JSON",
@@ -954,7 +954,7 @@ ___
 | `frr-bfdd.yang` | `/frr-bfdd:bfdd` | `bfdd` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50054 frr.Northbound/EditCandidate <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50054 frr.Northbound/EditCandidate <<'JSON'
 {
 "candidateId": 1,
 "delete": [
@@ -1004,7 +1004,7 @@ ___
 | `frr-bfdd.yang` | `/frr-bfdd:bfdd` | `bfdd` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50054 frr.Northbound/EditCandidate <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50054 frr.Northbound/EditCandidate <<'JSON'
 {
 "candidateId": 1,
 "update": [
@@ -1036,7 +1036,7 @@ ___
 | `frr-bfdd.yang` | `/frr-bfdd:bfdd` | `bfdd` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50054 frr.Northbound/Get <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50054 frr.Northbound/Get <<'JSON'
 {
 "type": "STATE",
 "encoding": "JSON",
@@ -1061,7 +1061,7 @@ ___
 | `frr-bfdd.yang` | `/frr-bfdd:bfdd` | `bfdd` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50054 frr.Northbound/Get <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50054 frr.Northbound/Get <<'JSON'
 {
 "type": "STATE",
 "encoding": "JSON",
@@ -1087,7 +1087,7 @@ ___
 | `frr-bfdd.yang` | `/frr-bfdd:bfdd` | `bfdd` |
 
 ```bash
-grpcurl -plaintext -d @ localhost:50054 frr.Northbound/EditCandidate <<'JSON'
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50054 frr.Northbound/EditCandidate <<'JSON'
 {
 "candidateId": 1,
 "delete": [
@@ -1101,6 +1101,313 @@ grpcurl -plaintext -d @ localhost:50054 frr.Northbound/EditCandidate <<'JSON'
     "path": "/frr-bfdd:bfdd/bfd"
     }
 ]
+}
+JSON
+```
+
+___
+
+> [!TIP]
+>
+> ```vtysh
+> show interface
+> show ip interface brief
+> show running-config interface
+> ```
+
+| yang module          | yang module path     | daemon  |
+| -------------------- | -------------------- | ------- |
+| `frr-interface.yang` | `/frr-interface:lib` | `zebra` |
+| `frr-zebra.yang`     | `/frr-interface:lib/interface/.../frr-zebra:zebra` | `zebra` |
+
+```bash
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+{
+    "type": "STATE",
+    "encoding": "JSON",
+    "withDefaults": true,
+    "path": [
+        "/frr-interface:lib"
+    ]
+}
+JSON
+```
+
+___
+
+> [!TIP]
+>
+> ```vtysh
+> configure terminal
+> interface lo
+>  description TEST
+>  ip address 192.0.2.1/32
+>  shutdown
+>  no shutdown
+>  no ip address 192.0.2.1/32
+> ```
+
+| yang module          | yang module path     | daemon  |
+| -------------------- | -------------------- | ------- |
+| `frr-interface.yang` | `/frr-interface:lib/interface[name='lo']/description` | `zebra` |
+| `frr-zebra.yang`     | `/frr-interface:lib/interface[name='lo']/frr-zebra:zebra` | `zebra` |
+
+```bash
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
+{
+    "candidateId": 1,
+    "update": [
+        {
+            "path": "/frr-interface:lib/interface[name='lo']/description",
+            "value": "TEST"
+        },
+        {
+            "path": "/frr-interface:lib/interface[name='lo']/frr-zebra:zebra/ipv4-addrs[ip='192.0.2.1'][prefix-length='32']"
+        },
+        {
+            "path": "/frr-interface:lib/interface[name='lo']/frr-zebra:zebra/enabled",
+            "value": "false"
+        }
+    ]
+}
+JSON
+```
+
+___
+
+> [!TIP]
+>
+> ```vtysh
+> configure terminal
+> ip route 10.20.20.0/24 192.168.1.1 10
+> ip route 10.30.30.0/24 192.168.1.1 tag 100
+> ipv6 route 2001:db8:100::/64 2001:db8::1
+> show ip route static
+> show ip route 10.10.10.0/24 json
+> show ipv6 route
+> show ipv6 route json
+> ```
+
+| yang module        | yang module path       | daemon    |
+| ------------------ | ---------------------- | --------- |
+| `frr-routing.yang` | `/frr-routing:routing` | `staticd` |
+| `frr-staticd.yang` | `/frr-routing:routing/.../frr-staticd:staticd/route-list` | `staticd` |
+| `frr-vrf.yang`     | `/frr-vrf:lib/.../frr-zebra:zebra/ribs` | `zebra` |
+
+```bash
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+{
+    "type": "STATE",
+    "encoding": "JSON",
+    "withDefaults": true,
+    "path": [
+        "/frr-vrf:lib/vrf[name='default']/frr-zebra:zebra/ribs"
+    ]
+}
+JSON
+```
+
+___
+
+> [!TIP]
+>
+> ```vtysh
+> configure terminal
+> ipv6 prefix-list TEST6 seq 10 permit 2001:db8::/32 le 64
+> ip access-list standard TEST
+>  permit 10.0.0.0/8
+> access-list 10 permit 10.0.0.0/8
+> show ipv6 prefix-list
+> show access-list
+> show ip prefix-list detail
+> ```
+
+| yang module       | yang module path       | daemon  |
+| ----------------- | ---------------------- | ------- |
+| `frr-filter.yang` | `/frr-filter:lib`      | `zebra` |
+| `frr-filter.yang` | `/frr-filter:lib/prefix-list` | `zebra` |
+| `frr-filter.yang` | `/frr-filter:lib/access-list` | `zebra` |
+
+```bash
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+{
+    "type": "CONFIG",
+    "encoding": "JSON",
+    "withDefaults": true,
+    "path": [
+        "/frr-filter:lib"
+    ]
+}
+JSON
+```
+
+___
+
+> [!TIP]
+>
+> ```vtysh
+> configure terminal
+> route-map TEST permit 10
+>  match interface lo
+>  match metric 100
+>  match ip address TEST
+>  match ipv6 address prefix-list TEST6
+>  set ip next-hop 192.0.2.254
+>  set tag 100
+> show route-map json
+> ```
+
+| yang module          | yang module path       | daemon  |
+| -------------------- | ---------------------- | ------- |
+| `frr-route-map.yang` | `/frr-route-map:lib`   | `zebra` |
+
+```bash
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+{
+    "type": "CONFIG",
+    "encoding": "JSON",
+    "withDefaults": true,
+    "path": [
+        "/frr-route-map:lib"
+    ]
+}
+JSON
+```
+
+___
+
+> [!TIP]
+>
+> ```vtysh
+> configure terminal
+> route-map TEST permit 10
+>  match community TEST
+>  match as-path TEST
+>  set local-preference 200
+>  set community 65001:100
+>  set weight 100
+>  set origin igp
+> ```
+
+| yang module              | yang module path       | daemon  |
+| ------------------------ | ---------------------- | ------- |
+| `frr-route-map.yang`     | `/frr-route-map:lib`   | `bgpd`  |
+| `frr-bgp-route-map.yang` | `/frr-route-map:lib/.../frr-bgp-route-map:*` | `bgpd` |
+
+```bash
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50052 frr.Northbound/EditCandidate <<'JSON'
+{
+    "candidateId": 1,
+    "update": [
+        {
+            "path": "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='10']/set-action[action='frr-bgp-route-map:set-local-preference']/rmap-set-action/frr-bgp-route-map:local-pref",
+            "value": "200"
+        }
+    ]
+}
+JSON
+```
+
+___
+
+> [!TIP]
+>
+> ```vtysh
+> key chain TEST
+>  key 1
+>   key-string SECRET
+> ```
+
+| yang module            | yang module path              | daemon         |
+| ---------------------- | ----------------------------- | -------------- |
+| `ietf-key-chain.yang`  | `/ietf-key-chain:key-chains`  | `ospfd/ospf6d` |
+
+```bash
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50055 frr.Northbound/EditCandidate <<'JSON'
+{
+    "candidateId": 1,
+    "update": [
+        {
+            "path": "/ietf-key-chain:key-chains/key-chain[name='TEST']/key[key-id='1']/key-string/keystring",
+            "value": "SECRET"
+        }
+    ]
+}
+JSON
+```
+
+___
+
+> [!TIP]
+>
+> ```vtysh
+> show bfd peer 192.0.2.2 counters
+> ```
+
+| yang module       | yang module path          | daemon |
+| ----------------- | ------------------------- | ------ |
+| `frr-bfdd.yang`   | `/frr-bfdd:bfdd/bfd/sessions/...` | `bfdd` |
+
+```bash
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50054 frr.Northbound/Get <<'JSON'
+{
+    "type": "STATE",
+    "encoding": "JSON",
+    "withDefaults": true,
+    "path": [
+        "/frr-bfdd:bfdd/bfd/sessions/single-hop[peer='192.0.2.2'][interface='lo'][vrf='default'][local-address='']/stats"
+    ]
+}
+JSON
+```
+
+___
+
+> [!TIP]
+>
+> ```vtysh
+> commit check
+> commit
+> discard
+> show configuration transaction
+> configuration load
+> show configuration running
+> ```
+
+| yang module | yang module path | daemon |
+| ----------- | ---------------- | ------ |
+| Northbound RPC | `Commit/ListTransactions/LoadToCandidate/DeleteCandidate/Get` | любой endpoint |
+
+```bash
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d '{"candidateId":1,"phase":"VALIDATE"}' localhost:50051 frr.Northbound/Commit
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d '{"candidateId":1}' localhost:50051 frr.Northbound/DeleteCandidate
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d '{}' localhost:50051 frr.Northbound/ListTransactions
+```
+
+___
+
+> [!TIP]
+>
+> ```vtysh
+> show zebra
+> debug zebra events
+> debug zebra kernel
+> ```
+
+| yang module      | yang module path           | daemon  |
+| ---------------- | -------------------------- | ------- |
+| `frr-zebra.yang` | `/frr-zebra:zebra`         | `zebra` |
+| `frr-zebra.yang` | `/frr-zebra:zebra/debugs`  | `zebra` |
+
+```bash
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+{
+    "type": "ALL",
+    "encoding": "JSON",
+    "withDefaults": true,
+    "path": [
+        "/frr-zebra:zebra"
+    ]
 }
 JSON
 ```
@@ -1153,6 +1460,71 @@ JSON
 >
 > ```vtysh
 > show evpn arp-cache
+> ```
+
+
+> [!WARNING]
+>
+> Частично: gRPC отдаёт интерфейсные state/config-части, но не полный vtysh view `show ip interface brief` один-в-один.
+>
+> ```vtysh
+> show ip interface brief
+> ```
+
+> [!WARNING]
+>
+> Частично: route/nexthop видны внутри RIB `/frr-vrf:lib/.../ribs`, но отдельного полного аналога `show nexthop-group/show nexthop/show ip nht` нет.
+>
+> ```vtysh
+> show nexthop-group
+> show ip nht
+> show nexthop
+> ```
+
+> [!WARNING]
+>
+> Частично: capabilities/YANG modules доступны через `GetCapabilities()`, но это не полный CLI `show northbound/show yang operational-data`.
+>
+> ```vtysh
+> show northbound
+> show yang operational-data
+> ```
+
+> [!WARNING]
+>
+> Частично: `Get(CONFIG)` работает по поддерживаемым modules конкретного daemon, но `bgpd/ospfd` не публикуют полный BGP/OSPF running config через gRPC в этом контейнере.
+>
+> ```vtysh
+> show running-config bgpd
+> show running-config ospfd
+> show running-config zebra
+> ```
+
+> [!WARNING]
+>
+> Частично: `frr-zebra.yang` содержит `dplane-queue-limit` и debug dplane flags, но полного operational вывода `show zebra dplane` через Get нет.
+>
+> ```vtysh
+> show zebra dplane
+> ```
+
+> [!WARNING]
+>
+> Частично: в `frr-pathd.yang` есть SR-TE config tree, но точный `segment-routing srv6`/`show segment-routing srv6` как vtysh view не подтверждён через gRPC.
+>
+> ```vtysh
+> segment-routing
+> show segment-routing srv6
+> ```
+
+
+> [!WARNING]
+>
+> Частично: generic list/counters для всех BFD peers лучше не делать широким `/bfd/sessions`; безопасный вариант - читать конкретный peer path.
+>
+> ```vtysh
+> show bfd peers brief
+> show bfd peers counters
 > ```
 
 # Не доступные команды
@@ -1435,15 +1807,93 @@ JSON
 > show tech
 > ```
 
+
+> [!CAUTION]
+>
+> ```vtysh
+> interface lo
+>  mtu 1500
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> ip route 10.40.40.0/24 192.168.1.1 name TEST
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> rollback configuration
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> bgp community-list standard TEST permit 65001:100
+> bgp extcommunity-list standard TEST permit rt 65001:100
+> bgp as-path access-list TEST permit .*
+> show bgp community-list
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> router ospf6
+> show ipv6 ospf6 neighbor
+> show ipv6 ospf6 database
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> router rip
+> show ip rip
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> router ripng
+> show ipv6 ripng
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> router pim
+> show ip pim neighbor
+> show ip mroute
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> vrrp ...
+> show vrrp
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> show memory
+> show thread cpu
+> show event cpu
+> ```
+
 # Надо проверить
 
 > [!NOTE]
+>
+> ✅ Доступно
 >
 > ```vtysh
 > show interface
 > ```
 
 > [!NOTE]
+>
+> ✅ Доступно
 >
 > ```vtysh
 > interface lo
@@ -1452,12 +1902,16 @@ JSON
 
 > [!NOTE]
 >
+> ✅ Доступно
+>
 > ```vtysh
 > interface lo
 >  ip address 192.0.2.1/32
 > ```
 
 > [!NOTE]
+>
+> ❌ Недоступно
 >
 > ```vtysh
 > interface lo
@@ -1466,12 +1920,16 @@ JSON
 
 > [!NOTE]
 >
+> ✅ Доступно
+>
 > ```vtysh
 > interface lo
 >  shutdown
 > ```
 
 > [!NOTE]
+>
+> ✅ Доступно
 >
 > ```vtysh
 > interface lo
@@ -1480,6 +1938,8 @@ JSON
 
 > [!NOTE]
 >
+> ✅ Доступно
+>
 > ```vtysh
 > interface lo
 >  no ip address 192.0.2.1/32
@@ -1487,11 +1947,15 @@ JSON
 
 > [!NOTE]
 >
+> ✅ Доступно
+>
 > ```vtysh
 > ip route 10.20.20.0/24 192.168.1.1 10
 > ```
 
 > [!NOTE]
+>
+> ✅ Доступно
 >
 > ```vtysh
 > ip route 10.30.30.0/24 192.168.1.1 tag 100
@@ -1499,11 +1963,15 @@ JSON
 
 > [!NOTE]
 >
+> ❌ Недоступно
+>
 > ```vtysh
 > ip route 10.40.40.0/24 192.168.1.1 name TEST
 > ```
 
 > [!NOTE]
+>
+> ✅ Доступно
 >
 > ```vtysh
 > show ip route static
@@ -1511,17 +1979,23 @@ JSON
 
 > [!NOTE]
 >
+> ✅ Доступно
+>
 > ```vtysh
 > show ip route 10.10.10.0/24 json
 > ```
 
 > [!NOTE]
 >
+> ✅ Доступно
+>
 > ```vtysh
 > ip prefix-list TEST7 seq 90 permit 90.90.0.0/16 ge 24 le 32
 > ```
 
 > [!NOTE]
+>
+> ✅ Доступно
 >
 > ```vtysh
 > route-map TEST permit 10
@@ -1530,12 +2004,16 @@ JSON
 
 > [!NOTE]
 >
+> ✅ Доступно
+>
 > ```vtysh
 > route-map TEST permit 10
 >  match metric 100
 > ```
 
 > [!NOTE]
+>
+> ✅ Доступно
 >
 > ```vtysh
 > route-map TEST permit 10
@@ -1544,12 +2022,16 @@ JSON
 
 > [!NOTE]
 >
+> ✅ Доступно
+>
 > ```vtysh
 > route-map TEST permit 10
 >  set local-preference 200
 > ```
 
 > [!NOTE]
+>
+> ✅ Доступно
 >
 > ```vtysh
 > route-map TEST permit 10
@@ -1558,11 +2040,15 @@ JSON
 
 > [!NOTE]
 >
+> ⚠️ Частично
+>
 > ```vtysh
 > show bfd peers brief
 > ```
 
 > [!NOTE]
+>
+> ⚠️ Частично
 >
 > ```vtysh
 > show bfd peers counters
@@ -1570,11 +2056,15 @@ JSON
 
 > [!NOTE]
 >
+> ✅ Доступно
+>
 > ```vtysh
 > commit check
 > ```
 
 > [!NOTE]
+>
+> ✅ Доступно
 >
 > ```vtysh
 > commit
@@ -1582,11 +2072,15 @@ JSON
 
 > [!NOTE]
 >
+> ✅ Доступно
+>
 > ```vtysh
 > discard
 > ```
 
 > [!NOTE]
+>
+> ✅ Доступно
 >
 > ```vtysh
 > show configuration transaction
@@ -1594,11 +2088,15 @@ JSON
 
 > [!NOTE]
 >
+> ❌ Недоступно
+>
 > ```vtysh
 > rollback configuration
 > ```
 
 > [!NOTE]
+>
+> ✅ Доступно
 >
 > ```vtysh
 > configuration load
@@ -1606,11 +2104,15 @@ JSON
 
 > [!NOTE]
 >
+> ✅ Доступно
+>
 > ```vtysh
 > show configuration running
 > ```
 
 > [!NOTE]
+>
+> ⚠️ Частично
 >
 > ```vtysh
 > show ip interface brief
@@ -1618,11 +2120,15 @@ JSON
 
 > [!NOTE]
 >
+> ✅ Доступно
+>
 > ```vtysh
 > show running-config interface
 > ```
 
 > [!NOTE]
+>
+> ✅ Доступно
 >
 > ```vtysh
 > ipv6 route 2001:db8:100::/64 2001:db8::1
@@ -1632,12 +2138,16 @@ JSON
 
 > [!NOTE]
 >
+> ✅ Доступно
+>
 > ```vtysh
 > ipv6 prefix-list TEST6 seq 10 permit 2001:db8::/32 le 64
 > show ipv6 prefix-list
 > ```
 
 > [!NOTE]
+>
+> ✅ Доступно
 >
 > ```vtysh
 > ip access-list standard TEST
@@ -1647,11 +2157,15 @@ JSON
 
 > [!NOTE]
 >
+> ✅ Доступно
+>
 > ```vtysh
 > access-list 10 permit 10.0.0.0/8
 > ```
 
 > [!NOTE]
+>
+> ❌ Недоступно
 >
 > ```vtysh
 > bgp community-list standard TEST permit 65001:100
@@ -1662,12 +2176,16 @@ JSON
 
 > [!NOTE]
 >
+> ✅ Доступно
+>
 > ```vtysh
 > route-map TEST permit 10
 >  match ip address TEST
 > ```
 
 > [!NOTE]
+>
+> ✅ Доступно
 >
 > ```vtysh
 > route-map TEST permit 10
@@ -1676,12 +2194,16 @@ JSON
 
 > [!NOTE]
 >
+> ✅ Доступно
+>
 > ```vtysh
 > route-map TEST permit 10
 >  match community TEST
 > ```
 
 > [!NOTE]
+>
+> ✅ Доступно
 >
 > ```vtysh
 > route-map TEST permit 10
@@ -1690,12 +2212,16 @@ JSON
 
 > [!NOTE]
 >
+> ✅ Доступно
+>
 > ```vtysh
 > route-map TEST permit 10
 >  set tag 100
 > ```
 
 > [!NOTE]
+>
+> ✅ Доступно
 >
 > ```vtysh
 > route-map TEST permit 10
@@ -1704,12 +2230,16 @@ JSON
 
 > [!NOTE]
 >
+> ✅ Доступно
+>
 > ```vtysh
 > route-map TEST permit 10
 >  set origin igp
 > ```
 
 > [!NOTE]
+>
+> ✅ Доступно
 >
 > ```vtysh
 > key chain TEST
@@ -1719,11 +2249,15 @@ JSON
 
 > [!NOTE]
 >
+> ⚠️ Частично
+>
 > ```vtysh
 > show nexthop-group
 > ```
 
 > [!NOTE]
+>
+> ⚠️ Частично
 >
 > ```vtysh
 > show zebra
@@ -1732,12 +2266,16 @@ JSON
 
 > [!NOTE]
 >
+> ⚠️ Частично
+>
 > ```vtysh
 > show northbound
 > show yang operational-data
 > ```
 
 > [!NOTE]
+>
+> ❌ Недоступно
 >
 > ```vtysh
 > router ospf6
@@ -1747,6 +2285,8 @@ JSON
 
 > [!NOTE]
 >
+> ❌ Недоступно
+>
 > ```vtysh
 > router rip
 > show ip rip
@@ -1754,12 +2294,16 @@ JSON
 
 > [!NOTE]
 >
+> ❌ Недоступно
+>
 > ```vtysh
 > router ripng
 > show ipv6 ripng
 > ```
 
 > [!NOTE]
+>
+> ❌ Недоступно
 >
 > ```vtysh
 > router pim
@@ -1769,12 +2313,16 @@ JSON
 
 > [!NOTE]
 >
+> ❌ Недоступно
+>
 > ```vtysh
 > vrrp ...
 > show vrrp
 > ```
 
 > [!NOTE]
+>
+> ⚠️ Частично
 >
 > ```vtysh
 > segment-routing
@@ -1783,6 +2331,8 @@ JSON
 
 > [!NOTE]
 >
+> ⚠️ Частично
+>
 > ```vtysh
 > show ip nht
 > show nexthop
@@ -1790,12 +2340,16 @@ JSON
 
 > [!NOTE]
 >
+> ✅ Доступно
+>
 > ```vtysh
 > show route-map json
 > show ip prefix-list detail
 > ```
 
 > [!NOTE]
+>
+> ⚠️ Частично
 >
 > ```vtysh
 > show running-config bgpd
@@ -1805,6 +2359,8 @@ JSON
 
 > [!NOTE]
 >
+> ❌ Недоступно
+>
 > ```vtysh
 > show memory
 > show thread cpu
@@ -1812,6 +2368,8 @@ JSON
 > ```
 
 > [!NOTE]
+>
+> ✅ Доступно
 >
 > ```vtysh
 > debug zebra events
