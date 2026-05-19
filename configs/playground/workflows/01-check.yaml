@@ -14,6 +14,28 @@ steps:
 
       requestType:
       1 = CONFIG ONLY
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-vrf.yang
+      root paths/libs:
+      - /frr-vrf:lib
+
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-vrf:lib"
+        ]
+      }
+      JSON
     params:
       requestType: 1
       path:

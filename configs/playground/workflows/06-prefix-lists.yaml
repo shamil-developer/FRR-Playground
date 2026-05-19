@@ -27,6 +27,27 @@ steps:
       Prefix-lists находятся внутри:
 
       /frr-filter:lib
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-filter.yang
+      root paths/libs:
+      - /frr-filter:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-filter:lib"
+        ]
+      }
+      JSON
     params:
       requestType: 1
       path:
@@ -38,6 +59,22 @@ steps:
 
       Создание candidate transaction
       для prefix-list изменений.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs: candidate создается без data path; edit paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50051 frr.Northbound/CreateCandidate
   - type: editCandidate
     daemon: zebra
     description: |
@@ -68,6 +105,33 @@ steps:
 
       Это нормальная практика
       для FRR northbound API.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-filter.yang
+      root paths/libs:
+      - /frr-filter:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "update": [
+          {
+            "path": "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']"
+          },
+          {
+            "path": "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']/entry[sequence='70']/action",
+            "value": "permit"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
     params:
       update:
         - path: "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']"
@@ -94,6 +158,24 @@ steps:
       vtysh:
       end
       write memory
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs: commit применяет candidate; data paths указаны в предыдущем EditCandidate step.
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "create TEST7"
+      }
+      JSON
     params:
       comment: create TEST7
   - type: get
@@ -116,6 +198,27 @@ steps:
         - action
         - prefix
         - le/ge values
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-filter.yang
+      root paths/libs:
+      - /frr-filter:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-filter:lib"
+        ]
+      }
+      JSON
     params:
       requestType: 1
       path:
@@ -128,6 +231,22 @@ steps:
 
       Автоматическая проверка что prefix-list TEST7
       и permit entry 70 появились в running configuration.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-filter.yang
+      root paths/libs:
+      - /frr-filter:lib
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
     params:
       requestType: 1
       path:
@@ -149,6 +268,22 @@ steps:
 
       Создание candidate transaction
       для добавления deny entry.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs: candidate создается без data path; edit paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50051 frr.Northbound/CreateCandidate
   - type: editCandidate
     daemon: zebra
     description: |
@@ -163,6 +298,34 @@ steps:
       configure terminal
 
       ip prefix-list TEST7 seq 80 deny 80.80.0.0/16 le 32
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-filter.yang
+      root paths/libs:
+      - /frr-filter:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "update": [
+          {
+            "path": "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']/entry[sequence='80']/action",
+            "value": "deny"
+          },
+          {
+            "path": "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']/entry[sequence='80']/ipv4-prefix",
+            "value": "80.80.0.0/16"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
     params:
       update:
         - path: "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']/entry[sequence='80']/action"
@@ -177,6 +340,29 @@ steps:
       STEP 19
 
       Commit deny entry configuration.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs: commit применяет candidate; data paths указаны в предыдущем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      end
+      # изменения в vtysh применяются после config-команд
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "add deny entry"
+      }
+      JSON
     params:
       comment: add deny entry
   - type: get
@@ -191,6 +377,27 @@ steps:
 
       vtysh:
       show ip prefix-list json
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-filter.yang
+      root paths/libs:
+      - /frr-filter:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-filter:lib"
+        ]
+      }
+      JSON
     params:
       requestType: 1
       path:
@@ -203,6 +410,22 @@ steps:
 
       Автоматическая проверка что deny entry 80
       появился в prefix-list TEST7.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-filter.yang
+      root paths/libs:
+      - /frr-filter:lib
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
     params:
       requestType: 1
       path:
@@ -222,6 +445,22 @@ steps:
 
       Создание candidate transaction
       для удаления entry.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs: candidate создается без data path; edit paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50051 frr.Northbound/CreateCandidate
   - type: editCandidate
     daemon: zebra
     description: |
@@ -236,6 +475,29 @@ steps:
       configure terminal
 
       no ip prefix-list TEST7 seq 80 deny 80.80.0.0/16 le 32
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-filter.yang
+      root paths/libs:
+      - /frr-filter:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "delete": [
+          {
+            "path": "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']/entry[sequence='80']"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
     params:
       delete:
         - path: "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']/entry[sequence='80']"
@@ -245,6 +507,29 @@ steps:
       STEP 23
 
       Commit удаления deny entry.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs: commit применяет candidate; data paths указаны в предыдущем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      end
+      # изменения в vtysh применяются после config-команд
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "delete deny entry"
+      }
+      JSON
     params:
       comment: delete deny entry
   - type: get
@@ -259,6 +544,27 @@ steps:
 
       vtysh:
       show ip prefix-list json
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-filter.yang
+      root paths/libs:
+      - /frr-filter:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-filter:lib"
+        ]
+      }
+      JSON
     params:
       requestType: 1
       path:
@@ -271,6 +577,22 @@ steps:
 
       Автоматическая проверка что deny entry 80
       удалился из prefix-list TEST7.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-filter.yang
+      root paths/libs:
+      - /frr-filter:lib
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
     params:
       requestType: 1
       path:
@@ -285,6 +607,22 @@ steps:
 
       Создание candidate transaction
       для удаления prefix-list.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs: candidate создается без data path; edit paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50051 frr.Northbound/CreateCandidate
   - type: editCandidate
     daemon: zebra
     description: |
@@ -298,6 +636,29 @@ steps:
       configure terminal
 
       no ip prefix-list TEST7
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-filter.yang
+      root paths/libs:
+      - /frr-filter:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "delete": [
+          {
+            "path": "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
     params:
       delete:
         - path: "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']"
@@ -307,6 +668,29 @@ steps:
       STEP 27
 
       Commit удаления prefix-list TEST7.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs: commit применяет candidate; data paths указаны в предыдущем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      end
+      # изменения в vtysh применяются после config-команд
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "delete TEST7"
+      }
+      JSON
     params:
       comment: delete TEST7
   - type: get
@@ -321,6 +705,27 @@ steps:
 
       vtysh:
       show ip prefix-list json
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-filter.yang
+      root paths/libs:
+      - /frr-filter:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-filter:lib"
+        ]
+      }
+      JSON
     params:
       requestType: 1
       path:
@@ -333,6 +738,22 @@ steps:
 
       Автоматическая проверка что prefix-list TEST7
       полностью отсутствует после cleanup.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-filter.yang
+      root paths/libs:
+      - /frr-filter:lib
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
     params:
       requestType: 1
       path:

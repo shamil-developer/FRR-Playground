@@ -56,6 +56,18 @@ workflow-06-prefix-lists:
 workflow-07-route-maps:
 	go run cmd/playground/main.go configs/playground/workflows/07-route-maps.yaml
 
+workflow-08-bgp-base:
+	go run cmd/playground/main.go configs/playground/workflows/08-bgp-base.yaml
+
+workflow-13-isis:
+	go run cmd/playground/main.go configs/playground/workflows/13-isis.yaml
+
+workflow-14-bfd:
+	go run cmd/playground/main.go configs/playground/workflows/14-bfd.yaml
+
+workflow-15-sbfd:
+	go run cmd/playground/main.go configs/playground/workflows/15-sbfd.yaml
+
 workflow-all:
 	$(MAKE) workflow-01-check
 	$(MAKE) workflow-02-capabilities
@@ -64,6 +76,7 @@ workflow-all:
 	$(MAKE) workflow-05-vrf
 	$(MAKE) workflow-06-prefix-lists
 	$(MAKE) workflow-07-route-maps
+	$(MAKE) workflow-08-bgp-base
 
 # ╱╱╭╮╱╱╱╱╱╭╮
 # ╱╱┃┃╱╱╱╱╱┃┃

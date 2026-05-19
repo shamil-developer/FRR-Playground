@@ -1,0 +1,674 @@
+---
+steps:
+  - type: getCapabilities
+    daemon: bfdd
+    description: |
+      15. SBFD capabilities
+
+      Проверяем, что bfdd реально отдает
+      northbound YANG module frr-bfdd.
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      RPC: GetCapabilities() возвращает supported YANG modules этого daemon endpoint.
+      ожидаемый daemon module: frr-bfdd.yang
+
+      Аналог:
+      нет прямого vtysh-аналога; это discovery gRPC API.
+
+      grpcurl пример:
+      grpcurl -plaintext localhost:50054 frr.Northbound/GetCapabilities
+  - type: assertCapabilityExists
+    daemon: bfdd
+    description: |
+      15. SBFD capability assert
+
+      Автоматическая проверка наличия
+      module frr-bfdd.
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs: проверяется список modules из GetCapabilities().
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl:
+      grpcurl -plaintext localhost:50054 frr.Northbound/GetCapabilities
+    params:
+      modules:
+        - frr-bfdd
+
+  - type: get
+    daemon: bfdd
+    description: |
+      15. SBFD config before
+
+      Чтение SBFD/BFD configuration до изменений.
+
+      Аналог:
+
+      vtysh:
+      show running-config
+      show bfd peers
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50054 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-bfdd:bfdd"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-bfdd:bfdd"
+
+  - type: createCandidate
+    daemon: bfdd
+    description: |
+      15. SBFD candidate
+
+      Создание candidate transaction
+      для SBFD echo и SBFD init sessions.
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs: candidate создается без data path; edit paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50054 frr.Northbound/CreateCandidate
+  - type: editCandidate
+    daemon: bfdd
+    description: |
+      15. SBFD create echo and init
+
+      Создание:
+        - SBFD echo session
+        - SBFD initiator session
+
+      Аналог:
+
+      vtysh:
+      configure terminal
+      bfd
+       peer 2001:db8::1 bfd-mode sbfd-echo bfd-name TEST-ECHO multihop local-address 2001:db8::1 srv6-source-ipv6 2001:db8::1 srv6-encap-data 2001:db8::2
+        detect-multiplier 3
+        transmit-interval 300
+        receive-interval 300
+        echo-mode
+        echo-interval 50
+        passive-mode
+        shutdown
+        log-session-changes
+       peer 192.0.2.4 bfd-mode sbfd-init bfd-name TEST-INIT multihop local-address 127.0.0.1 remote-discr 1001
+        detect-multiplier 3
+        transmit-interval 300
+        receive-interval 300
+        passive-mode
+        shutdown
+        log-session-changes
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      - 2001.yang
+      - db8.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50054 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "update": [
+          {
+            "path": "/frr-bfdd:bfdd/bfd"
+          },
+          {
+            "path": "/frr-bfdd:bfdd/bfd/sessions/sbfd-echo[source-addr='2001:db8::1'][bfd-name='TEST-ECHO'][vrf='default']"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
+    params:
+      update:
+        - path: "/frr-bfdd:bfdd/bfd"
+
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-echo[source-addr='2001:db8::1'][bfd-name='TEST-ECHO'][vrf='default']"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-echo[source-addr='2001:db8::1'][bfd-name='TEST-ECHO'][vrf='default']/dest-addr"
+          value: "2001:db8::1"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-echo[source-addr='2001:db8::1'][bfd-name='TEST-ECHO'][vrf='default']/srv6-source-ipv6"
+          value: "2001:db8::1"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-echo[source-addr='2001:db8::1'][bfd-name='TEST-ECHO'][vrf='default']/srv6-encap-data"
+          value: "2001:db8::2"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-echo[source-addr='2001:db8::1'][bfd-name='TEST-ECHO'][vrf='default']/bfd-mode"
+          value: "1"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-echo[source-addr='2001:db8::1'][bfd-name='TEST-ECHO'][vrf='default']/multi-hop"
+          value: "true"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-echo[source-addr='2001:db8::1'][bfd-name='TEST-ECHO'][vrf='default']/minimum-ttl"
+          value: "254"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-echo[source-addr='2001:db8::1'][bfd-name='TEST-ECHO'][vrf='default']/detection-multiplier"
+          value: "3"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-echo[source-addr='2001:db8::1'][bfd-name='TEST-ECHO'][vrf='default']/desired-transmission-interval"
+          value: "300000"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-echo[source-addr='2001:db8::1'][bfd-name='TEST-ECHO'][vrf='default']/required-receive-interval"
+          value: "300000"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-echo[source-addr='2001:db8::1'][bfd-name='TEST-ECHO'][vrf='default']/echo-mode"
+          value: "true"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-echo[source-addr='2001:db8::1'][bfd-name='TEST-ECHO'][vrf='default']/desired-echo-transmission-interval"
+          value: "50000"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-echo[source-addr='2001:db8::1'][bfd-name='TEST-ECHO'][vrf='default']/required-echo-receive-interval"
+          value: "50000"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-echo[source-addr='2001:db8::1'][bfd-name='TEST-ECHO'][vrf='default']/passive-mode"
+          value: "true"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-echo[source-addr='2001:db8::1'][bfd-name='TEST-ECHO'][vrf='default']/administrative-down"
+          value: "true"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-echo[source-addr='2001:db8::1'][bfd-name='TEST-ECHO'][vrf='default']/log-session-changes"
+          value: "true"
+
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-init[source-addr='127.0.0.1'][dest-addr='192.0.2.4'][bfd-name='TEST-INIT'][vrf='default']"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-init[source-addr='127.0.0.1'][dest-addr='192.0.2.4'][bfd-name='TEST-INIT'][vrf='default']/remote-discr"
+          value: "1001"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-init[source-addr='127.0.0.1'][dest-addr='192.0.2.4'][bfd-name='TEST-INIT'][vrf='default']/bfd-mode"
+          value: "2"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-init[source-addr='127.0.0.1'][dest-addr='192.0.2.4'][bfd-name='TEST-INIT'][vrf='default']/multi-hop"
+          value: "true"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-init[source-addr='127.0.0.1'][dest-addr='192.0.2.4'][bfd-name='TEST-INIT'][vrf='default']/minimum-ttl"
+          value: "254"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-init[source-addr='127.0.0.1'][dest-addr='192.0.2.4'][bfd-name='TEST-INIT'][vrf='default']/detection-multiplier"
+          value: "3"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-init[source-addr='127.0.0.1'][dest-addr='192.0.2.4'][bfd-name='TEST-INIT'][vrf='default']/desired-transmission-interval"
+          value: "300000"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-init[source-addr='127.0.0.1'][dest-addr='192.0.2.4'][bfd-name='TEST-INIT'][vrf='default']/required-receive-interval"
+          value: "300000"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-init[source-addr='127.0.0.1'][dest-addr='192.0.2.4'][bfd-name='TEST-INIT'][vrf='default']/passive-mode"
+          value: "true"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-init[source-addr='127.0.0.1'][dest-addr='192.0.2.4'][bfd-name='TEST-INIT'][vrf='default']/administrative-down"
+          value: "true"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-init[source-addr='127.0.0.1'][dest-addr='192.0.2.4'][bfd-name='TEST-INIT'][vrf='default']/log-session-changes"
+          value: "true"
+
+  - type: commitCandidate
+    daemon: bfdd
+    description: |
+      15. SBFD commit
+
+      Commit создания SBFD echo
+      и SBFD init sessions.
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs: commit применяет candidate; data paths указаны в предыдущем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      end
+      # изменения в vtysh применяются после config-команд
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50054 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "create sbfd echo and init sessions"
+      }
+      JSON
+    params:
+      comment: create sbfd echo and init sessions
+
+  - type: get
+    daemon: bfdd
+    description: |
+      15. SBFD config verify
+
+      Проверка что SBFD echo и init
+      появились в running configuration.
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      Аналог:
+      vtysh:
+      show running-config
+      show ... по смыслу шага
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50054 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-bfdd:bfdd"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-bfdd:bfdd"
+
+  - type: assertJsonExists
+    daemon: bfdd
+    description: |
+      15. SBFD config assert
+
+      Автоматическая проверка SBFD config:
+        - echo session
+        - init session
+        - bfd-name
+        - remote-discr
+        - SRv6 fields
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 1
+      path:
+        - "/frr-bfdd:bfdd"
+      checks:
+        - path: 'frr-bfdd:bfdd.bfd.sessions.sbfd-echo.#(bfd-name=="TEST-ECHO").source-addr'
+          equals: "2001:db8::1"
+        - path: 'frr-bfdd:bfdd.bfd.sessions.sbfd-echo.#(bfd-name=="TEST-ECHO").dest-addr'
+          equals: "2001:db8::1"
+        - path: 'frr-bfdd:bfdd.bfd.sessions.sbfd-echo.#(bfd-name=="TEST-ECHO").srv6-source-ipv6'
+          equals: "2001:db8::1"
+        - path: 'frr-bfdd:bfdd.bfd.sessions.sbfd-echo.#(bfd-name=="TEST-ECHO").srv6-encap-data.0'
+          equals: "2001:db8::2"
+        - path: 'frr-bfdd:bfdd.bfd.sessions.sbfd-echo.#(bfd-name=="TEST-ECHO").multi-hop'
+          equals: "true"
+        - path: 'frr-bfdd:bfdd.bfd.sessions.sbfd-echo.#(bfd-name=="TEST-ECHO").administrative-down'
+          equals: "true"
+        - path: 'frr-bfdd:bfdd.bfd.sessions.sbfd-init.#(bfd-name=="TEST-INIT").source-addr'
+          equals: "127.0.0.1"
+        - path: 'frr-bfdd:bfdd.bfd.sessions.sbfd-init.#(bfd-name=="TEST-INIT").dest-addr'
+          equals: "192.0.2.4"
+        - path: 'frr-bfdd:bfdd.bfd.sessions.sbfd-init.#(bfd-name=="TEST-INIT").remote-discr'
+          equals: "1001"
+        - path: 'frr-bfdd:bfdd.bfd.sessions.sbfd-init.#(bfd-name=="TEST-INIT").multi-hop'
+          equals: "true"
+        - path: 'frr-bfdd:bfdd.bfd.sessions.sbfd-init.#(bfd-name=="TEST-INIT").administrative-down'
+          equals: "true"
+
+  - type: get
+    daemon: bfdd
+    description: |
+      15. SBFD echo state
+
+      Чтение operational state
+      конкретной SBFD echo session.
+
+      Аналог:
+
+      vtysh:
+      show bfd bfd-name TEST-ECHO
+      show bfd bfd-name TEST-ECHO counters
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50054 frr.Northbound/Get <<'JSON'
+      {
+        "type": "STATE",
+        "encoding": "JSON",
+        "path": [
+          "/frr-bfdd:bfdd/bfd/sessions/sbfd-echo"
+        ]
+      }
+      JSON
+    params:
+      requestType: 2
+      path:
+        - "/frr-bfdd:bfdd/bfd/sessions/sbfd-echo"
+
+  - type: assertJsonExists
+    daemon: bfdd
+    description: |
+      15. SBFD echo state assert
+
+      Автоматическая проверка operational state:
+        - SBFD echo session присутствует
+        - stats subtree есть
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 2
+      path:
+        - "/frr-bfdd:bfdd/bfd/sessions/sbfd-echo"
+      checks:
+        - path: 'frr-bfdd:bfdd.bfd.sessions.sbfd-echo.#(bfd-name=="TEST-ECHO").stats.local-state'
+          equals: admin-down
+        - path: 'frr-bfdd:bfdd.bfd.sessions.sbfd-echo.#(bfd-name=="TEST-ECHO").stats.control-packet-input-count'
+          equals: "0"
+
+  - type: get
+    daemon: bfdd
+    description: |
+      15. SBFD init state
+
+      Чтение operational state
+      конкретной SBFD init session.
+
+      Аналог:
+
+      vtysh:
+      show bfd bfd-name TEST-INIT
+      show bfd bfd-name TEST-INIT counters
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50054 frr.Northbound/Get <<'JSON'
+      {
+        "type": "STATE",
+        "encoding": "JSON",
+        "path": [
+          "/frr-bfdd:bfdd/bfd/sessions/sbfd-init[source-addr='127.0.0.1'][dest-addr='192.0.2.4'][bfd-name='TEST-INIT'][vrf='default']/stats"
+        ]
+      }
+      JSON
+    params:
+      requestType: 2
+      path:
+        - "/frr-bfdd:bfdd/bfd/sessions/sbfd-init[source-addr='127.0.0.1'][dest-addr='192.0.2.4'][bfd-name='TEST-INIT'][vrf='default']/stats"
+
+  - type: assertJsonExists
+    daemon: bfdd
+    description: |
+      15. SBFD init state assert
+
+      Автоматическая проверка operational state:
+        - SBFD init session присутствует
+        - stats subtree есть
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 2
+      path:
+        - "/frr-bfdd:bfdd/bfd/sessions/sbfd-init[source-addr='127.0.0.1'][dest-addr='192.0.2.4'][bfd-name='TEST-INIT'][vrf='default']/stats"
+      checks:
+        - path: 'frr-bfdd:bfdd.bfd.sessions.sbfd-init.#(bfd-name=="TEST-INIT").stats.local-state'
+          equals: admin-down
+        - path: 'frr-bfdd:bfdd.bfd.sessions.sbfd-init.#(bfd-name=="TEST-INIT").stats.control-packet-input-count'
+          equals: "0"
+
+  - type: createCandidate
+    daemon: bfdd
+    description: |
+      15. SBFD cleanup candidate
+
+      Создание candidate transaction
+      для удаления SBFD test config.
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs: candidate создается без data path; edit paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50054 frr.Northbound/CreateCandidate
+  - type: editCandidate
+    daemon: bfdd
+    description: |
+      15. SBFD cleanup
+
+      Удаление SBFD echo,
+      SBFD init и BFD container.
+
+      Аналог:
+
+      vtysh:
+      bfd
+       no peer 2001:db8::1 bfd-mode sbfd-echo bfd-name TEST-ECHO multihop local-address 2001:db8::1 srv6-source-ipv6 2001:db8::1 srv6-encap-data 2001:db8::2
+       no peer 192.0.2.4 bfd-mode sbfd-init bfd-name TEST-INIT multihop local-address 127.0.0.1 remote-discr 1001
+      no bfd
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      - 2001.yang
+      - db8.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50054 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "delete": [
+          {
+            "path": "/frr-bfdd:bfdd/bfd/sessions/sbfd-init[source-addr='127.0.0.1'][dest-addr='192.0.2.4'][bfd-name='TEST-INIT'][vrf='default']"
+          },
+          {
+            "path": "/frr-bfdd:bfdd/bfd/sessions/sbfd-echo[source-addr='2001:db8::1'][bfd-name='TEST-ECHO'][vrf='default']"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
+    params:
+      delete:
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-init[source-addr='127.0.0.1'][dest-addr='192.0.2.4'][bfd-name='TEST-INIT'][vrf='default']"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/sbfd-echo[source-addr='2001:db8::1'][bfd-name='TEST-ECHO'][vrf='default']"
+        - path: "/frr-bfdd:bfdd/bfd"
+
+  - type: commitCandidate
+    daemon: bfdd
+    description: |
+      15. SBFD cleanup commit
+
+      Commit удаления SBFD test config.
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs: commit применяет candidate; data paths указаны в предыдущем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      end
+      # изменения в vtysh применяются после config-команд
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50054 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "cleanup sbfd test config"
+      }
+      JSON
+    params:
+      comment: cleanup sbfd test config
+
+  - type: get
+    daemon: bfdd
+    description: |
+      15. SBFD cleanup verify
+
+      Проверка что SBFD test config
+      удалился из running configuration.
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      Аналог:
+      vtysh:
+      show running-config
+      show ... по смыслу шага
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50054 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-bfdd:bfdd"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-bfdd:bfdd"
+
+  - type: assertJsonMissing
+    daemon: bfdd
+    description: |
+      15. SBFD cleanup assert
+
+      Автоматическая проверка:
+        - SBFD echo отсутствует
+        - SBFD init отсутствует
+        - BFD container отсутствует
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 1
+      path:
+        - "/frr-bfdd:bfdd"
+      checks:
+        - path: 'frr-bfdd:bfdd.bfd.sessions.sbfd-echo.#(bfd-name=="TEST-ECHO").bfd-name'
+        - path: 'frr-bfdd:bfdd.bfd.sessions.sbfd-init.#(bfd-name=="TEST-INIT").bfd-name'
+        - path: 'frr-bfdd:bfdd.bfd'

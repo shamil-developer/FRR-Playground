@@ -20,16 +20,18 @@ type Handler interface {
 func CreateHandlersRegistry() map[string]Handler {
 
 	return map[string]Handler{
-		"get":               handlers.NewGetHandler(),
-		"getCapabilities":   handlers.NewGetCapabilitiesHandler(),
-		"createCandidate":   handlers.NewCreateCandidateHandler(),
-		"editCandidate":     handlers.NewEditCandidateHandler(),
-		"commitCandidate":   handlers.NewCommitCandidateHandler(),
-		"getTransactions":   handlers.NewGetTransactionsHandler(),
-		"getTransaction":    handlers.NewGetTransactionHandler(),
-		"sleep":             handlers.NewSleepHandler(),
-		"assertJsonExists":  handlers.NewAssertJSONExistsHandler(),
-		"assertJsonMissing": handlers.NewAssertJSONMissingHandler(),
+		"get":                     handlers.NewGetHandler(),
+		"getCapabilities":         handlers.NewGetCapabilitiesHandler(),
+		"createCandidate":         handlers.NewCreateCandidateHandler(),
+		"editCandidate":           handlers.NewEditCandidateHandler(),
+		"commitCandidate":         handlers.NewCommitCandidateHandler(),
+		"getTransactions":         handlers.NewGetTransactionsHandler(),
+		"getTransaction":          handlers.NewGetTransactionHandler(),
+		"sleep":                   handlers.NewSleepHandler(),
+		"assertJsonExists":        handlers.NewAssertJSONExistsHandler(),
+		"assertJsonMissing":       handlers.NewAssertJSONMissingHandler(),
+		"assertCapabilityExists":  handlers.NewAssertCapabilityExistsHandler(),
+		"assertCapabilityMissing": handlers.NewAssertCapabilityMissingHandler(),
 	}
 
 }

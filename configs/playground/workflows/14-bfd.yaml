@@ -1,0 +1,1030 @@
+---
+steps:
+  - type: getCapabilities
+    daemon: bfdd
+    description: |
+      14. BFD capabilities
+
+      Проверяем, что bfdd реально отдает
+      northbound YANG module frr-bfdd.
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      RPC: GetCapabilities() возвращает supported YANG modules этого daemon endpoint.
+      ожидаемый daemon module: frr-bfdd.yang
+
+      Аналог:
+      нет прямого vtysh-аналога; это discovery gRPC API.
+
+      grpcurl пример:
+      grpcurl -plaintext localhost:50054 frr.Northbound/GetCapabilities
+  - type: assertCapabilityExists
+    daemon: bfdd
+    description: |
+      14. BFD capability assert
+
+      Автоматическая проверка наличия
+      module frr-bfdd.
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs: проверяется список modules из GetCapabilities().
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl:
+      grpcurl -plaintext localhost:50054 frr.Northbound/GetCapabilities
+    params:
+      modules:
+        - frr-bfdd
+
+  - type: get
+    daemon: bfdd
+    description: |
+      14. BFD config before
+
+      Чтение BFD configuration до изменений.
+
+      Аналог:
+
+      vtysh:
+      show running-config
+      show bfd peers
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50054 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-bfdd:bfdd"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-bfdd:bfdd"
+
+  - type: createCandidate
+    daemon: bfdd
+    description: |
+      14. BFD profile candidate
+
+      Создание candidate transaction
+      для BFD profile.
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs: candidate создается без data path; edit paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50054 frr.Northbound/CreateCandidate
+  - type: editCandidate
+    daemon: bfdd
+    description: |
+      14. BFD create profile TEST
+
+      Создание BFD container и profile TEST.
+
+      Аналог:
+
+      vtysh:
+      configure terminal
+      bfd
+       profile TEST
+        detect-multiplier 3
+        transmit-interval 300
+        receive-interval 300
+        echo-mode
+        echo-interval 50
+        passive-mode
+        shutdown
+        log-session-changes
+
+      В YANG интервалы задаются в microseconds:
+        - 300 ms = 300000
+        - 50 ms = 50000
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50054 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "update": [
+          {
+            "path": "/frr-bfdd:bfdd/bfd"
+          },
+          {
+            "path": "/frr-bfdd:bfdd/bfd/profile[name='TEST']"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
+    params:
+      update:
+        - path: "/frr-bfdd:bfdd/bfd"
+        - path: "/frr-bfdd:bfdd/bfd/profile[name='TEST']"
+        - path: "/frr-bfdd:bfdd/bfd/profile[name='TEST']/detection-multiplier"
+          value: "3"
+        - path: "/frr-bfdd:bfdd/bfd/profile[name='TEST']/desired-transmission-interval"
+          value: "300000"
+        - path: "/frr-bfdd:bfdd/bfd/profile[name='TEST']/required-receive-interval"
+          value: "300000"
+        - path: "/frr-bfdd:bfdd/bfd/profile[name='TEST']/echo-mode"
+          value: "true"
+        - path: "/frr-bfdd:bfdd/bfd/profile[name='TEST']/desired-echo-transmission-interval"
+          value: "50000"
+        - path: "/frr-bfdd:bfdd/bfd/profile[name='TEST']/required-echo-receive-interval"
+          value: "50000"
+        - path: "/frr-bfdd:bfdd/bfd/profile[name='TEST']/passive-mode"
+          value: "true"
+        - path: "/frr-bfdd:bfdd/bfd/profile[name='TEST']/administrative-down"
+          value: "true"
+        - path: "/frr-bfdd:bfdd/bfd/profile[name='TEST']/log-session-changes"
+          value: "true"
+
+  - type: commitCandidate
+    daemon: bfdd
+    description: |
+      14. BFD profile commit
+
+      Commit создания BFD container
+      и profile TEST.
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs: commit применяет candidate; data paths указаны в предыдущем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      end
+      # изменения в vtysh применяются после config-команд
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50054 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "create bfd profile TEST"
+      }
+      JSON
+    params:
+      comment: create bfd profile TEST
+
+  - type: get
+    daemon: bfdd
+    description: |
+      14. BFD profile verify
+
+      Проверка что BFD profile TEST
+      появился в running configuration.
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      Аналог:
+      vtysh:
+      show running-config
+      show ... по смыслу шага
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50054 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-bfdd:bfdd"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-bfdd:bfdd"
+
+  - type: assertJsonExists
+    daemon: bfdd
+    description: |
+      14. BFD profile assert
+
+      Автоматическая проверка profile TEST:
+        - multiplier
+        - tx/rx interval
+        - echo-mode
+        - passive/shutdown/log
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 1
+      path:
+        - "/frr-bfdd:bfdd"
+      checks:
+        - path: 'frr-bfdd:bfdd.bfd.profile.#(name=="TEST").name'
+          equals: TEST
+        - path: 'frr-bfdd:bfdd.bfd.profile.#(name=="TEST").detection-multiplier'
+          equals: "3"
+        - path: 'frr-bfdd:bfdd.bfd.profile.#(name=="TEST").desired-transmission-interval'
+          equals: "300000"
+        - path: 'frr-bfdd:bfdd.bfd.profile.#(name=="TEST").required-receive-interval'
+          equals: "300000"
+        - path: 'frr-bfdd:bfdd.bfd.profile.#(name=="TEST").echo-mode'
+          equals: "true"
+        - path: 'frr-bfdd:bfdd.bfd.profile.#(name=="TEST").passive-mode'
+          equals: "true"
+        - path: 'frr-bfdd:bfdd.bfd.profile.#(name=="TEST").administrative-down'
+          equals: "true"
+        - path: 'frr-bfdd:bfdd.bfd.profile.#(name=="TEST").log-session-changes'
+          equals: "true"
+
+  - type: createCandidate
+    daemon: bfdd
+    description: |
+      14. BFD single-hop candidate
+
+      Создание candidate transaction
+      для BFD single-hop peer.
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs: candidate создается без data path; edit paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50054 frr.Northbound/CreateCandidate
+  - type: editCandidate
+    daemon: bfdd
+    description: |
+      14. BFD create single-hop peer
+
+      Создание single-hop peer.
+
+      Аналог:
+
+      vtysh:
+      bfd
+       peer 192.0.2.2 local-address 127.0.0.1 interface lo
+        profile TEST
+        detect-multiplier 3
+        transmit-interval 300
+        receive-interval 300
+        echo-mode
+        passive-mode
+        shutdown
+        log-session-changes
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50054 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "update": [
+          {
+            "path": "/frr-bfdd:bfdd/bfd/sessions/single-hop[dest-addr='192.0.2.2'][interface='lo'][vrf='default']"
+          },
+          {
+            "path": "/frr-bfdd:bfdd/bfd/sessions/single-hop[dest-addr='192.0.2.2'][interface='lo'][vrf='default']/source-addr",
+            "value": "127.0.0.1"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
+    params:
+      update:
+        - path: "/frr-bfdd:bfdd/bfd/sessions/single-hop[dest-addr='192.0.2.2'][interface='lo'][vrf='default']"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/single-hop[dest-addr='192.0.2.2'][interface='lo'][vrf='default']/source-addr"
+          value: 127.0.0.1
+        - path: "/frr-bfdd:bfdd/bfd/sessions/single-hop[dest-addr='192.0.2.2'][interface='lo'][vrf='default']/profile"
+          value: TEST
+        - path: "/frr-bfdd:bfdd/bfd/sessions/single-hop[dest-addr='192.0.2.2'][interface='lo'][vrf='default']/detection-multiplier"
+          value: "3"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/single-hop[dest-addr='192.0.2.2'][interface='lo'][vrf='default']/desired-transmission-interval"
+          value: "300000"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/single-hop[dest-addr='192.0.2.2'][interface='lo'][vrf='default']/required-receive-interval"
+          value: "300000"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/single-hop[dest-addr='192.0.2.2'][interface='lo'][vrf='default']/echo-mode"
+          value: "true"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/single-hop[dest-addr='192.0.2.2'][interface='lo'][vrf='default']/passive-mode"
+          value: "true"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/single-hop[dest-addr='192.0.2.2'][interface='lo'][vrf='default']/administrative-down"
+          value: "true"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/single-hop[dest-addr='192.0.2.2'][interface='lo'][vrf='default']/log-session-changes"
+          value: "true"
+
+  - type: commitCandidate
+    daemon: bfdd
+    description: |
+      14. BFD single-hop commit
+
+      Commit создания single-hop peer.
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs: commit применяет candidate; data paths указаны в предыдущем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      end
+      # изменения в vtysh применяются после config-команд
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50054 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "create bfd single-hop peer"
+      }
+      JSON
+    params:
+      comment: create bfd single-hop peer
+
+  - type: get
+    daemon: bfdd
+    description: |
+      14. BFD single-hop config verify
+
+      Проверка что single-hop peer
+      появился в running configuration.
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      Аналог:
+      vtysh:
+      show running-config
+      show ... по смыслу шага
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50054 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-bfdd:bfdd"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-bfdd:bfdd"
+
+  - type: assertJsonExists
+    daemon: bfdd
+    description: |
+      14. BFD single-hop config assert
+
+      Автоматическая проверка single-hop peer.
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 1
+      path:
+        - "/frr-bfdd:bfdd"
+      checks:
+        - path: 'frr-bfdd:bfdd.bfd.sessions.single-hop.#(dest-addr=="192.0.2.2").dest-addr'
+          equals: 192.0.2.2
+        - path: 'frr-bfdd:bfdd.bfd.sessions.single-hop.#(dest-addr=="192.0.2.2").interface'
+          equals: lo
+        - path: 'frr-bfdd:bfdd.bfd.sessions.single-hop.#(dest-addr=="192.0.2.2").source-addr'
+          equals: 127.0.0.1
+        - path: 'frr-bfdd:bfdd.bfd.sessions.single-hop.#(dest-addr=="192.0.2.2").profile'
+          equals: TEST
+        - path: 'frr-bfdd:bfdd.bfd.sessions.single-hop.#(dest-addr=="192.0.2.2").administrative-down'
+          equals: "true"
+
+  - type: createCandidate
+    daemon: bfdd
+    description: |
+      14. BFD multi-hop candidate
+
+      Создание candidate transaction
+      для BFD multi-hop peer.
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs: candidate создается без data path; edit paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50054 frr.Northbound/CreateCandidate
+  - type: editCandidate
+    daemon: bfdd
+    description: |
+      14. BFD create multi-hop peer
+
+      Создание multi-hop peer.
+
+      Аналог:
+
+      vtysh:
+      bfd
+       peer 192.0.2.3 multihop local-address 127.0.0.1
+        profile TEST
+        detect-multiplier 3
+        transmit-interval 300
+        receive-interval 300
+        minimum-ttl 254
+        passive-mode
+        shutdown
+        log-session-changes
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50054 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "update": [
+          {
+            "path": "/frr-bfdd:bfdd/bfd/sessions/multi-hop[source-addr='127.0.0.1'][dest-addr='192.0.2.3'][vrf='default']"
+          },
+          {
+            "path": "/frr-bfdd:bfdd/bfd/sessions/multi-hop[source-addr='127.0.0.1'][dest-addr='192.0.2.3'][vrf='default']/profile",
+            "value": "TEST"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
+    params:
+      update:
+        - path: "/frr-bfdd:bfdd/bfd/sessions/multi-hop[source-addr='127.0.0.1'][dest-addr='192.0.2.3'][vrf='default']"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/multi-hop[source-addr='127.0.0.1'][dest-addr='192.0.2.3'][vrf='default']/profile"
+          value: TEST
+        - path: "/frr-bfdd:bfdd/bfd/sessions/multi-hop[source-addr='127.0.0.1'][dest-addr='192.0.2.3'][vrf='default']/detection-multiplier"
+          value: "3"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/multi-hop[source-addr='127.0.0.1'][dest-addr='192.0.2.3'][vrf='default']/desired-transmission-interval"
+          value: "300000"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/multi-hop[source-addr='127.0.0.1'][dest-addr='192.0.2.3'][vrf='default']/required-receive-interval"
+          value: "300000"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/multi-hop[source-addr='127.0.0.1'][dest-addr='192.0.2.3'][vrf='default']/minimum-ttl"
+          value: "254"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/multi-hop[source-addr='127.0.0.1'][dest-addr='192.0.2.3'][vrf='default']/passive-mode"
+          value: "true"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/multi-hop[source-addr='127.0.0.1'][dest-addr='192.0.2.3'][vrf='default']/administrative-down"
+          value: "true"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/multi-hop[source-addr='127.0.0.1'][dest-addr='192.0.2.3'][vrf='default']/log-session-changes"
+          value: "true"
+
+  - type: commitCandidate
+    daemon: bfdd
+    description: |
+      14. BFD multi-hop commit
+
+      Commit создания multi-hop peer.
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs: commit применяет candidate; data paths указаны в предыдущем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      end
+      # изменения в vtysh применяются после config-команд
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50054 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "create bfd multi-hop peer"
+      }
+      JSON
+    params:
+      comment: create bfd multi-hop peer
+
+  - type: get
+    daemon: bfdd
+    description: |
+      14. BFD multi-hop config verify
+
+      Проверка что multi-hop peer
+      появился в running configuration.
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      Аналог:
+      vtysh:
+      show running-config
+      show ... по смыслу шага
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50054 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-bfdd:bfdd"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-bfdd:bfdd"
+
+  - type: assertJsonExists
+    daemon: bfdd
+    description: |
+      14. BFD multi-hop config assert
+
+      Автоматическая проверка multi-hop peer.
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 1
+      path:
+        - "/frr-bfdd:bfdd"
+      checks:
+        - path: 'frr-bfdd:bfdd.bfd.sessions.multi-hop.#(dest-addr=="192.0.2.3").dest-addr'
+          equals: 192.0.2.3
+        - path: 'frr-bfdd:bfdd.bfd.sessions.multi-hop.#(dest-addr=="192.0.2.3").source-addr'
+          equals: 127.0.0.1
+        - path: 'frr-bfdd:bfdd.bfd.sessions.multi-hop.#(dest-addr=="192.0.2.3").profile'
+          equals: TEST
+        - path: 'frr-bfdd:bfdd.bfd.sessions.multi-hop.#(dest-addr=="192.0.2.3").minimum-ttl'
+          equals: "254"
+        - path: 'frr-bfdd:bfdd.bfd.sessions.multi-hop.#(dest-addr=="192.0.2.3").administrative-down'
+          equals: "true"
+
+  - type: get
+    daemon: bfdd
+    description: |
+      14. BFD single-hop state
+
+      Чтение operational state
+      конкретного single-hop peer.
+
+      Аналог:
+
+      vtysh:
+      show bfd peers
+      show bfd peer 192.0.2.2 interface lo counters
+
+      В одиночном lab-контейнере session
+      ожидаемо admin-down/down, потому что
+      второй BFD endpoint отсутствует.
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50054 frr.Northbound/Get <<'JSON'
+      {
+        "type": "STATE",
+        "encoding": "JSON",
+        "path": [
+          "/frr-bfdd:bfdd/bfd/sessions/single-hop[dest-addr='192.0.2.2'][interface='lo'][vrf='default']/stats"
+        ]
+      }
+      JSON
+    params:
+      requestType: 2
+      path:
+        - "/frr-bfdd:bfdd/bfd/sessions/single-hop[dest-addr='192.0.2.2'][interface='lo'][vrf='default']/stats"
+
+  - type: assertJsonExists
+    daemon: bfdd
+    description: |
+      14. BFD single-hop state assert
+
+      Автоматическая проверка operational state:
+        - single-hop peer присутствует
+        - stats subtree есть
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 2
+      path:
+        - "/frr-bfdd:bfdd/bfd/sessions/single-hop[dest-addr='192.0.2.2'][interface='lo'][vrf='default']/stats"
+      checks:
+        - path: 'frr-bfdd:bfdd.bfd.sessions.single-hop.#(dest-addr=="192.0.2.2").stats.local-state'
+          equals: admin-down
+        - path: 'frr-bfdd:bfdd.bfd.sessions.single-hop.#(dest-addr=="192.0.2.2").stats.control-packet-input-count'
+          equals: "0"
+
+  - type: get
+    daemon: bfdd
+    description: |
+      14. BFD multi-hop state
+
+      Чтение operational state
+      конкретного multi-hop peer.
+
+      Аналог:
+
+      vtysh:
+      show bfd peers
+      show bfd peer 192.0.2.3 multihop local-address 127.0.0.1 counters
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50054 frr.Northbound/Get <<'JSON'
+      {
+        "type": "STATE",
+        "encoding": "JSON",
+        "path": [
+          "/frr-bfdd:bfdd/bfd/sessions/multi-hop[source-addr='127.0.0.1'][dest-addr='192.0.2.3'][vrf='default']/stats"
+        ]
+      }
+      JSON
+    params:
+      requestType: 2
+      path:
+        - "/frr-bfdd:bfdd/bfd/sessions/multi-hop[source-addr='127.0.0.1'][dest-addr='192.0.2.3'][vrf='default']/stats"
+
+  - type: assertJsonExists
+    daemon: bfdd
+    description: |
+      14. BFD multi-hop state assert
+
+      Автоматическая проверка operational state:
+        - multi-hop peer присутствует
+        - stats subtree есть
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 2
+      path:
+        - "/frr-bfdd:bfdd/bfd/sessions/multi-hop[source-addr='127.0.0.1'][dest-addr='192.0.2.3'][vrf='default']/stats"
+      checks:
+        - path: 'frr-bfdd:bfdd.bfd.sessions.multi-hop.#(dest-addr=="192.0.2.3").stats.local-state'
+          equals: admin-down
+        - path: 'frr-bfdd:bfdd.bfd.sessions.multi-hop.#(dest-addr=="192.0.2.3").stats.control-packet-input-count'
+          equals: "0"
+
+  - type: createCandidate
+    daemon: bfdd
+    description: |
+      14. BFD cleanup candidate
+
+      Создание candidate transaction
+      для удаления BFD test config.
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs: candidate создается без data path; edit paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50054 frr.Northbound/CreateCandidate
+  - type: editCandidate
+    daemon: bfdd
+    description: |
+      14. BFD cleanup
+
+      Удаление multi-hop peer,
+      single-hop peer, profile TEST
+      и BFD container.
+
+      Аналог:
+
+      vtysh:
+      bfd
+       no peer 192.0.2.3 multihop local-address 127.0.0.1
+       no peer 192.0.2.2 interface lo
+       no profile TEST
+      no bfd
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50054 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "delete": [
+          {
+            "path": "/frr-bfdd:bfdd/bfd/sessions/multi-hop[source-addr='127.0.0.1'][dest-addr='192.0.2.3'][vrf='default']"
+          },
+          {
+            "path": "/frr-bfdd:bfdd/bfd/sessions/single-hop[dest-addr='192.0.2.2'][interface='lo'][vrf='default']"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
+    params:
+      delete:
+        - path: "/frr-bfdd:bfdd/bfd/sessions/multi-hop[source-addr='127.0.0.1'][dest-addr='192.0.2.3'][vrf='default']"
+        - path: "/frr-bfdd:bfdd/bfd/sessions/single-hop[dest-addr='192.0.2.2'][interface='lo'][vrf='default']"
+        - path: "/frr-bfdd:bfdd/bfd/profile[name='TEST']"
+        - path: "/frr-bfdd:bfdd/bfd"
+
+  - type: commitCandidate
+    daemon: bfdd
+    description: |
+      14. BFD cleanup commit
+
+      Commit удаления BFD test config.
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs: commit применяет candidate; data paths указаны в предыдущем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      end
+      # изменения в vtysh применяются после config-команд
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50054 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "delete bfd test config"
+      }
+      JSON
+    params:
+      comment: delete bfd test config
+
+  - type: get
+    daemon: bfdd
+    description: |
+      14. BFD cleanup verify
+
+      Проверка что BFD test config
+      удалился из running configuration.
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      Аналог:
+      vtysh:
+      show running-config
+      show ... по смыслу шага
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50054 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-bfdd:bfdd"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-bfdd:bfdd"
+
+  - type: assertJsonMissing
+    daemon: bfdd
+    description: |
+      14. BFD cleanup assert
+
+      Автоматическая проверка:
+        - profile TEST отсутствует
+        - single-hop peer отсутствует
+        - multi-hop peer отсутствует
+        - BFD container отсутствует
+
+
+      Демон: bfdd
+
+      YANG/lib:
+      endpoint: bfdd / localhost:50054
+      YANG modules:
+      - frr-bfdd.yang
+      root paths/libs:
+      - /frr-bfdd:bfdd
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 1
+      path:
+        - "/frr-bfdd:bfdd"
+      checks:
+        - path: 'frr-bfdd:bfdd.bfd.profile.#(name=="TEST").name'
+        - path: 'frr-bfdd:bfdd.bfd.sessions.single-hop.#(dest-addr=="192.0.2.2").dest-addr'
+        - path: 'frr-bfdd:bfdd.bfd.sessions.multi-hop.#(dest-addr=="192.0.2.3").dest-addr'
+        - path: 'frr-bfdd:bfdd.bfd'

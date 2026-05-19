@@ -1,0 +1,698 @@
+---
+steps:
+  - type: getCapabilities
+    daemon: isisd
+    description: |
+      13. ISIS capabilities
+
+      Проверяем, что isisd реально отдает
+      northbound YANG module frr-isisd.
+
+      Это доказывает, что ISIS доступен
+      именно через gRPC/YANG, а не только через vtysh.
+
+
+      Демон: isisd
+
+      YANG/lib:
+      endpoint: isisd / localhost:50057
+      RPC: GetCapabilities() возвращает supported YANG modules этого daemon endpoint.
+      ожидаемый daemon module: frr-isisd.yang
+
+      Аналог:
+      нет прямого vtysh-аналога; это discovery gRPC API.
+
+      grpcurl пример:
+      grpcurl -plaintext localhost:50057 frr.Northbound/GetCapabilities
+  - type: assertCapabilityExists
+    daemon: isisd
+    description: |
+      13. ISIS capability assert
+
+      Автоматическая проверка наличия
+      module frr-isisd.
+
+
+      Демон: isisd
+
+      YANG/lib:
+      endpoint: isisd / localhost:50057
+      YANG modules:
+      - frr-isisd.yang
+      root paths/libs: проверяется список modules из GetCapabilities().
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl:
+      grpcurl -plaintext localhost:50057 frr.Northbound/GetCapabilities
+    params:
+      modules:
+        - frr-isisd
+
+  - type: get
+    daemon: isisd
+    description: |
+      13. ISIS config before
+
+      Чтение ISIS configuration до изменений.
+
+      Аналог:
+
+      vtysh:
+      show running-config
+      show isis
+
+      requestType:
+      1 = CONFIG ONLY
+
+
+      Демон: isisd
+
+      YANG/lib:
+      endpoint: isisd / localhost:50057
+      YANG modules:
+      - frr-isisd.yang
+      root paths/libs:
+      - /frr-isisd:isis
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50057 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-isisd:isis"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-isisd:isis"
+
+  - type: createCandidate
+    daemon: isisd
+    description: |
+      13. ISIS create candidate
+
+      Создание candidate transaction
+      для ISIS Base.
+
+
+      Демон: isisd
+
+      YANG/lib:
+      endpoint: isisd / localhost:50057
+      YANG modules:
+      - frr-isisd.yang
+      root paths/libs: candidate создается без data path; edit paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50057 frr.Northbound/CreateCandidate
+  - type: editCandidate
+    daemon: isisd
+    description: |
+      13. ISIS create process and NET
+
+      Создание ISIS instance TEST
+      добавление NET address
+      и включение ISIS на loopback.
+
+      Аналог:
+
+      vtysh:
+      configure terminal
+      router isis TEST
+      net 49.0001.0000.0000.0001.00
+      interface lo
+      ip router isis TEST
+
+      В YANG:
+        - instance key: area-tag + vrf
+        - NET хранится в leaf-list area-address
+        - interface ISIS config живет как augment
+          внутри /frr-interface:lib/interface
+
+
+      Демон: isisd
+
+      YANG/lib:
+      endpoint: isisd / localhost:50057
+      YANG modules:
+      - frr-isisd.yang
+      - frr-interface.yang
+      root paths/libs:
+      - /frr-isisd:isis
+      - /frr-interface:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50057 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "update": [
+          {
+            "path": "/frr-isisd:isis/instance[area-tag='TEST'][vrf='default']"
+          },
+          {
+            "path": "/frr-isisd:isis/instance[area-tag='TEST'][vrf='default']/area-address",
+            "value": "49.0001.0000.0000.0001.00"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
+    params:
+      update:
+        - path: "/frr-isisd:isis/instance[area-tag='TEST'][vrf='default']"
+        - path: "/frr-isisd:isis/instance[area-tag='TEST'][vrf='default']/area-address"
+          value: 49.0001.0000.0000.0001.00
+        - path: "/frr-interface:lib/interface[name='lo']/frr-isisd:isis/area-tag"
+          value: TEST
+        - path: "/frr-interface:lib/interface[name='lo']/frr-isisd:isis/ipv4-routing"
+          value: "true"
+
+  - type: commitCandidate
+    daemon: isisd
+    description: |
+      13. ISIS commit
+
+      Commit создания ISIS instance TEST
+      и NET address.
+
+
+      Демон: isisd
+
+      YANG/lib:
+      endpoint: isisd / localhost:50057
+      YANG modules:
+      - frr-isisd.yang
+      root paths/libs: commit применяет candidate; data paths указаны в предыдущем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      end
+      # изменения в vtysh применяются после config-команд
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50057 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "create isis TEST with NET"
+      }
+      JSON
+    params:
+      comment: create isis TEST with NET
+
+  - type: get
+    daemon: isisd
+    description: |
+      13. ISIS config verify
+
+      Проверка что ISIS instance TEST
+      NET address и interface binding
+      появились в running configuration.
+
+      Аналог:
+
+      vtysh:
+      show running-config
+      show isis
+
+
+      Демон: isisd
+
+      YANG/lib:
+      endpoint: isisd / localhost:50057
+      YANG modules:
+      - frr-isisd.yang
+      root paths/libs:
+      - /frr-isisd:isis
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50057 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-isisd:isis"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-isisd:isis"
+
+  - type: assertJsonExists
+    daemon: isisd
+    description: |
+      13. ISIS config assert
+
+      Автоматическая проверка JSON дерева:
+        - ISIS instance TEST существует
+        - VRF = default
+        - NET address применился
+
+
+      Демон: isisd
+
+      YANG/lib:
+      endpoint: isisd / localhost:50057
+      YANG modules:
+      - frr-isisd.yang
+      root paths/libs:
+      - /frr-isisd:isis
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 1
+      path:
+        - "/frr-isisd:isis"
+      checks:
+        - path: 'frr-isisd:isis.instance.#(area-tag=="TEST").area-tag'
+          equals: TEST
+        - path: 'frr-isisd:isis.instance.#(area-tag=="TEST").vrf'
+          equals: default
+        - path: 'frr-isisd:isis.instance.#(area-tag=="TEST").area-address.0'
+          equals: 49.0001.0000.0000.0001.00
+
+  - type: get
+    daemon: isisd
+    description: |
+      13. ISIS interface config verify
+
+      Проверка, что loopback interface
+      привязан к ISIS TEST.
+
+      Аналог:
+
+      vtysh:
+      show running-config
+      interface lo
+       ip router isis TEST
+
+
+      Демон: isisd
+
+      YANG/lib:
+      endpoint: isisd / localhost:50057
+      YANG modules:
+      - frr-interface.yang
+      - frr-isisd.yang
+      root paths/libs:
+      - /frr-interface:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50057 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-interface:lib/interface[name='lo']/frr-isisd:isis"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-interface:lib/interface[name='lo']/frr-isisd:isis"
+
+  - type: assertJsonExists
+    daemon: isisd
+    description: |
+      13. ISIS interface config assert
+
+      Автоматическая проверка:
+        - interface lo использует ISIS TEST
+        - IPv4 routing для ISIS включен
+
+
+      Демон: isisd
+
+      YANG/lib:
+      endpoint: isisd / localhost:50057
+      YANG modules:
+      - frr-interface.yang
+      - frr-isisd.yang
+      root paths/libs:
+      - /frr-interface:lib
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 1
+      path:
+        - "/frr-interface:lib/interface[name='lo']/frr-isisd:isis"
+      checks:
+        - path: 'frr-isisd:isis.area-tag'
+          equals: TEST
+        - path: 'frr-isisd:isis.ipv4-routing'
+          equals: "true"
+
+  - type: get
+    daemon: isisd
+    description: |
+      13. ISIS neighbor state
+
+      Чтение operational state ISIS adjacency.
+
+      Аналог:
+
+      vtysh:
+      show isis neighbor
+
+      В одиночном lab-контейнере adjacency-number
+      обычно равен 0. Это нормально:
+      ISIS процесс и interface включены, но
+      второго роутера-соседа нет.
+
+      requestType:
+      2 = STATE ONLY
+
+
+      Демон: isisd
+
+      YANG/lib:
+      endpoint: isisd / localhost:50057
+      YANG modules:
+      - frr-interface.yang
+      - frr-isisd.yang
+      root paths/libs:
+      - /frr-interface:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50057 frr.Northbound/Get <<'JSON'
+      {
+        "type": "STATE",
+        "encoding": "JSON",
+        "path": [
+          "/frr-interface:lib/interface[name='lo']/state/frr-isisd:isis"
+        ]
+      }
+      JSON
+    params:
+      requestType: 2
+      path:
+        - "/frr-interface:lib/interface[name='lo']/state/frr-isisd:isis"
+
+  - type: assertJsonExists
+    daemon: isisd
+    description: |
+      13. ISIS neighbor state assert
+
+      Автоматическая проверка operational state:
+      ISIS state subtree есть на interface lo.
+
+
+      Демон: isisd
+
+      YANG/lib:
+      endpoint: isisd / localhost:50057
+      YANG modules:
+      - frr-interface.yang
+      - frr-isisd.yang
+      root paths/libs:
+      - /frr-interface:lib
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 2
+      path:
+        - "/frr-interface:lib/interface[name='lo']/state/frr-isisd:isis"
+      checks:
+        - path: 'frr-interface:lib.interface.#(name=="lo").state.frr-isisd:isis.event-counters.adjacency-number'
+          equals: "0"
+
+  - type: get
+    daemon: isisd
+    description: |
+      13. ISIS instance tree verify
+
+      Чтение ISIS instance tree после запуска
+      процесса и interface binding.
+
+      Аналог:
+
+      vtysh:
+      show running-config
+      show isis
+
+      Важно:
+      это не LSDB и не аналог show isis database.
+      LSDB в этой FRR 10.6.1 сборке не опубликован
+      как полноценное northbound Get() дерево.
+
+      Этот шаг нужен только чтобы показать
+      примененный ISIS config subtree:
+        - area-tag
+        - vrf
+        - NET
+        - ISIS defaults
+
+
+      Демон: isisd
+
+      YANG/lib:
+      endpoint: isisd / localhost:50057
+      YANG modules:
+      - frr-isisd.yang
+      root paths/libs:
+      - /frr-isisd:isis
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50057 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-isisd:isis/instance[area-tag='TEST'][vrf='default']"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-isisd:isis/instance[area-tag='TEST'][vrf='default']"
+
+  - type: createCandidate
+    daemon: isisd
+    description: |
+      13. ISIS cleanup candidate
+
+      Создание candidate transaction
+      для удаления тестового ISIS instance.
+
+
+      Демон: isisd
+
+      YANG/lib:
+      endpoint: isisd / localhost:50057
+      YANG modules:
+      - frr-isisd.yang
+      root paths/libs: candidate создается без data path; edit paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50057 frr.Northbound/CreateCandidate
+  - type: editCandidate
+    daemon: isisd
+    description: |
+      13. ISIS delete TEST
+
+      Удаление ISIS instance TEST
+      и ISIS binding с interface lo.
+
+      Аналог:
+
+      vtysh:
+      interface lo
+      no ip router isis TEST
+      no router isis TEST
+
+      После этого workflow возвращает
+      ISIS config к исходному состоянию.
+
+
+      Демон: isisd
+
+      YANG/lib:
+      endpoint: isisd / localhost:50057
+      YANG modules:
+      - frr-interface.yang
+      - frr-isisd.yang
+      root paths/libs:
+      - /frr-interface:lib
+      - /frr-isisd:isis
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50057 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "delete": [
+          {
+            "path": "/frr-interface:lib/interface[name='lo']/frr-isisd:isis"
+          },
+          {
+            "path": "/frr-isisd:isis/instance[area-tag='TEST'][vrf='default']"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
+    params:
+      delete:
+        - path: "/frr-interface:lib/interface[name='lo']/frr-isisd:isis"
+        - path: "/frr-isisd:isis/instance[area-tag='TEST'][vrf='default']"
+
+  - type: commitCandidate
+    daemon: isisd
+    description: |
+      13. ISIS cleanup commit
+
+      Commit удаления ISIS instance TEST.
+
+
+      Демон: isisd
+
+      YANG/lib:
+      endpoint: isisd / localhost:50057
+      YANG modules:
+      - frr-isisd.yang
+      root paths/libs: commit применяет candidate; data paths указаны в предыдущем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      end
+      # изменения в vtysh применяются после config-команд
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50057 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "delete isis TEST"
+      }
+      JSON
+    params:
+      comment: delete isis TEST
+
+  - type: get
+    daemon: isisd
+    description: |
+      13. ISIS cleanup verify
+
+      Проверка что ISIS instance TEST
+      и interface binding удалились
+      из running configuration.
+
+      Аналог:
+
+      vtysh:
+      show running-config
+      show isis
+
+
+      Демон: isisd
+
+      YANG/lib:
+      endpoint: isisd / localhost:50057
+      YANG modules:
+      - frr-isisd.yang
+      root paths/libs:
+      - /frr-isisd:isis
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50057 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-isisd:isis"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-isisd:isis"
+
+  - type: assertJsonMissing
+    daemon: isisd
+    description: |
+      13. ISIS cleanup assert
+
+      Автоматическая проверка:
+      ISIS instance TEST отсутствует после удаления.
+
+
+      Демон: isisd
+
+      YANG/lib:
+      endpoint: isisd / localhost:50057
+      YANG modules:
+      - frr-isisd.yang
+      root paths/libs:
+      - /frr-isisd:isis
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 1
+      path:
+        - "/frr-isisd:isis"
+      checks:
+        - path: 'frr-isisd:isis.instance.#(area-tag=="TEST").area-tag'
+
+  - type: assertJsonMissing
+    daemon: isisd
+    description: |
+      13. ISIS interface cleanup assert
+
+      Автоматическая проверка:
+      interface lo больше не привязан к ISIS TEST.
+
+
+      Демон: isisd
+
+      YANG/lib:
+      endpoint: isisd / localhost:50057
+      YANG modules:
+      - frr-interface.yang
+      root paths/libs:
+      - /frr-interface:lib
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 2
+      path:
+        - "/frr-interface:lib/interface[name='lo']/state"
+      checks:
+        - path: 'frr-interface:lib.interface.#(name=="lo").state.frr-isisd:isis.event-counters.adjacency-number'

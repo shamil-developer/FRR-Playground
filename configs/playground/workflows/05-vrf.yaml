@@ -11,6 +11,27 @@ steps:
 
       vtysh:
       show vrf
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-vrf.yang
+      root paths/libs:
+      - /frr-vrf:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-vrf:lib"
+        ]
+      }
+      JSON
     params:
       requestType: 1
       path:
@@ -21,6 +42,22 @@ steps:
       5. VRF create candidate
 
       Создание candidate transaction.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs: candidate создается без data path; edit paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50051 frr.Northbound/CreateCandidate
   - type: editCandidate
     daemon: zebra
     description: |
@@ -32,6 +69,30 @@ steps:
 
       vtysh:
       vrf BLUE
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-vrf.yang
+      root paths/libs:
+      - /frr-vrf:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "update": [
+          {
+            "path": "/frr-vrf:lib/vrf[name='BLUE']",
+            "value": "{\n\"name\": \"BLUE\"\n}\n"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
     params:
       update:
         - path: "/frr-vrf:lib/vrf[name='BLUE']"
@@ -45,6 +106,29 @@ steps:
       5. VRF commit
 
       Commit candidate configuration.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs: commit применяет candidate; data paths указаны в предыдущем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      end
+      # изменения в vtysh применяются после config-команд
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "create vrf BLUE"
+      }
+      JSON
     params:
       comment: create vrf BLUE
   - type: get
@@ -58,6 +142,27 @@ steps:
 
       vtysh:
       show vrf
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-vrf.yang
+      root paths/libs:
+      - /frr-vrf:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-vrf:lib/vrf[name='BLUE']"
+        ]
+      }
+      JSON
     params:
       requestType: 1
       path:
@@ -70,6 +175,22 @@ steps:
 
       Автоматическая проверка что VRF BLUE
       появился в running configuration.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-vrf.yang
+      root paths/libs:
+      - /frr-vrf:lib
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
     params:
       requestType: 1
       path:
@@ -86,6 +207,21 @@ steps:
       Создание candidate transaction
       для удаления тестового VRF.
 
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs: candidate создается без data path; edit paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50051 frr.Northbound/CreateCandidate
   - type: editCandidate
     daemon: zebra
     description: |
@@ -100,6 +236,29 @@ steps:
 
       После этого workflow должен вернуть
       состояние VRF config обратно.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-vrf.yang
+      root paths/libs:
+      - /frr-vrf:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "delete": [
+          {
+            "path": "/frr-vrf:lib/vrf[name='BLUE']"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
     params:
       delete:
         - path: "/frr-vrf:lib/vrf[name='BLUE']"
@@ -110,6 +269,29 @@ steps:
       5. VRF cleanup commit
 
       Commit удаления VRF BLUE.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs: commit применяет candidate; data paths указаны в предыдущем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      end
+      # изменения в vtysh применяются после config-команд
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "delete vrf BLUE"
+      }
+      JSON
     params:
       comment: delete vrf BLUE
 
@@ -127,6 +309,27 @@ steps:
 
       vtysh:
       show vrf
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-vrf.yang
+      root paths/libs:
+      - /frr-vrf:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-vrf:lib"
+        ]
+      }
+      JSON
     params:
       requestType: 1
       path:
@@ -139,6 +342,22 @@ steps:
 
       Автоматическая проверка что VRF BLUE
       отсутствует в running configuration после cleanup.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-vrf.yang
+      root paths/libs:
+      - /frr-vrf:lib
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
     params:
       requestType: 1
       path:

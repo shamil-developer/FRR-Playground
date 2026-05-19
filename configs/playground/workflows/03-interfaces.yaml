@@ -19,6 +19,27 @@ steps:
       Для переносимости используется loopback interface lo,
       потому что он есть практически в любом Linux/container
       окружении.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-interface.yang
+      root paths/libs:
+      - /frr-interface:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+      {
+        "type": "STATE",
+        "encoding": "JSON",
+        "path": [
+          "/frr-interface:lib/interface[name='lo']/state"
+        ]
+      }
+      JSON
     params:
       requestType: 2
       path:
@@ -31,6 +52,22 @@ steps:
 
       Проверка что gRPC реально вернул lo
       и основные operational state поля interface.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-interface.yang
+      root paths/libs:
+      - /frr-interface:lib
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
     params:
       requestType: 2
       path:

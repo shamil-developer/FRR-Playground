@@ -25,6 +25,27 @@ steps:
       Route-map находятся внутри:
 
       /frr-route-map:lib
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-route-map.yang
+      root paths/libs:
+      - /frr-route-map:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-route-map:lib"
+        ]
+      }
+      JSON
     params:
       requestType: 1
       path:
@@ -38,6 +59,21 @@ steps:
       Создание candidate transaction
       для route-map изменений.
 
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs: candidate создается без data path; edit paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50051 frr.Northbound/CreateCandidate
   - type: editCandidate
     daemon: zebra
     description: |
@@ -57,6 +93,30 @@ steps:
 
       А action является mandatory leaf,
       поэтому задается отдельным update.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-route-map.yang
+      root paths/libs:
+      - /frr-route-map:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "update": [
+          {
+            "path": "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='10']/action",
+            "value": "permit"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
     params:
       update:
         - path: "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='10']/action"
@@ -68,6 +128,29 @@ steps:
       STEP 32
 
       Commit создания route-map TEST permit 10.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs: commit применяет candidate; data paths указаны в предыдущем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      end
+      # изменения в vtysh применяются после config-команд
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "create route-map TEST permit 10"
+      }
+      JSON
     params:
       comment: create route-map TEST permit 10
 
@@ -79,6 +162,21 @@ steps:
       Создание candidate transaction
       для добавления match rule.
 
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs: candidate создается без data path; edit paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50051 frr.Northbound/CreateCandidate
   - type: editCandidate
     daemon: zebra
     description: |
@@ -96,6 +194,30 @@ steps:
       В YANG:
         - condition = frr-route-map:ipv4-prefix-list
         - list-name = TEST7
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-route-map.yang
+      root paths/libs:
+      - /frr-route-map:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "update": [
+          {
+            "path": "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='10']/match-condition[condition='frr-route-map:ipv4-prefix-list']/rmap-match-condition/list-name",
+            "value": "TEST7"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
     params:
       update:
         - path: "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='10']/match-condition[condition='frr-route-map:ipv4-prefix-list']/rmap-match-condition/list-name"
@@ -107,6 +229,29 @@ steps:
       STEP 35
 
       Commit match правила route-map.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs: commit применяет candidate; data paths указаны в предыдущем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      end
+      # изменения в vtysh применяются после config-команд
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "add route-map match rule"
+      }
+      JSON
     params:
       comment: add route-map match rule
 
@@ -118,6 +263,21 @@ steps:
       Создание candidate transaction
       для добавления set action.
 
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs: candidate создается без data path; edit paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50051 frr.Northbound/CreateCandidate
   - type: editCandidate
     daemon: zebra
     description: |
@@ -135,6 +295,30 @@ steps:
       В YANG:
         - action = frr-route-map:set-metric
         - value = 100
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-route-map.yang
+      root paths/libs:
+      - /frr-route-map:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "update": [
+          {
+            "path": "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='10']/set-action[action='frr-route-map:set-metric']/rmap-set-action/value",
+            "value": "100"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
     params:
       update:
         - path: "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='10']/set-action[action='frr-route-map:set-metric']/rmap-set-action/value"
@@ -146,6 +330,29 @@ steps:
       STEP 38
 
       Commit set действия route-map.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs: commit применяет candidate; data paths указаны в предыдущем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      end
+      # изменения в vtysh применяются после config-команд
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "add route-map set action"
+      }
+      JSON
     params:
       comment: add route-map set action
 
@@ -161,6 +368,27 @@ steps:
 
       vtysh:
       show route-map
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-route-map.yang
+      root paths/libs:
+      - /frr-route-map:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-route-map:lib"
+        ]
+      }
+      JSON
     params:
       requestType: 1
       path:
@@ -174,6 +402,22 @@ steps:
       Автоматическая проверка что route-map TEST
       содержит entry 10, match prefix-list TEST7
       и set metric 100.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-route-map.yang
+      root paths/libs:
+      - /frr-route-map:lib
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
     params:
       requestType: 1
       path:
@@ -196,6 +440,21 @@ steps:
       Создание candidate transaction
       для добавления второго entry.
 
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs: candidate создается без data path; edit paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50051 frr.Northbound/CreateCandidate
   - type: editCandidate
     daemon: zebra
     description: |
@@ -208,6 +467,30 @@ steps:
 
       vtysh:
       route-map TEST deny 20
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-route-map.yang
+      root paths/libs:
+      - /frr-route-map:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "update": [
+          {
+            "path": "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='20']/action",
+            "value": "deny"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
     params:
       update:
         - path: "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='20']/action"
@@ -219,6 +502,29 @@ steps:
       STEP 42
 
       Commit второго entry route-map.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs: commit применяет candidate; data paths указаны в предыдущем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      end
+      # изменения в vtysh применяются после config-команд
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "add route-map deny 20"
+      }
+      JSON
     params:
       comment: add route-map deny 20
 
@@ -234,6 +540,27 @@ steps:
 
       vtysh:
       show route-map
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-route-map.yang
+      root paths/libs:
+      - /frr-route-map:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-route-map:lib"
+        ]
+      }
+      JSON
     params:
       requestType: 1
       path:
@@ -250,6 +577,22 @@ steps:
         - entry 10 содержит match prefix-list TEST7
         - entry 10 содержит set metric 100
         - entry 20 deny существует
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-route-map.yang
+      root paths/libs:
+      - /frr-route-map:lib
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
     params:
       requestType: 1
       path:
@@ -274,6 +617,21 @@ steps:
       Создание candidate transaction
       для удаления entry 20.
 
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs: candidate создается без data path; edit paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50051 frr.Northbound/CreateCandidate
   - type: editCandidate
     daemon: zebra
     description: |
@@ -286,6 +644,29 @@ steps:
 
       vtysh:
       no route-map TEST deny 20
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-route-map.yang
+      root paths/libs:
+      - /frr-route-map:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "delete": [
+          {
+            "path": "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='20']"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
     params:
       delete:
         - path: "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='20']"
@@ -296,6 +677,29 @@ steps:
       STEP 49
 
       Commit удаления entry 20.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs: commit применяет candidate; data paths указаны в предыдущем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      end
+      # изменения в vtysh применяются после config-команд
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "delete route-map entry 20"
+      }
+      JSON
     params:
       comment: delete route-map entry 20
 
@@ -311,6 +715,27 @@ steps:
 
       vtysh:
       show route-map
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-route-map.yang
+      root paths/libs:
+      - /frr-route-map:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-route-map:lib"
+        ]
+      }
+      JSON
     params:
       requestType: 1
       path:
@@ -323,6 +748,22 @@ steps:
 
       Автоматическая проверка что entry 20
       удалился из route-map TEST.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-route-map.yang
+      root paths/libs:
+      - /frr-route-map:lib
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
     params:
       requestType: 1
       path:
@@ -337,6 +778,22 @@ steps:
 
       Автоматическая проверка что entry 10
       остался в route-map TEST после удаления entry 20.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-route-map.yang
+      root paths/libs:
+      - /frr-route-map:lib
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
     params:
       requestType: 1
       path:
@@ -357,6 +814,21 @@ steps:
       Создание candidate transaction
       для удаления route-map TEST.
 
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs: candidate создается без data path; edit paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50051 frr.Northbound/CreateCandidate
   - type: editCandidate
     daemon: zebra
     description: |
@@ -368,6 +840,29 @@ steps:
 
       vtysh:
       no route-map TEST
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-route-map.yang
+      root paths/libs:
+      - /frr-route-map:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "delete": [
+          {
+            "path": "/frr-route-map:lib/route-map[name='TEST']"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
     params:
       delete:
         - path: "/frr-route-map:lib/route-map[name='TEST']"
@@ -378,6 +873,29 @@ steps:
       STEP 53
 
       Commit удаления route-map TEST.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs: commit применяет candidate; data paths указаны в предыдущем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      end
+      # изменения в vtysh применяются после config-команд
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "delete route-map TEST"
+      }
+      JSON
     params:
       comment: delete route-map TEST
 
@@ -393,6 +911,27 @@ steps:
 
       vtysh:
       show route-map
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-route-map.yang
+      root paths/libs:
+      - /frr-route-map:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-route-map:lib"
+        ]
+      }
+      JSON
     params:
       requestType: 1
       path:
@@ -405,6 +944,22 @@ steps:
 
       Автоматическая проверка JSON дерева:
       route-map TEST отсутствует после удаления.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-route-map.yang
+      root paths/libs:
+      - /frr-route-map:lib
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
     params:
       requestType: 1
       path:

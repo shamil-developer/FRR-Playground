@@ -20,6 +20,27 @@ steps:
 
       requestType:
       2 = STATE ONLY
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-vrf.yang
+      root paths/libs:
+      - /frr-vrf:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+      {
+        "type": "STATE",
+        "encoding": "JSON",
+        "path": [
+          "/frr-vrf:lib"
+        ]
+      }
+      JSON
     params:
       requestType: 2
       path:
@@ -55,6 +76,28 @@ steps:
 
       requestType:
       1 = CONFIG ONLY
+
+
+      Демон: staticd
+
+      YANG/lib:
+      endpoint: staticd / localhost:50053
+      YANG modules:
+      - frr-routing.yang
+      root paths/libs:
+      - /frr-routing:routing
+
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50053 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-routing:routing/control-plane-protocols"
+        ]
+      }
+      JSON
     params:
       requestType: 1
       path:
@@ -81,6 +124,19 @@ steps:
         - gRPC
         - YANG
         - transaction model
+
+
+      Демон: staticd
+
+      YANG/lib:
+      endpoint: staticd / localhost:50053
+      YANG modules:
+      - frr-staticd.yang
+      root paths/libs: candidate создается без data path; edit paths идут в следующем EditCandidate step.
+
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50053 frr.Northbound/CreateCandidate
   - type: editCandidate
     daemon: staticd
     description: |
@@ -112,6 +168,32 @@ steps:
 
       Это НЕ ошибка workflow —
       это особенность FRR northbound/mgmtd.
+
+
+      Демон: staticd
+
+      YANG/lib:
+      endpoint: staticd / localhost:50053
+      YANG modules:
+      - frr-routing.yang
+      - frr-staticd.yang
+      root paths/libs:
+      - /frr-routing:routing
+
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50053 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "update": [
+          {
+            "path": "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.10.10.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']",
+            "value": "{\n\"prefix\": \"10.10.10.0/24\",\n\"src-prefix\": \"::/0\",\n\"afi-safi\": \"frr-routing:ipv4-unicast\"\n}\n"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
     params:
       update:
         - path: "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.10.10.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']"
@@ -153,6 +235,32 @@ steps:
         - tag
 
       передается внутри value object.
+
+
+      Демон: staticd
+
+      YANG/lib:
+      endpoint: staticd / localhost:50053
+      YANG modules:
+      - frr-routing.yang
+      - frr-staticd.yang
+      root paths/libs:
+      - /frr-routing:routing
+
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50053 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "update": [
+          {
+            "path": "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.10.10.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']/path-list[table-id='0'][distance='1']",
+            "value": "{\n\"table-id\": 0,\n\"distance\": 1,\n\"tag\": 0\n}\n"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
     params:
       update:
         - path: "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.10.10.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']/path-list[table-id='0'][distance='1']"
@@ -193,6 +301,32 @@ steps:
         - interface
 
       tag НЕ является key.
+
+
+      Демон: staticd
+
+      YANG/lib:
+      endpoint: staticd / localhost:50053
+      YANG modules:
+      - frr-routing.yang
+      - frr-staticd.yang
+      root paths/libs:
+      - /frr-routing:routing
+
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50053 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "update": [
+          {
+            "path": "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.10.10.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']/path-list[table-id='0'][distance='1']/frr-nexthops/nexthop[nh-type='ip4'][gateway='192.168.1.1'][vrf='default'][interface='']",
+            "value": "{\n\"nh-type\": \"ip4\",\n\"gateway\": \"192.168.1.1\",\n\"vrf\": \"default\",\n\"interface\": \"\"\n}\n"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
     params:
       update:
         - path: "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.10.10.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']/path-list[table-id='0'][distance='1']/frr-nexthops/nexthop[nh-type='ip4'][gateway='192.168.1.1'][vrf='default'][interface='']"
@@ -230,6 +364,25 @@ steps:
         - prepare
         - validate
         - apply
+
+
+      Демон: staticd
+
+      YANG/lib:
+      endpoint: staticd / localhost:50053
+      YANG modules:
+      - frr-staticd.yang
+      root paths/libs: commit применяет candidate; data paths указаны в предыдущем EditCandidate step.
+
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50053 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "add static route"
+      }
+      JSON
     params:
       comment: add static route
   - type: get
@@ -260,6 +413,29 @@ steps:
       Используется конкретный subtree path,
       потому что FRR mgmtd иногда не показывает
       nested objects на верхнем уровне tree.
+
+
+      Демон: staticd
+
+      YANG/lib:
+      endpoint: staticd / localhost:50053
+      YANG modules:
+      - frr-routing.yang
+      - frr-staticd.yang
+      root paths/libs:
+      - /frr-routing:routing
+
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50053 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list"
+        ]
+      }
+      JSON
     params:
       requestType: 1
       path:
@@ -277,6 +453,23 @@ steps:
         - prefix
         - distance
         - nexthop gateway
+
+
+      Демон: staticd
+
+      YANG/lib:
+      endpoint: staticd / localhost:50053
+      YANG modules:
+      - frr-routing.yang
+      - frr-staticd.yang
+      root paths/libs:
+      - /frr-routing:routing
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
     params:
       requestType: 1
       path:
@@ -296,6 +489,21 @@ steps:
 
       Небольшая пауза, чтобы staticd успел
       передать route в zebra RIB.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs: нет прямого data-tree path.
+
+      Аналог:
+      нет; это пауза workflow runner.
+
+      grpcurl пример:
+      sleep step не имеет RPC; это пауза workflow runner.
     params:
       seconds: 1
   - type: get
@@ -314,6 +522,29 @@ steps:
 
       requestType:
       2 = STATE ONLY
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-vrf.yang
+      - frr-zebra.yang
+      - frr-routing.yang
+      root paths/libs:
+      - /frr-vrf:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+      {
+        "type": "STATE",
+        "encoding": "JSON",
+        "path": [
+          "/frr-vrf:lib/vrf[name='default']/frr-zebra:zebra/ribs/rib[afi-safi-name='frr-routing:ipv4-unicast'][table-id='254']/route[prefix='10.10.10.0/24']"
+        ]
+      }
+      JSON
     params:
       requestType: 2
       withDefaults: false
@@ -331,6 +562,24 @@ steps:
       Проверяет:
         - prefix
         - protocol static
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-vrf.yang
+      - frr-zebra.yang
+      - frr-routing.yang
+      root paths/libs:
+      - /frr-vrf:lib
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
     params:
       requestType: 2
       withDefaults: false
@@ -350,6 +599,21 @@ steps:
       Создание candidate configuration session
       для cleanup static route.
 
+
+      Демон: staticd
+
+      YANG/lib:
+      endpoint: staticd / localhost:50053
+      YANG modules:
+      - frr-staticd.yang
+      root paths/libs: candidate создается без data path; edit paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50053 frr.Northbound/CreateCandidate
   - type: editCandidate
     daemon: staticd
     description: |
@@ -364,6 +628,31 @@ steps:
 
       Удаляется весь route-list для тестового prefix,
       чтобы после workflow состояние вернулось обратно.
+
+
+      Демон: staticd
+
+      YANG/lib:
+      endpoint: staticd / localhost:50053
+      YANG modules:
+      - frr-routing.yang
+      - frr-staticd.yang
+      root paths/libs:
+      - /frr-routing:routing
+
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50053 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "delete": [
+          {
+            "path": "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.10.10.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
     params:
       delete:
         - path: "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.10.10.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']"
@@ -374,6 +663,29 @@ steps:
       STEP 16
 
       Commit удаления static route.
+
+
+      Демон: staticd
+
+      YANG/lib:
+      endpoint: staticd / localhost:50053
+      YANG modules:
+      - frr-staticd.yang
+      root paths/libs: commit применяет candidate; data paths указаны в предыдущем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      end
+      # изменения в vtysh применяются после config-команд
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50053 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "delete static route"
+      }
+      JSON
     params:
       comment: delete static route
 
@@ -391,6 +703,28 @@ steps:
       Аналог через vtysh:
 
       show running-config
+
+
+      Демон: staticd
+
+      YANG/lib:
+      endpoint: staticd / localhost:50053
+      YANG modules:
+      - frr-routing.yang
+      root paths/libs:
+      - /frr-routing:routing
+
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50053 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-routing:routing/control-plane-protocols"
+        ]
+      }
+      JSON
     params:
       requestType: 1
       path:
@@ -403,6 +737,22 @@ steps:
 
       Автоматическая проверка что static route
       отсутствует в running configuration после cleanup.
+
+
+      Демон: staticd
+
+      YANG/lib:
+      endpoint: staticd / localhost:50053
+      YANG modules:
+      - frr-routing.yang
+      root paths/libs:
+      - /frr-routing:routing
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
     params:
       requestType: 1
       path:
@@ -417,6 +767,21 @@ steps:
 
       Небольшая пауза, чтобы staticd успел
       убрать route из zebra RIB.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs: нет прямого data-tree path.
+
+      Аналог:
+      нет; это пауза workflow runner.
+
+      grpcurl пример:
+      sleep step не имеет RPC; это пауза workflow runner.
     params:
       seconds: 1
 
@@ -436,6 +801,29 @@ steps:
       vtysh:
       show ip route
       show ip route json
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-vrf.yang
+      - frr-zebra.yang
+      - frr-routing.yang
+      root paths/libs:
+      - /frr-vrf:lib
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+      {
+        "type": "STATE",
+        "encoding": "JSON",
+        "path": [
+          "/frr-vrf:lib/vrf[name='default']/frr-zebra:zebra/ribs/rib[afi-safi-name='frr-routing:ipv4-unicast'][table-id='254']"
+        ]
+      }
+      JSON
     params:
       requestType: 2
       withDefaults: false
@@ -449,6 +837,24 @@ steps:
 
       Автоматическая проверка что static route
       отсутствует в operational RIB zebra после cleanup.
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-vrf.yang
+      - frr-zebra.yang
+      - frr-routing.yang
+      root paths/libs:
+      - /frr-vrf:lib
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get/GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
     params:
       requestType: 2
       withDefaults: false

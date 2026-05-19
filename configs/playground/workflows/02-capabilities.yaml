@@ -19,3 +19,14 @@ steps:
         - discovery
         - понимания API
         - поиска доступных YANG modules
+
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      RPC: GetCapabilities() возвращает supported YANG modules этого daemon endpoint.
+      ожидаемый daemon module: frr-zebra.yang
+
+      grpcurl пример:
+      grpcurl -plaintext localhost:50051 frr.Northbound/GetCapabilities
