@@ -31,3 +31,12 @@ daemons:
 
   pathd:
     target: localhost:50061
+
+  ripd:
+    target: localhost:50062
+
+  ripngd:
+    target: localhost:50063
+
+  vrrpd:
+    target: localhost:50064

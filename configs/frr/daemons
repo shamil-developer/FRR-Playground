@@ -14,14 +14,14 @@ pbrd=yes
 fabricd=yes
 pathd=yes
 
-ripd=no
-ripngd=no
+ripd=yes
+ripngd=yes
 eigrpd=no
 babeld=no
 nhrpd=no
 sharpd=no
 ldpd=no
-vrrpd=no
+vrrpd=yes
 
 vtysh_enable=yes
 
@@ -38,3 +38,6 @@ pimd_options=" -A 127.0.0.1 -M grpc:50058"
 pbrd_options=" -A 127.0.0.1 -M grpc:50059"
 fabricd_options=" -A 127.0.0.1 -M grpc:50060"
 pathd_options=" -A 127.0.0.1 -M grpc:50061"
+ripd_options=" -A 127.0.0.1 -M grpc:50062"
+ripngd_options=" -A 127.0.0.1 -M grpc:50063"
+vrrpd_options=" -A 127.0.0.1 -M grpc:50064"

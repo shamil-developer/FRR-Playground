@@ -1,0 +1,527 @@
+---
+steps:
+  - type: getCapabilities
+    daemon: vrrpd
+    description: |
+      18. VRRP capabilities
+
+      Проверяем, что vrrpd реально отдает
+      northbound YANG module frr-vrrpd.
+
+      Демон: vrrpd
+
+      YANG/lib:
+      endpoint: vrrpd / localhost:50064
+      RPC: GetCapabilities() возвращает supported YANG modules этого daemon endpoint.
+      ожидаемый daemon module: frr-vrrpd.yang
+
+      Аналог:
+      нет прямого vtysh-аналога; это discovery gRPC API.
+
+      grpcurl пример:
+      grpcurl -plaintext localhost:50064 frr.Northbound/GetCapabilities
+
+  - type: assertCapabilityExists
+    daemon: vrrpd
+    description: |
+      18. VRRP capability assert
+
+      Автоматическая проверка наличия
+      module frr-vrrpd.
+
+      Демон: vrrpd
+
+      YANG/lib:
+      endpoint: vrrpd / localhost:50064
+      YANG modules:
+      - frr-vrrpd.yang
+      root paths/libs: проверяется список modules из GetCapabilities().
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl:
+      grpcurl -plaintext localhost:50064 frr.Northbound/GetCapabilities
+    params:
+      modules:
+        - frr-vrrpd
+
+  - type: get
+    daemon: vrrpd
+    description: |
+      18. VRRP config before
+
+      Чтение VRRP configuration до изменений.
+
+      Аналог:
+
+      vtysh:
+      show running-config interface
+      show vrrp
+
+      Демон: vrrpd
+
+      YANG/lib:
+      endpoint: vrrpd / localhost:50064
+      YANG modules:
+      - frr-interface.yang
+      - frr-vrrpd.yang
+      root paths/libs:
+      - /frr-interface:lib/interface/frr-vrrpd:vrrp
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50064 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp"
+
+  - type: createCandidate
+    daemon: vrrpd
+    description: |
+      18. VRRP create candidate
+
+      Создание candidate transaction
+      для VRRP.
+
+      Демон: vrrpd
+
+      YANG/lib:
+      endpoint: vrrpd / localhost:50064
+      YANG modules:
+      - frr-vrrpd.yang
+      root paths/libs: candidate создается без data path; edit paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50064 frr.Northbound/CreateCandidate
+
+  - type: editCandidate
+    daemon: vrrpd
+    description: |
+      18. VRRP create group
+
+      Создание VRRP group на loopback и проверка
+      основных команд, которые обычно нужны сетевикам:
+        - vrrp group
+        - priority
+        - advertisement-interval
+        - shutdown
+        - IPv4 virtual-address
+        - IPv6 virtual-address
+
+      Аналог:
+
+      vtysh:
+      configure terminal
+      interface lo
+       vrrp 10 priority 110
+       vrrp 10 advertisement-interval 1000
+       vrrp 10 shutdown
+       vrrp 10 ip 192.0.2.254
+       vrrp 10 ipv6 2001:db8::254
+
+      В YANG:
+        - VRRP живет как augment внутри interface tree
+        - vrrp 10 = vrrp-group[virtual-router-id='10']
+        - virtual-address разделен на v4 и v6 containers
+
+      Демон: vrrpd
+
+      YANG/lib:
+      endpoint: vrrpd / localhost:50064
+      YANG modules:
+      - frr-interface.yang
+      - frr-vrrpd.yang
+      root paths/libs:
+      - /frr-interface:lib
+      - /frr-interface:lib/interface/frr-vrrpd:vrrp
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50064 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "update": [
+          {
+            "path": "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[virtual-router-id='10']"
+          },
+          {
+            "path": "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[virtual-router-id='10']/priority",
+            "value": "110"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
+    params:
+      update:
+        - path: "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[virtual-router-id='10']"
+        - path: "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[virtual-router-id='10']/version"
+          value: "3"
+        - path: "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[virtual-router-id='10']/priority"
+          value: "110"
+        - path: "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[virtual-router-id='10']/advertisement-interval"
+          value: "1000"
+        - path: "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[virtual-router-id='10']/shutdown"
+          value: "true"
+        - path: "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[virtual-router-id='10']/v4/virtual-address[.='192.0.2.254']"
+        - path: "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[virtual-router-id='10']/v6/virtual-address[.='2001:db8::254']"
+
+  - type: commitCandidate
+    daemon: vrrpd
+    description: |
+      18. VRRP commit
+
+      Commit создания VRRP group.
+
+      Демон: vrrpd
+
+      YANG/lib:
+      endpoint: vrrpd / localhost:50064
+      YANG modules:
+      - frr-vrrpd.yang
+      root paths/libs: commit применяет candidate; data paths указаны в предыдущем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      end
+      # изменения в vtysh применяются после config-команд
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50064 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "create vrrp group"
+      }
+      JSON
+    params:
+      comment: create vrrp group
+
+  - type: get
+    daemon: vrrpd
+    description: |
+      18. VRRP config after
+
+      Чтение VRRP configuration после изменений.
+      Здесь видно, что config реально применился.
+
+      Аналог:
+
+      vtysh:
+      show running-config interface
+      show vrrp
+
+      Демон: vrrpd
+
+      YANG/lib:
+      endpoint: vrrpd / localhost:50064
+      YANG modules:
+      - frr-interface.yang
+      - frr-vrrpd.yang
+      root paths/libs:
+      - /frr-interface:lib/interface/frr-vrrpd:vrrp
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50064 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp"
+
+  - type: assertJsonExists
+    daemon: vrrpd
+    description: |
+      18. VRRP config assert
+
+      Автоматическая проверка, что VRRP config
+      действительно появился в YANG/JSON tree.
+
+      Демон: vrrpd
+
+      YANG/lib:
+      endpoint: vrrpd / localhost:50064
+      YANG modules:
+      - frr-interface.yang
+      - frr-vrrpd.yang
+      root paths/libs:
+      - /frr-interface:lib/interface/frr-vrrpd:vrrp
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 1
+      path:
+        - "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp"
+      checks:
+        - path: 'frr-vrrpd:vrrp.vrrp-group.#(virtual-router-id==10).priority'
+          equals: "110"
+        - path: 'frr-vrrpd:vrrp.vrrp-group.#(virtual-router-id==10).advertisement-interval'
+          equals: "1000"
+        - path: 'frr-vrrpd:vrrp.vrrp-group.#(virtual-router-id==10).shutdown'
+          equals: "true"
+        - path: 'frr-vrrpd:vrrp.vrrp-group.#(virtual-router-id==10).v4.virtual-address.0'
+          equals: 192.0.2.254
+        - path: 'frr-vrrpd:vrrp.vrrp-group.#(virtual-router-id==10).v6.virtual-address.0'
+          equals: 2001:db8::254
+
+  - type: get
+    daemon: vrrpd
+    description: |
+      18. VRRP state
+
+      Чтение VRRP operational state.
+      В single-router lab группа находится в Initialize
+      из-за administrative shutdown, но state tree доступен.
+
+      Аналог:
+
+      vtysh:
+      show vrrp
+
+      Демон: vrrpd
+
+      YANG/lib:
+      endpoint: vrrpd / localhost:50064
+      YANG modules:
+      - frr-interface.yang
+      - frr-vrrpd.yang
+      root paths/libs:
+      - /frr-interface:lib/interface/frr-vrrpd:vrrp/vrrp-group
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50064 frr.Northbound/Get <<'JSON'
+      {
+        "type": "STATE",
+        "encoding": "JSON",
+        "path": [
+          "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[virtual-router-id='10']"
+        ]
+      }
+      JSON
+    params:
+      requestType: 2
+      path:
+        - "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[virtual-router-id='10']"
+
+  - type: assertJsonExists
+    daemon: vrrpd
+    description: |
+      18. VRRP state assert
+
+      Автоматическая проверка, что VRRP operational
+      state реально читается через gRPC.
+
+      Демон: vrrpd
+
+      YANG/lib:
+      endpoint: vrrpd / localhost:50064
+      YANG modules:
+      - frr-interface.yang
+      - frr-vrrpd.yang
+      root paths/libs:
+      - /frr-interface:lib/interface/frr-vrrpd:vrrp
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 2
+      path:
+        - "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[virtual-router-id='10']"
+      checks:
+        - path: 'frr-interface:lib.interface.#(name=="lo").frr-vrrpd:vrrp.vrrp-group.#(virtual-router-id==10).v4.current-priority'
+          equals: "110"
+        - path: 'frr-interface:lib.interface.#(name=="lo").frr-vrrpd:vrrp.vrrp-group.#(virtual-router-id==10).v4.state'
+          equals: Initialize
+        - path: 'frr-interface:lib.interface.#(name=="lo").frr-vrrpd:vrrp.vrrp-group.#(virtual-router-id==10).v6.current-priority'
+          equals: "110"
+        - path: 'frr-interface:lib.interface.#(name=="lo").frr-vrrpd:vrrp.vrrp-group.#(virtual-router-id==10).v6.state'
+          equals: Initialize
+
+  - type: createCandidate
+    daemon: vrrpd
+    description: |
+      18. VRRP cleanup candidate
+
+      Создание candidate transaction
+      для удаления VRRP group.
+
+      Демон: vrrpd
+
+      YANG/lib:
+      endpoint: vrrpd / localhost:50064
+      YANG modules:
+      - frr-vrrpd.yang
+      root paths/libs: candidate создается без data path; delete paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50064 frr.Northbound/CreateCandidate
+
+  - type: editCandidate
+    daemon: vrrpd
+    description: |
+      18. VRRP cleanup
+
+      Удаление созданной VRRP group,
+      чтобы после workflow состояние вернулось
+      к исходному.
+
+      Аналог:
+
+      vtysh:
+      configure terminal
+      interface lo
+       no vrrp 10
+
+      Демон: vrrpd
+
+      YANG/lib:
+      endpoint: vrrpd / localhost:50064
+      YANG modules:
+      - frr-interface.yang
+      - frr-vrrpd.yang
+      root paths/libs:
+      - /frr-interface:lib/interface/frr-vrrpd:vrrp
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50064 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "delete": [
+          {
+            "path": "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[virtual-router-id='10']"
+          }
+        ]
+      }
+      JSON
+    params:
+      delete:
+        - path: "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[virtual-router-id='10']"
+
+  - type: commitCandidate
+    daemon: vrrpd
+    description: |
+      18. VRRP cleanup commit
+
+      Commit удаления VRRP group.
+
+      Демон: vrrpd
+
+      YANG/lib:
+      endpoint: vrrpd / localhost:50064
+      YANG modules:
+      - frr-vrrpd.yang
+      root paths/libs: commit применяет delete paths.
+
+      Аналог:
+      vtysh:
+      end
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50064 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "cleanup vrrp group"
+      }
+      JSON
+    params:
+      comment: cleanup vrrp group
+
+  - type: get
+    daemon: vrrpd
+    description: |
+      18. VRRP config after cleanup
+
+      Чтение VRRP configuration после удаления.
+
+      Аналог:
+
+      vtysh:
+      show running-config interface
+      show vrrp
+
+      Демон: vrrpd
+
+      YANG/lib:
+      endpoint: vrrpd / localhost:50064
+      YANG modules:
+      - frr-interface.yang
+      - frr-vrrpd.yang
+      root paths/libs:
+      - /frr-interface:lib/interface/frr-vrrpd:vrrp
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50064 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp"
+
+  - type: assertJsonMissing
+    daemon: vrrpd
+    description: |
+      18. VRRP cleanup assert
+
+      Автоматическая проверка, что созданная
+      VRRP group удалена.
+
+      Демон: vrrpd
+
+      YANG/lib:
+      endpoint: vrrpd / localhost:50064
+      YANG modules:
+      - frr-interface.yang
+      - frr-vrrpd.yang
+      root paths/libs:
+      - /frr-interface:lib/interface/frr-vrrpd:vrrp
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 1
+      path:
+        - "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp"
+      checks:
+        - path: 'frr-vrrpd:vrrp.vrrp-group.#(virtual-router-id==10).virtual-router-id'

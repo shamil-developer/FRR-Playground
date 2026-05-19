@@ -68,6 +68,15 @@ workflow-14-bfd:
 workflow-15-sbfd:
 	go run cmd/playground/main.go configs/playground/workflows/15-sbfd.yaml
 
+workflow-16-rip:
+	go run cmd/playground/main.go configs/playground/workflows/16-rip.yaml
+
+workflow-17-ripng:
+	go run cmd/playground/main.go configs/playground/workflows/17-ripng.yaml
+
+workflow-18-vrrp:
+	go run cmd/playground/main.go configs/playground/workflows/18-vrrp.yaml
+
 workflow-all:
 	$(MAKE) workflow-01-check
 	$(MAKE) workflow-02-capabilities
@@ -109,6 +118,9 @@ docker-run:
 		-p 50059:50059 \
 		-p 50060:50060 \
 		-p 50061:50061 \
+		-p 50062:50062 \
+		-p 50063:50063 \
+		-p 50064:50064 \
 		-v $(PWD)/configs/frr/frr.conf:/etc/frr/frr.conf \
 		-v $(PWD)/configs/frr/daemons:/etc/frr/daemons \
 		-v $(PWD)/configs/frr/vtysh.conf:/etc/frr/vtysh.conf \

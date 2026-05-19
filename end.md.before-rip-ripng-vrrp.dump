@@ -1460,187 +1460,6 @@ grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost
 JSON
 ```
 
-___
-
-## RIP
-
-> [!TIP]
->
-> ```vtysh
-> router rip
->  network 10.0.0.0/8
->  network lo
->  passive-interface lo
->  default-information originate
->  redistribute static metric 2
->  timers basic 5 30 60
-> show ip rip
-> no router rip
-> ```
-
-| yang module     | yang module path  | daemon |
-| --------------- | ----------------- | ------ |
-| `frr-ripd.yang` | `/frr-ripd:ripd`  | `ripd` |
-
-```bash
-grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50062 frr.Northbound/EditCandidate <<'JSON'
-{
-  "candidateId": 1,
-  "update": [
-    {
-      "path": "/frr-ripd:ripd/instance[vrf='default']"
-    },
-    {
-      "path": "/frr-ripd:ripd/instance[vrf='default']/network[.='10.0.0.0/8']"
-    },
-    {
-      "path": "/frr-ripd:ripd/instance[vrf='default']/interface[.='lo']"
-    },
-    {
-      "path": "/frr-ripd:ripd/instance[vrf='default']/passive-interface[.='lo']"
-    },
-    {
-      "path": "/frr-ripd:ripd/instance[vrf='default']/default-information-originate",
-      "value": "true"
-    },
-    {
-      "path": "/frr-ripd:ripd/instance[vrf='default']/redistribute[protocol='static']/metric",
-      "value": "2"
-    },
-    {
-      "path": "/frr-ripd:ripd/instance[vrf='default']/timers/update-interval",
-      "value": "5"
-    },
-    {
-      "path": "/frr-ripd:ripd/instance[vrf='default']/timers/holddown-interval",
-      "value": "30"
-    },
-    {
-      "path": "/frr-ripd:ripd/instance[vrf='default']/timers/flush-interval",
-      "value": "60"
-    }
-  ]
-}
-JSON
-```
-
-___
-
-## RIPng
-
-> [!TIP]
->
-> ```vtysh
-> router ripng
->  network 2001:db8::/32
->  network lo
->  passive-interface lo
->  default-information originate
->  redistribute static metric 2
->  timers basic 5 30 60
-> show ipv6 ripng
-> no router ripng
-> ```
-
-| yang module       | yang module path     | daemon   |
-| ----------------- | -------------------- | -------- |
-| `frr-ripngd.yang` | `/frr-ripngd:ripngd` | `ripngd` |
-
-```bash
-grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50063 frr.Northbound/EditCandidate <<'JSON'
-{
-  "candidateId": 1,
-  "update": [
-    {
-      "path": "/frr-ripngd:ripngd/instance[vrf='default']"
-    },
-    {
-      "path": "/frr-ripngd:ripngd/instance[vrf='default']/network[.='2001:db8::/32']"
-    },
-    {
-      "path": "/frr-ripngd:ripngd/instance[vrf='default']/interface[.='lo']"
-    },
-    {
-      "path": "/frr-ripngd:ripngd/instance[vrf='default']/passive-interface[.='lo']"
-    },
-    {
-      "path": "/frr-ripngd:ripngd/instance[vrf='default']/default-information-originate",
-      "value": "true"
-    },
-    {
-      "path": "/frr-ripngd:ripngd/instance[vrf='default']/redistribute[protocol='static']/metric",
-      "value": "2"
-    },
-    {
-      "path": "/frr-ripngd:ripngd/instance[vrf='default']/timers/update-interval",
-      "value": "5"
-    },
-    {
-      "path": "/frr-ripngd:ripngd/instance[vrf='default']/timers/holddown-interval",
-      "value": "30"
-    },
-    {
-      "path": "/frr-ripngd:ripngd/instance[vrf='default']/timers/flush-interval",
-      "value": "60"
-    }
-  ]
-}
-JSON
-```
-
-___
-
-## VRRP
-
-> [!TIP]
->
-> ```vtysh
-> interface lo
->  vrrp 10 priority 110
->  vrrp 10 advertisement-interval 1000
->  vrrp 10 shutdown
->  vrrp 10 ip 192.0.2.254
->  vrrp 10 ipv6 2001:db8::254
-> show vrrp
-> no vrrp 10
-> ```
-
-| yang module          | yang module path                                      | daemon  |
-| -------------------- | ----------------------------------------------------- | ------- |
-| `frr-interface.yang` | `/frr-interface:lib`                                  | `vrrpd` |
-| `frr-vrrpd.yang`    | `/frr-interface:lib/interface/.../frr-vrrpd:vrrp`     | `vrrpd` |
-
-```bash
-grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50064 frr.Northbound/EditCandidate <<'JSON'
-{
-  "candidateId": 1,
-  "update": [
-    {
-      "path": "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[virtual-router-id='10']"
-    },
-    {
-      "path": "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[virtual-router-id='10']/priority",
-      "value": "110"
-    },
-    {
-      "path": "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[virtual-router-id='10']/advertisement-interval",
-      "value": "1000"
-    },
-    {
-      "path": "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[virtual-router-id='10']/shutdown",
-      "value": "true"
-    },
-    {
-      "path": "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[virtual-router-id='10']/v4/virtual-address[.='192.0.2.254']"
-    },
-    {
-      "path": "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[virtual-router-id='10']/v6/virtual-address[.='2001:db8::254']"
-    }
-  ]
-}
-JSON
-```
-
 # Частично доступные команды
 
 > [!WARNING]
@@ -1764,6 +1583,36 @@ JSON
 > router pim
 > show ip pim neighbor
 > show ip mroute
+> ```
+
+> [!WARNING]
+>
+> ✅ Работает после включения `ripd=yes` и gRPC endpoint `ripd_options=" -A 127.0.0.1 -M grpc:50062"`.
+> Проверено: `GetCapabilities` отдаёт `frr-ripd`, `EditCandidate` создаёт `/frr-ripd:ripd/instance[vrf='default']`, `Get(CONFIG/STATE)` читает RIP tree.
+>
+> ```vtysh
+> router rip
+> show ip rip
+> ```
+
+> [!WARNING]
+>
+> ✅ Работает после включения `ripngd=yes` и gRPC endpoint `ripngd_options=" -A 127.0.0.1 -M grpc:50063"`.
+> Проверено: `GetCapabilities` отдаёт `frr-ripngd`, `EditCandidate` создаёт `/frr-ripngd:ripngd/instance[vrf='default']`, `Get(CONFIG/STATE)` читает RIPng tree.
+>
+> ```vtysh
+> router ripng
+> show ipv6 ripng
+> ```
+
+> [!WARNING]
+>
+> ✅ Работает после включения `vrrpd=yes` и gRPC endpoint `vrrpd_options=" -A 127.0.0.1 -M grpc:50064"`.
+> Проверено: `GetCapabilities` отдаёт `frr-vrrpd`, `EditCandidate` создаёт `/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[...]`, `Get(CONFIG/STATE)` читает VRRP tree.
+>
+> ```vtysh
+> vrrp ...
+> show vrrp
 > ```
 
 # Не доступные команды

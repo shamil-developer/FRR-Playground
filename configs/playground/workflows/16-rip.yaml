@@ -1,0 +1,494 @@
+---
+steps:
+  - type: getCapabilities
+    daemon: ripd
+    description: |
+      16. RIP capabilities
+
+      Проверяем, что ripd реально отдает
+      northbound YANG module frr-ripd.
+
+      Демон: ripd
+
+      YANG/lib:
+      endpoint: ripd / localhost:50062
+      RPC: GetCapabilities() возвращает supported YANG modules этого daemon endpoint.
+      ожидаемый daemon module: frr-ripd.yang
+
+      Аналог:
+      нет прямого vtysh-аналога; это discovery gRPC API.
+
+      grpcurl пример:
+      grpcurl -plaintext localhost:50062 frr.Northbound/GetCapabilities
+
+  - type: assertCapabilityExists
+    daemon: ripd
+    description: |
+      16. RIP capability assert
+
+      Автоматическая проверка наличия
+      module frr-ripd.
+
+      Демон: ripd
+
+      YANG/lib:
+      endpoint: ripd / localhost:50062
+      YANG modules:
+      - frr-ripd.yang
+      root paths/libs: проверяется список modules из GetCapabilities().
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl:
+      grpcurl -plaintext localhost:50062 frr.Northbound/GetCapabilities
+    params:
+      modules:
+        - frr-ripd
+
+  - type: get
+    daemon: ripd
+    description: |
+      16. RIP config before
+
+      Чтение RIP configuration до изменений.
+
+      Аналог:
+
+      vtysh:
+      show running-config
+      show ip rip
+
+      Демон: ripd
+
+      YANG/lib:
+      endpoint: ripd / localhost:50062
+      YANG modules:
+      - frr-ripd.yang
+      root paths/libs:
+      - /frr-ripd:ripd
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50062 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-ripd:ripd"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-ripd:ripd"
+
+  - type: createCandidate
+    daemon: ripd
+    description: |
+      16. RIP create candidate
+
+      Создание candidate transaction
+      для RIP.
+
+      Демон: ripd
+
+      YANG/lib:
+      endpoint: ripd / localhost:50062
+      YANG modules:
+      - frr-ripd.yang
+      root paths/libs: candidate создается без data path; edit paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50062 frr.Northbound/CreateCandidate
+
+  - type: editCandidate
+    daemon: ripd
+    description: |
+      16. RIP create base config
+
+      Создание RIP instance и проверка основных
+      команд, которые обычно нужны сетевикам:
+        - router rip
+        - network
+        - interface
+        - passive-interface
+        - default-information originate
+        - redistribute static metric
+        - timers basic
+
+      Аналог:
+
+      vtysh:
+      configure terminal
+      router rip
+       network 10.0.0.0/8
+       network lo
+       passive-interface lo
+       default-information originate
+       redistribute static metric 2
+       timers basic 5 30 60
+
+      В YANG:
+        - router rip = /frr-ripd:ripd/instance[vrf='default']
+        - network prefix = leaf-list network
+        - network interface = leaf-list interface
+        - timers basic update timeout garbage =
+          update-interval, holddown-interval, flush-interval
+
+      Демон: ripd
+
+      YANG/lib:
+      endpoint: ripd / localhost:50062
+      YANG modules:
+      - frr-ripd.yang
+      - frr-route-types.yang
+      root paths/libs:
+      - /frr-ripd:ripd
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50062 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "update": [
+          {
+            "path": "/frr-ripd:ripd/instance[vrf='default']"
+          },
+          {
+            "path": "/frr-ripd:ripd/instance[vrf='default']/network[.='10.0.0.0/8']"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
+    params:
+      update:
+        - path: "/frr-ripd:ripd/instance[vrf='default']"
+        - path: "/frr-ripd:ripd/instance[vrf='default']/network[.='10.0.0.0/8']"
+        - path: "/frr-ripd:ripd/instance[vrf='default']/interface[.='lo']"
+        - path: "/frr-ripd:ripd/instance[vrf='default']/passive-interface[.='lo']"
+        - path: "/frr-ripd:ripd/instance[vrf='default']/default-information-originate"
+          value: "true"
+        - path: "/frr-ripd:ripd/instance[vrf='default']/redistribute[protocol='static']"
+        - path: "/frr-ripd:ripd/instance[vrf='default']/redistribute[protocol='static']/metric"
+          value: "2"
+        - path: "/frr-ripd:ripd/instance[vrf='default']/timers/update-interval"
+          value: "5"
+        - path: "/frr-ripd:ripd/instance[vrf='default']/timers/holddown-interval"
+          value: "30"
+        - path: "/frr-ripd:ripd/instance[vrf='default']/timers/flush-interval"
+          value: "60"
+
+  - type: commitCandidate
+    daemon: ripd
+    description: |
+      16. RIP commit
+
+      Commit создания RIP configuration.
+
+      Демон: ripd
+
+      YANG/lib:
+      endpoint: ripd / localhost:50062
+      YANG modules:
+      - frr-ripd.yang
+      root paths/libs: commit применяет candidate; data paths указаны в предыдущем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      end
+      # изменения в vtysh применяются после config-команд
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50062 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "create rip config"
+      }
+      JSON
+    params:
+      comment: create rip config
+
+  - type: get
+    daemon: ripd
+    description: |
+      16. RIP config after
+
+      Чтение RIP configuration после изменений.
+      Здесь видно, что config реально применился.
+
+      Аналог:
+
+      vtysh:
+      show running-config
+      show ip rip
+
+      Демон: ripd
+
+      YANG/lib:
+      endpoint: ripd / localhost:50062
+      YANG modules:
+      - frr-ripd.yang
+      root paths/libs:
+      - /frr-ripd:ripd
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50062 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-ripd:ripd"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-ripd:ripd"
+
+  - type: assertJsonExists
+    daemon: ripd
+    description: |
+      16. RIP config assert
+
+      Автоматическая проверка, что RIP config
+      действительно появился в YANG/JSON tree.
+
+      Демон: ripd
+
+      YANG/lib:
+      endpoint: ripd / localhost:50062
+      YANG modules:
+      - frr-ripd.yang
+      root paths/libs:
+      - /frr-ripd:ripd
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 1
+      path:
+        - "/frr-ripd:ripd"
+      checks:
+        - path: 'frr-ripd:ripd.instance.#(vrf=="default").network.0'
+          equals: 10.0.0.0/8
+        - path: 'frr-ripd:ripd.instance.#(vrf=="default").interface.0'
+          equals: lo
+        - path: 'frr-ripd:ripd.instance.#(vrf=="default").passive-interface.0'
+          equals: lo
+        - path: 'frr-ripd:ripd.instance.#(vrf=="default").default-information-originate'
+          equals: "true"
+        - path: 'frr-ripd:ripd.instance.#(vrf=="default").redistribute.#(protocol=="static").metric'
+          equals: "2"
+        - path: 'frr-ripd:ripd.instance.#(vrf=="default").timers.update-interval'
+          equals: "5"
+        - path: 'frr-ripd:ripd.instance.#(vrf=="default").timers.holddown-interval'
+          equals: "30"
+        - path: 'frr-ripd:ripd.instance.#(vrf=="default").timers.flush-interval'
+          equals: "60"
+
+  - type: get
+    daemon: ripd
+    description: |
+      16. RIP state
+
+      Чтение RIP operational state.
+      В single-router lab соседей может не быть,
+      но сам state tree доступен через gRPC.
+
+      Аналог:
+
+      vtysh:
+      show ip rip
+
+      Демон: ripd
+
+      YANG/lib:
+      endpoint: ripd / localhost:50062
+      YANG modules:
+      - frr-ripd.yang
+      root paths/libs:
+      - /frr-ripd:ripd/instance/state
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50062 frr.Northbound/Get <<'JSON'
+      {
+        "type": "STATE",
+        "encoding": "JSON",
+        "path": [
+          "/frr-ripd:ripd/instance[vrf='default']/state"
+        ]
+      }
+      JSON
+    params:
+      requestType: 2
+      path:
+        - "/frr-ripd:ripd/instance[vrf='default']/state"
+
+  - type: createCandidate
+    daemon: ripd
+    description: |
+      16. RIP cleanup candidate
+
+      Создание candidate transaction
+      для удаления RIP config.
+
+      Демон: ripd
+
+      YANG/lib:
+      endpoint: ripd / localhost:50062
+      YANG modules:
+      - frr-ripd.yang
+      root paths/libs: candidate создается без data path; delete paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50062 frr.Northbound/CreateCandidate
+
+  - type: editCandidate
+    daemon: ripd
+    description: |
+      16. RIP cleanup
+
+      Удаление созданного RIP instance,
+      чтобы после workflow состояние вернулось
+      к исходному.
+
+      Аналог:
+
+      vtysh:
+      configure terminal
+      no router rip
+
+      Демон: ripd
+
+      YANG/lib:
+      endpoint: ripd / localhost:50062
+      YANG modules:
+      - frr-ripd.yang
+      root paths/libs:
+      - /frr-ripd:ripd
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50062 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "delete": [
+          {
+            "path": "/frr-ripd:ripd/instance[vrf='default']"
+          }
+        ]
+      }
+      JSON
+    params:
+      delete:
+        - path: "/frr-ripd:ripd/instance[vrf='default']"
+
+  - type: commitCandidate
+    daemon: ripd
+    description: |
+      16. RIP cleanup commit
+
+      Commit удаления RIP config.
+
+      Демон: ripd
+
+      YANG/lib:
+      endpoint: ripd / localhost:50062
+      YANG modules:
+      - frr-ripd.yang
+      root paths/libs: commit применяет delete paths.
+
+      Аналог:
+      vtysh:
+      end
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50062 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "cleanup rip config"
+      }
+      JSON
+    params:
+      comment: cleanup rip config
+
+  - type: get
+    daemon: ripd
+    description: |
+      16. RIP config after cleanup
+
+      Чтение RIP configuration после удаления.
+
+      Аналог:
+
+      vtysh:
+      show running-config
+      show ip rip
+
+      Демон: ripd
+
+      YANG/lib:
+      endpoint: ripd / localhost:50062
+      YANG modules:
+      - frr-ripd.yang
+      root paths/libs:
+      - /frr-ripd:ripd
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50062 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-ripd:ripd"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-ripd:ripd"
+
+  - type: assertJsonMissing
+    daemon: ripd
+    description: |
+      16. RIP cleanup assert
+
+      Автоматическая проверка, что созданный
+      RIP instance удален.
+
+      Демон: ripd
+
+      YANG/lib:
+      endpoint: ripd / localhost:50062
+      YANG modules:
+      - frr-ripd.yang
+      root paths/libs:
+      - /frr-ripd:ripd
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 1
+      path:
+        - "/frr-ripd:ripd"
+      checks:
+        - path: 'frr-ripd:ripd.instance.#(vrf=="default").vrf'

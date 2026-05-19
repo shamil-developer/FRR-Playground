@@ -1,0 +1,494 @@
+---
+steps:
+  - type: getCapabilities
+    daemon: ripngd
+    description: |
+      17. RIPng capabilities
+
+      Проверяем, что ripngd реально отдает
+      northbound YANG module frr-ripngd.
+
+      Демон: ripngd
+
+      YANG/lib:
+      endpoint: ripngd / localhost:50063
+      RPC: GetCapabilities() возвращает supported YANG modules этого daemon endpoint.
+      ожидаемый daemon module: frr-ripngd.yang
+
+      Аналог:
+      нет прямого vtysh-аналога; это discovery gRPC API.
+
+      grpcurl пример:
+      grpcurl -plaintext localhost:50063 frr.Northbound/GetCapabilities
+
+  - type: assertCapabilityExists
+    daemon: ripngd
+    description: |
+      17. RIPng capability assert
+
+      Автоматическая проверка наличия
+      module frr-ripngd.
+
+      Демон: ripngd
+
+      YANG/lib:
+      endpoint: ripngd / localhost:50063
+      YANG modules:
+      - frr-ripngd.yang
+      root paths/libs: проверяется список modules из GetCapabilities().
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата GetCapabilities.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl:
+      grpcurl -plaintext localhost:50063 frr.Northbound/GetCapabilities
+    params:
+      modules:
+        - frr-ripngd
+
+  - type: get
+    daemon: ripngd
+    description: |
+      17. RIPng config before
+
+      Чтение RIPng configuration до изменений.
+
+      Аналог:
+
+      vtysh:
+      show running-config
+      show ipv6 ripng
+
+      Демон: ripngd
+
+      YANG/lib:
+      endpoint: ripngd / localhost:50063
+      YANG modules:
+      - frr-ripngd.yang
+      root paths/libs:
+      - /frr-ripngd:ripngd
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50063 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-ripngd:ripngd"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-ripngd:ripngd"
+
+  - type: createCandidate
+    daemon: ripngd
+    description: |
+      17. RIPng create candidate
+
+      Создание candidate transaction
+      для RIPng.
+
+      Демон: ripngd
+
+      YANG/lib:
+      endpoint: ripngd / localhost:50063
+      YANG modules:
+      - frr-ripngd.yang
+      root paths/libs: candidate создается без data path; edit paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50063 frr.Northbound/CreateCandidate
+
+  - type: editCandidate
+    daemon: ripngd
+    description: |
+      17. RIPng create base config
+
+      Создание RIPng instance и проверка основных
+      команд, которые обычно нужны сетевикам:
+        - router ripng
+        - network
+        - interface
+        - passive-interface
+        - default-information originate
+        - redistribute static metric
+        - timers basic
+
+      Аналог:
+
+      vtysh:
+      configure terminal
+      router ripng
+       network 2001:db8::/32
+       network lo
+       passive-interface lo
+       default-information originate
+       redistribute static metric 2
+       timers basic 5 30 60
+
+      В YANG:
+        - router ripng = /frr-ripngd:ripngd/instance[vrf='default']
+        - network prefix = leaf-list network
+        - network interface = leaf-list interface
+        - timers basic update timeout garbage =
+          update-interval, holddown-interval, flush-interval
+
+      Демон: ripngd
+
+      YANG/lib:
+      endpoint: ripngd / localhost:50063
+      YANG modules:
+      - frr-ripngd.yang
+      - frr-route-types.yang
+      root paths/libs:
+      - /frr-ripngd:ripngd
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50063 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "update": [
+          {
+            "path": "/frr-ripngd:ripngd/instance[vrf='default']"
+          },
+          {
+            "path": "/frr-ripngd:ripngd/instance[vrf='default']/network[.='2001:db8::/32']"
+          }
+        ],
+        "note": "пример укорочен; полный update/delete смотри в params шага"
+      }
+      JSON
+    params:
+      update:
+        - path: "/frr-ripngd:ripngd/instance[vrf='default']"
+        - path: "/frr-ripngd:ripngd/instance[vrf='default']/network[.='2001:db8::/32']"
+        - path: "/frr-ripngd:ripngd/instance[vrf='default']/interface[.='lo']"
+        - path: "/frr-ripngd:ripngd/instance[vrf='default']/passive-interface[.='lo']"
+        - path: "/frr-ripngd:ripngd/instance[vrf='default']/default-information-originate"
+          value: "true"
+        - path: "/frr-ripngd:ripngd/instance[vrf='default']/redistribute[protocol='static']"
+        - path: "/frr-ripngd:ripngd/instance[vrf='default']/redistribute[protocol='static']/metric"
+          value: "2"
+        - path: "/frr-ripngd:ripngd/instance[vrf='default']/timers/update-interval"
+          value: "5"
+        - path: "/frr-ripngd:ripngd/instance[vrf='default']/timers/holddown-interval"
+          value: "30"
+        - path: "/frr-ripngd:ripngd/instance[vrf='default']/timers/flush-interval"
+          value: "60"
+
+  - type: commitCandidate
+    daemon: ripngd
+    description: |
+      17. RIPng commit
+
+      Commit создания RIPng configuration.
+
+      Демон: ripngd
+
+      YANG/lib:
+      endpoint: ripngd / localhost:50063
+      YANG modules:
+      - frr-ripngd.yang
+      root paths/libs: commit применяет candidate; data paths указаны в предыдущем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      end
+      # изменения в vtysh применяются после config-команд
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50063 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "create ripng config"
+      }
+      JSON
+    params:
+      comment: create ripng config
+
+  - type: get
+    daemon: ripngd
+    description: |
+      17. RIPng config after
+
+      Чтение RIPng configuration после изменений.
+      Здесь видно, что config реально применился.
+
+      Аналог:
+
+      vtysh:
+      show running-config
+      show ipv6 ripng
+
+      Демон: ripngd
+
+      YANG/lib:
+      endpoint: ripngd / localhost:50063
+      YANG modules:
+      - frr-ripngd.yang
+      root paths/libs:
+      - /frr-ripngd:ripngd
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50063 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-ripngd:ripngd"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-ripngd:ripngd"
+
+  - type: assertJsonExists
+    daemon: ripngd
+    description: |
+      17. RIPng config assert
+
+      Автоматическая проверка, что RIPng config
+      действительно появился в YANG/JSON tree.
+
+      Демон: ripngd
+
+      YANG/lib:
+      endpoint: ripngd / localhost:50063
+      YANG modules:
+      - frr-ripngd.yang
+      root paths/libs:
+      - /frr-ripngd:ripngd
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 1
+      path:
+        - "/frr-ripngd:ripngd"
+      checks:
+        - path: 'frr-ripngd:ripngd.instance.#(vrf=="default").network.0'
+          equals: 2001:db8::/32
+        - path: 'frr-ripngd:ripngd.instance.#(vrf=="default").interface.0'
+          equals: lo
+        - path: 'frr-ripngd:ripngd.instance.#(vrf=="default").passive-interface.0'
+          equals: lo
+        - path: 'frr-ripngd:ripngd.instance.#(vrf=="default").default-information-originate'
+          equals: "true"
+        - path: 'frr-ripngd:ripngd.instance.#(vrf=="default").redistribute.#(protocol=="static").metric'
+          equals: "2"
+        - path: 'frr-ripngd:ripngd.instance.#(vrf=="default").timers.update-interval'
+          equals: "5"
+        - path: 'frr-ripngd:ripngd.instance.#(vrf=="default").timers.holddown-interval'
+          equals: "30"
+        - path: 'frr-ripngd:ripngd.instance.#(vrf=="default").timers.flush-interval'
+          equals: "60"
+
+  - type: get
+    daemon: ripngd
+    description: |
+      17. RIPng state
+
+      Чтение RIPng operational state.
+      В single-router lab соседей может не быть,
+      но сам state tree доступен через gRPC.
+
+      Аналог:
+
+      vtysh:
+      show ipv6 ripng
+
+      Демон: ripngd
+
+      YANG/lib:
+      endpoint: ripngd / localhost:50063
+      YANG modules:
+      - frr-ripngd.yang
+      root paths/libs:
+      - /frr-ripngd:ripngd/instance/state
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50063 frr.Northbound/Get <<'JSON'
+      {
+        "type": "STATE",
+        "encoding": "JSON",
+        "path": [
+          "/frr-ripngd:ripngd/instance[vrf='default']/state"
+        ]
+      }
+      JSON
+    params:
+      requestType: 2
+      path:
+        - "/frr-ripngd:ripngd/instance[vrf='default']/state"
+
+  - type: createCandidate
+    daemon: ripngd
+    description: |
+      17. RIPng cleanup candidate
+
+      Создание candidate transaction
+      для удаления RIPng config.
+
+      Демон: ripngd
+
+      YANG/lib:
+      endpoint: ripngd / localhost:50063
+      YANG modules:
+      - frr-ripngd.yang
+      root paths/libs: candidate создается без data path; delete paths идут в следующем EditCandidate step.
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50063 frr.Northbound/CreateCandidate
+
+  - type: editCandidate
+    daemon: ripngd
+    description: |
+      17. RIPng cleanup
+
+      Удаление созданного RIPng instance,
+      чтобы после workflow состояние вернулось
+      к исходному.
+
+      Аналог:
+
+      vtysh:
+      configure terminal
+      no router ripng
+
+      Демон: ripngd
+
+      YANG/lib:
+      endpoint: ripngd / localhost:50063
+      YANG modules:
+      - frr-ripngd.yang
+      root paths/libs:
+      - /frr-ripngd:ripngd
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50063 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "delete": [
+          {
+            "path": "/frr-ripngd:ripngd/instance[vrf='default']"
+          }
+        ]
+      }
+      JSON
+    params:
+      delete:
+        - path: "/frr-ripngd:ripngd/instance[vrf='default']"
+
+  - type: commitCandidate
+    daemon: ripngd
+    description: |
+      17. RIPng cleanup commit
+
+      Commit удаления RIPng config.
+
+      Демон: ripngd
+
+      YANG/lib:
+      endpoint: ripngd / localhost:50063
+      YANG modules:
+      - frr-ripngd.yang
+      root paths/libs: commit применяет delete paths.
+
+      Аналог:
+      vtysh:
+      end
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50063 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "cleanup ripng config"
+      }
+      JSON
+    params:
+      comment: cleanup ripng config
+
+  - type: get
+    daemon: ripngd
+    description: |
+      17. RIPng config after cleanup
+
+      Чтение RIPng configuration после удаления.
+
+      Аналог:
+
+      vtysh:
+      show running-config
+      show ipv6 ripng
+
+      Демон: ripngd
+
+      YANG/lib:
+      endpoint: ripngd / localhost:50063
+      YANG modules:
+      - frr-ripngd.yang
+      root paths/libs:
+      - /frr-ripngd:ripngd
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50063 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-ripngd:ripngd"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-ripngd:ripngd"
+
+  - type: assertJsonMissing
+    daemon: ripngd
+    description: |
+      17. RIPng cleanup assert
+
+      Автоматическая проверка, что созданный
+      RIPng instance удален.
+
+      Демон: ripngd
+
+      YANG/lib:
+      endpoint: ripngd / localhost:50063
+      YANG modules:
+      - frr-ripngd.yang
+      root paths/libs:
+      - /frr-ripngd:ripngd
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 1
+      path:
+        - "/frr-ripngd:ripngd"
+      checks:
+        - path: 'frr-ripngd:ripngd.instance.#(vrf=="default").vrf'
