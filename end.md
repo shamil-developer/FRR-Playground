@@ -1,10 +1,15 @@
 # Доступные/Не доступные команды
 
+Если `grpcurl` пример короткий, полный набор `update/delete` смотри в `params` соответствующего workflow step.
+
 ___
 
-```bash
-show running-config
-```
+> [!IMPORTANT]
+> **Команда сетевика**
+>
+> ```vtysh
+> show running-config
+> ```
 
 | yang module    | yang module path | daemon  |
 | -------------- | ---------------- | ------- |
@@ -20,6 +25,20 @@ grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
     ]
 }
 JSON
+```
+
+___
+
+```bash
+нет vtysh аналога
+```
+
+| yang module      | yang module path     | daemon  |
+| ---------------- | -------------------- | ------- |
+| `frr-zebra.yang` | `GetCapabilities()`  | `zebra` |
+
+```bash
+grpcurl -plaintext localhost:50051 frr.Northbound/GetCapabilities
 ```
 
 ___
@@ -99,7 +118,7 @@ ip route 10.10.10.0/24 192.168.1.1
 | yang module        | yang module path       | daemon    |
 | ------------------ | ---------------------- | --------- |
 | `frr-routing.yang` | `/frr-routing:routing` | `staticd` |
-| `frr-staticd.yang` | `/frr-routing:staticd` | `staticd` |
+| `frr-staticd.yang` | `/frr-routing:routing/.../frr-staticd:staticd` | `staticd` |
 
 ```bash
 grpcurl -plaintext -d @ localhost:50053 frr.Northbound/EditCandidate <<'JSON'
@@ -110,8 +129,7 @@ grpcurl -plaintext -d @ localhost:50053 frr.Northbound/EditCandidate <<'JSON'
             "path": "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.10.10.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']",
             "value": "{\n\"prefix\": \"10.10.10.0/24\",\n\"src-prefix\": \"::/0\",\n\"afi-safi\": \"frr-routing:ipv4-unicast\"\n}\n"
             }
-    ],
-    "note": "пример укорочен; полный update/delete смотри в params шага"
+    ]
 }
 JSON
 
@@ -123,8 +141,7 @@ grpcurl -plaintext -d @ localhost:50053 frr.Northbound/EditCandidate <<'JSON'
             "path": "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.10.10.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']/path-list[table-id='0'][distance='1']",
             "value": "{\n\"table-id\": 0,\n\"distance\": 1,\n\"tag\": 0\n}\n"
         }
-    ],
-    "note": "пример укорочен; полный update/delete смотри в params шага"
+    ]
 }
 JSON
 
@@ -136,8 +153,7 @@ grpcurl -plaintext -d @ localhost:50053 frr.Northbound/EditCandidate <<'JSON'
             "path": "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.10.10.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']/path-list[table-id='0'][distance='1']/frr-nexthops/nexthop[nh-type='ip4'][gateway='192.168.1.1'][vrf='default'][interface='']",
             "value": "{\n\"nh-type\": \"ip4\",\n\"gateway\": \"192.168.1.1\",\n\"vrf\": \"default\",\n\"interface\": \"\"\n}\n"
         }
-    ],
-    "note": "пример укорочен; полный update/delete смотри в params шага"
+    ]
 }
 JSON
 ```
@@ -152,7 +168,7 @@ no ip route 10.10.10.0/24 192.168.1.1
 | yang module        | yang module path       | daemon    |
 | ------------------ | ---------------------- | --------- |
 | `frr-routing.yang` | `/frr-routing:routing` | `staticd` |
-| `frr-staticd.yang` | `/frr-routing:staticd` | `staticd` |
+| `frr-staticd.yang` | `/frr-routing:routing/.../frr-staticd:staticd` | `staticd` |
 
 ```bash
 grpcurl -plaintext -d @ localhost:50053 frr.Northbound/EditCandidate <<'JSON'
@@ -162,8 +178,7 @@ grpcurl -plaintext -d @ localhost:50053 frr.Northbound/EditCandidate <<'JSON'
     {
     "path": "/frr-routing:routing/control-plane-protocols/control-plane-protocol[type='frr-staticd:staticd'][name='staticd'][vrf='default']/frr-staticd:staticd/route-list[prefix='10.10.10.0/24'][src-prefix='::/0'][afi-safi='frr-routing:ipv4-unicast']"
     }
-],
-"note": "пример укорочен; полный update/delete смотри в params шага"
+]
 }
 JSON
 ```
@@ -209,10 +224,9 @@ grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
     "path": "/frr-vrf:lib/vrf[name='BLUE']",
     "value": "{\n\"name\": \"BLUE\"\n}\n"
     }
-],
-"note": "пример укорочен; полный update/delete смотри в params шага"
+]
 }
-JSON  
+JSON
 ```
 
 ___
@@ -233,8 +247,7 @@ grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
     {
     "path": "/frr-vrf:lib/vrf[name='BLUE']"
     }
-],
-"note": "пример укорочен; полный update/delete смотри в params шага"
+]
 }
 JSON
 ```
@@ -283,9 +296,16 @@ grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
     {
     "path": "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']/entry[sequence='70']/action",
     "value": "permit"
+    },
+    {
+    "path": "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']/entry[sequence='70']/ipv4-prefix",
+    "value": "70.70.0.0/16"
+    },
+    {
+    "path": "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']/entry[sequence='70']/ipv4-prefix-length-lesser-or-equal",
+    "value": "32"
     }
-],
-"note": "пример укорочен; полный update/delete смотри в params шага"
+]
 }
 JSON
 ```
@@ -313,9 +333,12 @@ grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
     {
     "path": "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']/entry[sequence='80']/ipv4-prefix",
     "value": "80.80.0.0/16"
+    },
+    {
+    "path": "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']/entry[sequence='80']/ipv4-prefix-length-lesser-or-equal",
+    "value": "32"
     }
-],
-"note": "пример укорочен; полный update/delete смотри в params шага"
+]
 }
 JSON
 ```
@@ -339,8 +362,7 @@ grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
     {
     "path": "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']/entry[sequence='80']"
     }
-],
-"note": "пример укорочен; полный update/delete смотри в params шага"
+]
 }
 JSON
 ```
@@ -364,8 +386,7 @@ grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
     {
     "path": "/frr-filter:lib/prefix-list[type='ipv4'][name='TEST7']"
     }
-],
-"note": "пример укорочен; полный update/delete смотри в params шага"
+]
 }
 JSON
 ```
@@ -412,8 +433,7 @@ grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
     "path": "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='10']/action",
     "value": "permit"
     }
-],
-"note": "пример укорочен; полный update/delete смотри в params шага"
+]
 }
 JSON
 ```
@@ -438,8 +458,7 @@ grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
     "path": "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='10']/match-condition[condition='frr-route-map:ipv4-prefix-list']/rmap-match-condition/list-name",
     "value": "TEST7"
     }
-],
-"note": "пример укорочен; полный update/delete смотри в params шага"
+]
 }
 JSON
 ```
@@ -464,8 +483,7 @@ grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
     "path": "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='10']/set-action[action='frr-route-map:set-metric']/rmap-set-action/value",
     "value": "100"
     }
-],
-"note": "пример укорочен; полный update/delete смотри в params шага"
+]
 }
 JSON
 ```
@@ -490,8 +508,7 @@ grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
     "path": "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='20']/action",
     "value": "deny"
     }
-],
-"note": "пример укорочен; полный update/delete смотри в params шага"
+]
 }
 JSON
 ```
@@ -514,8 +531,7 @@ grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
     {
     "path": "/frr-route-map:lib/route-map[name='TEST']/entry[sequence='20']"
     }
-],
-"note": "пример укорочен; полный update/delete смотри в params шага"
+]
 }
 JSON
 ```
@@ -538,8 +554,7 @@ grpcurl -plaintext -d @ localhost:50051 frr.Northbound/EditCandidate <<'JSON'
     {
     "path": "/frr-route-map:lib/route-map[name='TEST']"
     }
-],
-"note": "пример укорочен; полный update/delete смотри в params шага"
+]
 }
 JSON
 ```
@@ -589,8 +604,7 @@ grpcurl -plaintext -d @ localhost:50057 frr.Northbound/EditCandidate <<'JSON'
     "path": "/frr-isisd:isis/instance[area-tag='TEST'][vrf='default']/area-address",
     "value": "49.0001.0000.0000.0001.00"
     }
-],
-"note": "пример укорочен; полный update/delete смотри в params шага"
+]
 }
 JSON
 ```
@@ -620,8 +634,7 @@ grpcurl -plaintext -d @ localhost:50057 frr.Northbound/EditCandidate <<'JSON'
     "path": "/frr-interface:lib/interface[name='lo']/frr-isisd:isis/ipv4-routing",
     "value": true
     }
-],
-"note": "пример укорочен; полный update/delete смотри в params шага"
+]
 }
 JSON
 ```
@@ -694,8 +707,7 @@ grpcurl -plaintext -d @ localhost:50057 frr.Northbound/EditCandidate <<'JSON'
     {
     "path": "/frr-isisd:isis/instance[area-tag='TEST'][vrf='default']"
     }
-],
-"note": "пример укорочен; полный update/delete смотри в params шага"
+]
 }
 JSON
 ```
@@ -756,8 +768,7 @@ grpcurl -plaintext -d @ localhost:50054 frr.Northbound/EditCandidate <<'JSON'
     "path": "/frr-bfdd:bfdd/bfd/profile[name='TEST']/detection-multiplier",
     "value": 3
     }
-],
-"note": "пример укорочен; полный update/delete смотри в params шага"
+]
 }
 JSON
 ```
@@ -797,8 +808,7 @@ grpcurl -plaintext -d @ localhost:50054 frr.Northbound/EditCandidate <<'JSON'
     "path": "/frr-bfdd:bfdd/bfd/sessions/single-hop[dest-addr='192.0.2.2'][interface='lo'][vrf='default']/profile",
     "value": "TEST"
     }
-],
-"note": "пример укорочен; полный update/delete смотри в params шага"
+]
 }
 JSON
 ```
@@ -838,8 +848,7 @@ grpcurl -plaintext -d @ localhost:50054 frr.Northbound/EditCandidate <<'JSON'
     "path": "/frr-bfdd:bfdd/bfd/sessions/multi-hop[source-addr='127.0.0.1'][dest-addr='192.0.2.3'][vrf='default']/minimum-ttl",
     "value": 254
     }
-],
-"note": "пример укорочен; полный update/delete смотри в params шага"
+]
 }
 JSON
 ```
@@ -918,8 +927,7 @@ grpcurl -plaintext -d @ localhost:50054 frr.Northbound/EditCandidate <<'JSON'
     {
     "path": "/frr-bfdd:bfdd/bfd"
     }
-],
-"note": "пример укорочен; полный update/delete смотри в params шага"
+]
 }
 JSON
 ```
@@ -964,8 +972,7 @@ grpcurl -plaintext -d @ localhost:50054 frr.Northbound/EditCandidate <<'JSON'
     {
     "path": "/frr-bfdd:bfdd/bfd/sessions/sbfd-init[source-addr='127.0.0.1'][dest-addr='192.0.2.4'][bfd-name='TEST-INIT'][vrf='default']"
     }
-],
-"note": "пример укорочен; полный update/delete смотри в params шага"
+]
 }
 JSON
 ```
@@ -1042,8 +1049,7 @@ grpcurl -plaintext -d @ localhost:50054 frr.Northbound/EditCandidate <<'JSON'
     {
     "path": "/frr-bfdd:bfdd/bfd"
     }
-],
-"note": "пример укорочен; полный update/delete смотри в params шага"
+]
 }
 JSON
 ```
