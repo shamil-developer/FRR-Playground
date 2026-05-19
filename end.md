@@ -1,11 +1,10 @@
-# Доступные/Не доступные команды
+# Доступные
 
 Если `grpcurl` пример короткий, полный набор `update/delete` смотри в `params` соответствующего workflow step.
 
 ___
 
-> [!IMPORTANT]
-> **Команда сетевика**
+> [!TIP]
 >
 > ```vtysh
 > show running-config
@@ -29,9 +28,11 @@ JSON
 
 ___
 
-```bash
-нет vtysh аналога
-```
+> [!TIP]
+>
+> ```vtysh
+> нет vtysh аналога
+> ```
 
 | yang module      | yang module path     | daemon  |
 | ---------------- | -------------------- | ------- |
@@ -43,9 +44,11 @@ grpcurl -plaintext localhost:50051 frr.Northbound/GetCapabilities
 
 ___
 
-```bash
-show interface lo json
-```
+> [!TIP]
+>
+> ```vtysh
+> show interface lo json
+> ```
 
 | yang module          | yang module path     | daemon  |
 | -------------------- | -------------------- | ------- |
@@ -65,9 +68,11 @@ JSON
 
 ___
 
-```bash
-show ip route json
-```
+> [!TIP]
+>
+> ```vtysh
+> show ip route json
+> ```
 
 | yang module    | yang module path | daemon  |
 | -------------- | ---------------- | ------- |
@@ -88,9 +93,11 @@ JSON
 
 ___
 
-```bash
-show running-config
-```
+> [!TIP]
+>
+> ```vtysh
+> show running-config
+> ```
 
 | yang module        | yang module path       | daemon    |
 | ------------------ | ---------------------- | --------- |
@@ -110,10 +117,12 @@ JSON
 
 ___
 
-```bash
-configure terminal
-ip route 10.10.10.0/24 192.168.1.1
-```
+> [!TIP]
+>
+> ```vtysh
+> configure terminal
+> ip route 10.10.10.0/24 192.168.1.1
+> ```
 
 | yang module        | yang module path       | daemon    |
 | ------------------ | ---------------------- | --------- |
@@ -160,10 +169,12 @@ JSON
 
 ___
 
-```bash
-configure terminal
-no ip route 10.10.10.0/24 192.168.1.1
-```
+> [!TIP]
+>
+> ```vtysh
+> configure terminal
+> no ip route 10.10.10.0/24 192.168.1.1
+> ```
 
 | yang module        | yang module path       | daemon    |
 | ------------------ | ---------------------- | --------- |
@@ -185,9 +196,11 @@ JSON
 
 ___
 
-```bash
-show vrf
-```
+> [!TIP]
+>
+> ```vtysh
+> show vrf
+> ```
 
 | yang module    | yang module path | daemon  |
 | -------------- | ---------------- | ------- |
@@ -207,9 +220,11 @@ JSON
 
 ___
 
-```bash
-vrf BLUE
-```
+> [!TIP]
+>
+> ```vtysh
+> vrf BLUE
+> ```
 
 | yang module    | yang module path | daemon  |
 | -------------- | ---------------- | ------- |
@@ -231,9 +246,11 @@ JSON
 
 ___
 
-```bash
-no vrf BLUE
-```
+> [!TIP]
+>
+> ```vtysh
+> no vrf BLUE
+> ```
 
 | yang module    | yang module path | daemon  |
 | -------------- | ---------------- | ------- |
@@ -254,9 +271,11 @@ JSON
 
 ___
 
-```bash
-show ip prefix-list json
-```
+> [!TIP]
+>
+> ```vtysh
+> show ip prefix-list json
+> ```
 
 | yang module       | yang module path  | daemon  |
 | ----------------- | ----------------- | ------- |
@@ -276,10 +295,12 @@ JSON
 
 ___
 
-```bash
-configure terminal
-ip prefix-list TEST7 seq 70 permit 70.70.0.0/16 le 32
-```
+> [!TIP]
+>
+> ```vtysh
+> configure terminal
+> ip prefix-list TEST7 seq 70 permit 70.70.0.0/16 le 32
+> ```
 
 | yang module       | yang module path  | daemon  |
 | ----------------- | ----------------- | ------- |
@@ -312,10 +333,12 @@ JSON
 
 ___
 
-```bash
-configure terminal
-ip prefix-list TEST7 seq 80 deny 80.80.0.0/16 le 32
-```
+> [!TIP]
+>
+> ```vtysh
+> configure terminal
+> ip prefix-list TEST7 seq 80 deny 80.80.0.0/16 le 32
+> ```
 
 | yang module       | yang module path  | daemon  |
 | ----------------- | ----------------- | ------- |
@@ -345,10 +368,12 @@ JSON
 
 ___
 
-```bash
-configure terminal
-no ip prefix-list TEST7 seq 80 deny 80.80.0.0/16 le 32
-```
+> [!TIP]
+>
+> ```vtysh
+> configure terminal
+> no ip prefix-list TEST7 seq 80 deny 80.80.0.0/16 le 32
+> ```
 
 | yang module       | yang module path  | daemon  |
 | ----------------- | ----------------- | ------- |
@@ -369,10 +394,12 @@ JSON
 
 ___
 
-```bash
-configure terminal
-no ip prefix-list TEST7
-```
+> [!TIP]
+>
+> ```vtysh
+> configure terminal
+> no ip prefix-list TEST7
+> ```
 
 | yang module       | yang module path  | daemon  |
 | ----------------- | ----------------- | ------- |
@@ -393,9 +420,11 @@ JSON
 
 ___
 
-```bash
-show route-map
-```
+> [!TIP]
+>
+> ```vtysh
+> show route-map
+> ```
 
 | yang module          | yang module path     | daemon  |
 | -------------------- | -------------------- | ------- |
@@ -415,10 +444,12 @@ JSON
 
 ___
 
-```bash
-configure terminal
-route-map TEST permit 10
-```
+> [!TIP]
+>
+> ```vtysh
+> configure terminal
+> route-map TEST permit 10
+> ```
 
 | yang module          | yang module path     | daemon  |
 | -------------------- | -------------------- | ------- |
@@ -440,10 +471,12 @@ JSON
 
 ___
 
-```bash
-route-map TEST permit 10
-match ip address prefix-list TEST7
-```
+> [!TIP]
+>
+> ```vtysh
+> route-map TEST permit 10
+> match ip address prefix-list TEST7
+> ```
 
 | yang module          | yang module path     | daemon  |
 | -------------------- | -------------------- | ------- |
@@ -465,10 +498,12 @@ JSON
 
 ___
 
-```bash
-route-map TEST permit 10
-set metric 100
-```
+> [!TIP]
+>
+> ```vtysh
+> route-map TEST permit 10
+> set metric 100
+> ```
 
 | yang module          | yang module path     | daemon  |
 | -------------------- | -------------------- | ------- |
@@ -490,9 +525,11 @@ JSON
 
 ___
 
-```bash
-route-map TEST deny 20
-```
+> [!TIP]
+>
+> ```vtysh
+> route-map TEST deny 20
+> ```
 
 | yang module          | yang module path     | daemon  |
 | -------------------- | -------------------- | ------- |
@@ -515,9 +552,11 @@ JSON
 
 ___
 
-```bash
-no route-map TEST deny 20
-```
+> [!TIP]
+>
+> ```vtysh
+> no route-map TEST deny 20
+> ```
 
 | yang module          | yang module path     | daemon  |
 | -------------------- | -------------------- | ------- |
@@ -538,9 +577,11 @@ JSON
 
 ___
 
-```bash
-no route-map TEST
-```
+> [!TIP]
+>
+> ```vtysh
+> no route-map TEST
+> ```
 
 | yang module          | yang module path     | daemon  |
 | -------------------- | -------------------- | ------- |
@@ -561,9 +602,11 @@ JSON
 
 ___
 
-```bash
-show isis
-```
+> [!TIP]
+>
+> ```vtysh
+> show isis
+> ```
 
 | yang module      | yang module path | daemon  |
 | ---------------- | ---------------- | ------- |
@@ -583,10 +626,12 @@ JSON
 
 ___
 
-```bash
-router isis TEST
- net 49.0001.0000.0000.0001.00
-```
+> [!TIP]
+>
+> ```vtysh
+> router isis TEST
+>  net 49.0001.0000.0000.0001.00
+> ```
 
 | yang module      | yang module path | daemon  |
 | ---------------- | ---------------- | ------- |
@@ -611,10 +656,12 @@ JSON
 
 ___
 
-```bash
-interface lo
- ip router isis TEST
-```
+> [!TIP]
+>
+> ```vtysh
+> interface lo
+>  ip router isis TEST
+> ```
 
 | yang module           | yang module path                                      | daemon  |
 | --------------------- | ----------------------------------------------------- | ------- |
@@ -641,9 +688,11 @@ JSON
 
 ___
 
-```bash
-show isis neighbor
-```
+> [!TIP]
+>
+> ```vtysh
+> show isis neighbor
+> ```
 
 | yang module          | yang module path                                            | daemon  |
 | -------------------- | ----------------------------------------------------------- | ------- |
@@ -664,32 +713,12 @@ JSON
 
 ___
 
-```bash
-show isis database
-```
-
-| yang module      | yang module path                                | daemon  |
-| ---------------- | ----------------------------------------------- | ------- |
-| `frr-isisd.yang` | `/frr-isisd:isis/instance[area-tag='TEST'][vrf='default']` | `isisd` |
-
-```bash
-grpcurl -plaintext -d @ localhost:50057 frr.Northbound/Get <<'JSON'
-{
-"type": "STATE",
-"encoding": "JSON",
-"path": [
-    "/frr-isisd:isis/instance[area-tag='TEST'][vrf='default']"
-]
-}
-JSON
-```
-
-___
-
-```bash
-no ip router isis TEST
-no router isis TEST
-```
+> [!TIP]
+>
+> ```vtysh
+> no ip router isis TEST
+> no router isis TEST
+> ```
 
 | yang module          | yang module path                                      | daemon  |
 | -------------------- | ----------------------------------------------------- | ------- |
@@ -714,9 +743,11 @@ JSON
 
 ___
 
-```bash
-show bfd peers
-```
+> [!TIP]
+>
+> ```vtysh
+> show bfd peers
+> ```
 
 | yang module     | yang module path | daemon |
 | --------------- | ---------------- | ------ |
@@ -736,18 +767,20 @@ JSON
 
 ___
 
-```bash
-bfd
- profile TEST
-  detect-multiplier 3
-  transmit-interval 300
-  receive-interval 300
-  echo-mode
-  echo-interval 50
-  passive-mode
-  shutdown
-  log-session-changes
-```
+> [!TIP]
+>
+> ```vtysh
+> bfd
+>  profile TEST
+>   detect-multiplier 3
+>   transmit-interval 300
+>   receive-interval 300
+>   echo-mode
+>   echo-interval 50
+>   passive-mode
+>   shutdown
+>   log-session-changes
+> ```
 
 | yang module     | yang module path | daemon |
 | --------------- | ---------------- | ------ |
@@ -775,18 +808,20 @@ JSON
 
 ___
 
-```bash
-bfd
- peer 192.0.2.2 local-address 127.0.0.1 interface lo
-  profile TEST
-  detect-multiplier 3
-  transmit-interval 300
-  receive-interval 300
-  echo-mode
-  passive-mode
-  shutdown
-  log-session-changes
-```
+> [!TIP]
+>
+> ```vtysh
+> bfd
+>  peer 192.0.2.2 local-address 127.0.0.1 interface lo
+>   profile TEST
+>   detect-multiplier 3
+>   transmit-interval 300
+>   receive-interval 300
+>   echo-mode
+>   passive-mode
+>   shutdown
+>   log-session-changes
+> ```
 
 | yang module     | yang module path | daemon |
 | --------------- | ---------------- | ------ |
@@ -815,18 +850,20 @@ JSON
 
 ___
 
-```bash
-bfd
- peer 192.0.2.3 multihop local-address 127.0.0.1
-  profile TEST
-  detect-multiplier 3
-  transmit-interval 300
-  receive-interval 300
-  minimum-ttl 254
-  passive-mode
-  shutdown
-  log-session-changes
-```
+> [!TIP]
+>
+> ```vtysh
+> bfd
+>  peer 192.0.2.3 multihop local-address 127.0.0.1
+>   profile TEST
+>   detect-multiplier 3
+>   transmit-interval 300
+>   receive-interval 300
+>   minimum-ttl 254
+>   passive-mode
+>   shutdown
+>   log-session-changes
+> ```
 
 | yang module     | yang module path | daemon |
 | --------------- | ---------------- | ------ |
@@ -855,9 +892,11 @@ JSON
 
 ___
 
-```bash
-show bfd peer 192.0.2.2 interface lo counters
-```
+> [!TIP]
+>
+> ```vtysh
+> show bfd peer 192.0.2.2 interface lo counters
+> ```
 
 | yang module     | yang module path | daemon |
 | --------------- | ---------------- | ------ |
@@ -877,9 +916,11 @@ JSON
 
 ___
 
-```bash
-show bfd peer 192.0.2.3 multihop local-address 127.0.0.1 counters
-```
+> [!TIP]
+>
+> ```vtysh
+> show bfd peer 192.0.2.3 multihop local-address 127.0.0.1 counters
+> ```
 
 | yang module     | yang module path | daemon |
 | --------------- | ---------------- | ------ |
@@ -899,12 +940,14 @@ JSON
 
 ___
 
-```bash
-no peer 192.0.2.3 multihop local-address 127.0.0.1
-no peer 192.0.2.2 interface lo
-no profile TEST
-no bfd
-```
+> [!TIP]
+>
+> ```vtysh
+> no peer 192.0.2.3 multihop local-address 127.0.0.1
+> no peer 192.0.2.2 interface lo
+> no profile TEST
+> no bfd
+> ```
 
 | yang module     | yang module path | daemon |
 | --------------- | ---------------- | ------ |
@@ -934,25 +977,27 @@ JSON
 
 ___
 
-```bash
-bfd
- peer 2001:db8::1 bfd-mode sbfd-echo bfd-name TEST-ECHO multihop local-address 2001:db8::1 srv6-source-ipv6 2001:db8::1 srv6-encap-data 2001:db8::2
-  detect-multiplier 3
-  transmit-interval 300
-  receive-interval 300
-  echo-mode
-  echo-interval 50
-  passive-mode
-  shutdown
-  log-session-changes
- peer 192.0.2.4 bfd-mode sbfd-init bfd-name TEST-INIT multihop local-address 127.0.0.1 remote-discr 1001
-  detect-multiplier 3
-  transmit-interval 300
-  receive-interval 300
-  passive-mode
-  shutdown
-  log-session-changes
-```
+> [!TIP]
+>
+> ```vtysh
+> bfd
+>  peer 2001:db8::1 bfd-mode sbfd-echo bfd-name TEST-ECHO multihop local-address 2001:db8::1 srv6-source-ipv6 2001:db8::1 srv6-encap-data 2001:db8::2
+>   detect-multiplier 3
+>   transmit-interval 300
+>   receive-interval 300
+>   echo-mode
+>   echo-interval 50
+>   passive-mode
+>   shutdown
+>   log-session-changes
+>  peer 192.0.2.4 bfd-mode sbfd-init bfd-name TEST-INIT multihop local-address 127.0.0.1 remote-discr 1001
+>   detect-multiplier 3
+>   transmit-interval 300
+>   receive-interval 300
+>   passive-mode
+>   shutdown
+>   log-session-changes
+> ```
 
 | yang module     | yang module path | daemon |
 | --------------- | ---------------- | ------ |
@@ -979,10 +1024,12 @@ JSON
 
 ___
 
-```bash
-show bfd bfd-name TEST-ECHO
-show bfd bfd-name TEST-ECHO counters
-```
+> [!TIP]
+>
+> ```vtysh
+> show bfd bfd-name TEST-ECHO
+> show bfd bfd-name TEST-ECHO counters
+> ```
 
 | yang module     | yang module path | daemon |
 | --------------- | ---------------- | ------ |
@@ -1002,10 +1049,12 @@ JSON
 
 ___
 
-```bash
-show bfd bfd-name TEST-INIT
-show bfd bfd-name TEST-INIT counters
-```
+> [!TIP]
+>
+> ```vtysh
+> show bfd bfd-name TEST-INIT
+> show bfd bfd-name TEST-INIT counters
+> ```
 
 | yang module     | yang module path | daemon |
 | --------------- | ---------------- | ------ |
@@ -1025,11 +1074,13 @@ JSON
 
 ___
 
-```bash
-no peer 2001:db8::1 bfd-mode sbfd-echo bfd-name TEST-ECHO multihop local-address 2001:db8::1 srv6-source-ipv6 2001:db8::1 srv6-encap-data 2001:db8::2
-no peer 192.0.2.4 bfd-mode sbfd-init bfd-name TEST-INIT multihop local-address 127.0.0.1 remote-discr 1001
-no bfd
-```
+> [!TIP]
+>
+> ```vtysh
+> no peer 2001:db8::1 bfd-mode sbfd-echo bfd-name TEST-ECHO multihop local-address 2001:db8::1 srv6-source-ipv6 2001:db8::1 srv6-encap-data 2001:db8::2
+> no peer 192.0.2.4 bfd-mode sbfd-init bfd-name TEST-INIT multihop local-address 127.0.0.1 remote-discr 1001
+> no bfd
+> ```
 
 | yang module     | yang module path | daemon |
 | --------------- | ---------------- | ------ |
@@ -1053,3 +1104,716 @@ grpcurl -plaintext -d @ localhost:50054 frr.Northbound/EditCandidate <<'JSON'
 }
 JSON
 ```
+
+# Частично доступные команды
+
+> [!WARNING]
+>
+> ```vtysh
+> show version
+> ```
+
+> [!WARNING]
+>
+> ```vtysh
+> show daemons
+> ```
+
+> [!WARNING]
+>
+> ```vtysh
+> show logging
+> ```
+
+> [!WARNING]
+>
+> ```vtysh
+> show isis database
+> ```
+
+> [!WARNING]
+>
+> ```vtysh
+> show evpn
+> ```
+
+> [!WARNING]
+>
+> ```vtysh
+> show evpn vni
+> ```
+
+> [!WARNING]
+>
+> ```vtysh
+> show evpn mac vni
+> ```
+
+> [!WARNING]
+>
+> ```vtysh
+> show evpn arp-cache
+> ```
+
+# Не доступные команды
+
+> [!CAUTION]
+>
+> ```vtysh
+> router bgp 65001
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> bgp router-id
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> show bgp summary
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> show bgp neighbor
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> show bgp ipv4 unicast
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> show bgp ipv4 unicast summary
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> show bgp ipv4 unicast neighbors
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> show bgp ipv4 unicast json
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> neighbor x.x.x.x remote-as
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> neighbor description
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> neighbor timers
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> neighbor shutdown
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> neighbor route-map
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> neighbor x.x.x.x activate
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> neighbor x.x.x.x soft-reconfiguration inbound
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> neighbor x.x.x.x prefix-list ... in
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> neighbor x.x.x.x route-map ... in
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> address-family ipv4 unicast
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> network x.x.x.x/24
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> address-family ipv4 unicast
+>  redistribute static
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> aggregate-address ...
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> default-information originate
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> address-family l2vpn evpn
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> advertise-all-vni
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> show bgp l2vpn evpn
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> show bgp l2vpn evpn json
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> router ospf
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> network ... area 0
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> passive-interface ...
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> area ... range ...
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> router ospf
+>  redistribute static
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> show ip ospf
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> show ip ospf interface
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> show ip ospf route
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> show ip ospf neighbor
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> show ip ospf database
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> clear bgp *
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> clear bgp neighbor soft
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> clear ip bgp *
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> debug bgp updates
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> debug bgp neighbor-events
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> debug bgp bestpath
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> terminal monitor
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> reload
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> write memory
+> ```
+
+> [!CAUTION]
+>
+> ```vtysh
+> show tech
+> ```
+
+# Надо проверить
+
+> [!NOTE]
+>
+> ```vtysh
+> show interface
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> interface lo
+>  description TEST
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> interface lo
+>  ip address 192.0.2.1/32
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> interface lo
+>  mtu 1500
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> interface lo
+>  shutdown
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> interface lo
+>  no shutdown
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> interface lo
+>  no ip address 192.0.2.1/32
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> ip route 10.20.20.0/24 192.168.1.1 10
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> ip route 10.30.30.0/24 192.168.1.1 tag 100
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> ip route 10.40.40.0/24 192.168.1.1 name TEST
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> show ip route static
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> show ip route 10.10.10.0/24 json
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> ip prefix-list TEST7 seq 90 permit 90.90.0.0/16 ge 24 le 32
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> route-map TEST permit 10
+>  match interface lo
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> route-map TEST permit 10
+>  match metric 100
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> route-map TEST permit 10
+>  set ip next-hop 192.0.2.254
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> route-map TEST permit 10
+>  set local-preference 200
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> route-map TEST permit 10
+>  set community 65001:100
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> show bfd peers brief
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> show bfd peers counters
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> commit check
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> commit
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> discard
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> show configuration transaction
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> rollback configuration
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> configuration load
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> show configuration running
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> show ip interface brief
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> show running-config interface
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> ipv6 route 2001:db8:100::/64 2001:db8::1
+> show ipv6 route
+> show ipv6 route json
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> ipv6 prefix-list TEST6 seq 10 permit 2001:db8::/32 le 64
+> show ipv6 prefix-list
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> ip access-list standard TEST
+>  permit 10.0.0.0/8
+> show access-list
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> access-list 10 permit 10.0.0.0/8
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> bgp community-list standard TEST permit 65001:100
+> bgp extcommunity-list standard TEST permit rt 65001:100
+> bgp as-path access-list TEST permit .*
+> show bgp community-list
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> route-map TEST permit 10
+>  match ip address TEST
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> route-map TEST permit 10
+>  match ipv6 address prefix-list TEST6
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> route-map TEST permit 10
+>  match community TEST
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> route-map TEST permit 10
+>  match as-path TEST
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> route-map TEST permit 10
+>  set tag 100
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> route-map TEST permit 10
+>  set weight 100
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> route-map TEST permit 10
+>  set origin igp
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> key chain TEST
+>  key 1
+>   key-string SECRET
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> show nexthop-group
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> show zebra
+> show zebra dplane
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> show northbound
+> show yang operational-data
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> router ospf6
+> show ipv6 ospf6 neighbor
+> show ipv6 ospf6 database
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> router rip
+> show ip rip
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> router ripng
+> show ipv6 ripng
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> router pim
+> show ip pim neighbor
+> show ip mroute
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> vrrp ...
+> show vrrp
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> segment-routing
+> show segment-routing srv6
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> show ip nht
+> show nexthop
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> show route-map json
+> show ip prefix-list detail
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> show running-config bgpd
+> show running-config ospfd
+> show running-config zebra
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> show memory
+> show thread cpu
+> show event cpu
+> ```
+
+> [!NOTE]
+>
+> ```vtysh
+> debug zebra events
+> debug zebra kernel
+> ```
