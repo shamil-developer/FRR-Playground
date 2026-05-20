@@ -1,4 +1,6 @@
-# Комментрий команды FRR по поводу внедрения gRPC
+# Комментрии команды FRR по поводу внедрения gRPC
+
+## Планы FRR Team по полному внедрению gRPC
 
 Разработчик команды FRR дает следующий комментрий по поводу того что не все покртыо gRPC
 
@@ -57,3 +59,13 @@
 > 3. Is the mgmtd/bgpd config store separation (prefix-lists visible in gRPC but not in vtysh) expected behavior or a bug?
 > 
 > Thanks for the great work on FRR. The gRPC infrastructure is solid -- the modules that are wired up work flawlessly. Looking forward to bgpd joining the northbound family someday.
+
+## Почему запросы на поднятые демоны через gRPC а не через mgmtd
+
+Вот официальный коментарий по этому поводу
+
+(Ссылка)[https://docs.frrouting.org/projects/dev-guide/en/latest/grpc.html?utm_source=chatgpt.com]
+
+```txt
+Currently there is no gRPC “routing” so you will need to bind your gRPC channel to the particular daemon’s gRPC port to interact with that daemon’s gRPC northbound interface.
+```
