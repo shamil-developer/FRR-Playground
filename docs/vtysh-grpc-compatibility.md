@@ -48,6 +48,61 @@ grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto localhost:5005
 
 ___
 
+## Diagnostics
+
+___
+
+> [!TIP]
+>
+> ```vtysh
+> show version
+> show daemons
+> show northbound
+> show yang operational-data
+> ```
+
+| yang module      | yang module path    | daemon  |
+| ---------------- | ------------------- | ------- |
+| `frr-zebra.yang` | `GetCapabilities()` | `zebra` |
+
+```bash
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto localhost:50051 frr.Northbound/GetCapabilities
+```
+
+> [!WARNING]
+>
+> Это не полный CLI output один-в-один. Через gRPC реально проверяем FRR version, supported encodings, список YANG modules и факт, что daemon endpoint живой.
+
+___
+
+> [!TIP]
+>
+> ```vtysh
+> show logging
+> ```
+
+| yang module        | yang module path       | daemon  |
+| ------------------ | ---------------------- | ------- |
+| `frr-logging.yang` | `/frr-logging:logging` | `zebra` |
+
+```bash
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+{
+    "type": "CONFIG",
+    "encoding": "JSON",
+    "path": [
+        "/frr-logging:logging"
+    ]
+}
+JSON
+```
+
+> [!WARNING]
+>
+> Через gRPC читается logging configuration. Runtime log buffer/messages как в полном `show logging` через northbound gRPC не отдаются.
+
+___
+
 ## Interfaces
 
 ___
@@ -101,6 +156,10 @@ grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost
 }
 JSON
 ```
+
+> [!WARNING]
+>
+> `show ip interface brief` закрывается как данные, а не как готовая CLI-таблица: gRPC отдает interface config/state в JSON/YANG tree, а brief-view собирает сам CLI.
 
 ___
 
@@ -170,6 +229,10 @@ grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost
 }
 JSON
 ```
+
+> [!WARNING]
+>
+> `show nexthop-group`, `show ip nht` и `show nexthop` закрываются только через route/RIB/nexthop данные внутри `/frr-vrf:lib`. Полного отдельного CLI view один-в-один через gRPC нет.
 
 ___
 
@@ -982,6 +1045,8 @@ ___
 >
 > ```vtysh
 > show bfd peers
+> show bfd peers brief
+> show bfd peers counters
 > ```
 
 | yang module     | yang module path | daemon |
@@ -999,6 +1064,10 @@ grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost
 }
 JSON
 ```
+
+> [!WARNING]
+>
+> BFD peer config/state через gRPC работает. Для counters надежный путь - читать конкретный peer/session path (`.../stats`), а не ожидать готовую общую CLI-таблицу `brief/counters` один-в-один.
 
 ___
 
@@ -1438,6 +1507,8 @@ ___
 >
 > ```vtysh
 > show zebra
+> show zebra dplane
+> show running-config zebra
 > debug zebra events
 > debug zebra kernel
 > ```
@@ -1460,160 +1531,273 @@ grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost
 JSON
 ```
 
-# Частично доступные команды
-
 > [!WARNING]
 >
-> ```vtysh
-> show version
-> ```
+> `show zebra` и `show running-config zebra` покрываются через `/frr-zebra:zebra` config/state. `show zebra dplane` покрывается только по config/state-частям вроде `dplane-queue-limit`; runtime dplane queue/statistics как полный CLI output через gRPC не отдается.
 
-> [!WARNING]
->
-> ```vtysh
-> show daemons
-> ```
+___
 
-> [!WARNING]
->
-> ```vtysh
-> show logging
-> ```
+## Segment Routing
 
-> [!WARNING]
->
-> ```vtysh
-> show isis database
-> ```
+___
 
-> [!WARNING]
->
-> ```vtysh
-> show evpn
-> ```
-
-> [!WARNING]
->
-> ```vtysh
-> show evpn vni
-> ```
-
-> [!WARNING]
->
-> ```vtysh
-> show evpn mac vni
-> ```
-
-> [!WARNING]
->
-> ```vtysh
-> show evpn arp-cache
-> ```
-
-
-> [!WARNING]
->
-> Частично: gRPC отдаёт интерфейсные state/config-части, но не полный vtysh view `show ip interface brief` один-в-один.
->
-> ```vtysh
-> show ip interface brief
-> ```
-
-> [!WARNING]
->
-> Частично: route/nexthop видны внутри RIB `/frr-vrf:lib/.../ribs`, но отдельного полного аналога `show nexthop-group/show nexthop/show ip nht` нет.
->
-> ```vtysh
-> show nexthop-group
-> show ip nht
-> show nexthop
-> ```
-
-> [!WARNING]
->
-> Частично: capabilities/YANG modules доступны через `GetCapabilities()`, но это не полный CLI `show northbound/show yang operational-data`.
->
-> ```vtysh
-> show northbound
-> show yang operational-data
-> ```
-
-> [!WARNING]
->
-> Частично: `Get(CONFIG)` работает по поддерживаемым modules конкретного daemon, но `bgpd/ospfd` не публикуют полный BGP/OSPF running config через gRPC в этом контейнере.
->
-> ```vtysh
-> show running-config bgpd
-> show running-config ospfd
-> show running-config zebra
-> ```
-
-> [!WARNING]
->
-> Частично: `frr-zebra.yang` содержит `dplane-queue-limit` и debug dplane flags, но полного operational вывода `show zebra dplane` через Get нет.
->
-> ```vtysh
-> show zebra dplane
-> ```
-
-> [!WARNING]
->
-> Частично: в `frr-pathd.yang` есть SR-TE config tree, но точный `segment-routing srv6`/`show segment-routing srv6` как vtysh view не подтверждён через gRPC.
+> [!TIP]
 >
 > ```vtysh
 > segment-routing
 > show segment-routing srv6
 > ```
 
+| yang module      | yang module path        | daemon  |
+| ---------------- | ----------------------- | ------- |
+| `frr-pathd.yang` | `/frr-pathd:pathd/srte` | `pathd` |
+
+```bash
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50061 frr.Northbound/EditCandidate <<'JSON'
+{
+  "candidateId": 1,
+  "update": [
+    {
+      "path": "/frr-pathd:pathd/srte/segment-list[name='TEST']/protocol-origin",
+      "value": "local"
+    },
+    {
+      "path": "/frr-pathd:pathd/srte/segment-list[name='TEST']/originator",
+      "value": "config"
+    },
+    {
+      "path": "/frr-pathd:pathd/srte/segment-list[name='TEST']/segment[index='10']/sid-value",
+      "value": "16010"
+    }
+  ]
+}
+JSON
+```
 
 > [!WARNING]
 >
-> Частично: generic list/counters для всех BFD peers лучше не делать широким `/bfd/sessions`; безопасный вариант - читать конкретный peer path.
->
-> ```vtysh
-> show bfd peers brief
-> show bfd peers counters
-> ```
+> Реально проверен SR-TE model внутри `pathd`: segment-list создается, читается и удаляется через gRPC. Полный SRv6 CLI view `show segment-routing srv6` один-в-один этот workflow не повторяет.
 
-> [!WARNING]
->
-> Частично: `frr-pim.yang` реально опубликован `pimd` на `localhost:50058`; `router pim` и `ip pim`-часть проходят через `EditCandidate`, но полного operational аналога `show ip pim neighbor/show ip mroute` как отдельного gRPC view нет.
+___
+
+## PIM
+
+___
+
+> [!TIP]
 >
 > ```vtysh
 > router pim
-> show ip pim neighbor
-> show ip mroute
+>  packets 5
+>  join-prune-interval 30
 > ```
+
+| yang module    | yang module path | daemon |
+| -------------- | ---------------- | ------ |
+| `frr-pim.yang` | `/frr-pim:pim`   | `pimd` |
+
+```bash
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50058 frr.Northbound/EditCandidate <<'JSON'
+{
+  "candidateId": 1,
+  "update": [
+    {
+      "path": "/frr-pim:pim/address-family[address-family='frr-routing:ipv4']/packets",
+      "value": "5"
+    },
+    {
+      "path": "/frr-pim:pim/address-family[address-family='frr-routing:ipv4']/join-prune-interval",
+      "value": "30"
+    }
+  ]
+}
+JSON
+```
 
 > [!WARNING]
 >
-> ✅ Работает после включения `ripd=yes` и gRPC endpoint `ripd_options=" -A 127.0.0.1 -M grpc:50062"`.
-> Проверено: `GetCapabilities` отдаёт `frr-ripd`, `EditCandidate` создаёт `/frr-ripd:ripd/instance[vrf='default']`, `Get(CONFIG/STATE)` читает RIP tree.
+> Реально проверена стабильная router-level PIM config через `pimd`. Interface-level PIM в текущей FRR 10.6.1 сборке падает внутри `pimd` при commit, поэтому не используется. Neighbor/mroute operational views как полный CLI output через gRPC пока не отдаются.
+
+___
+
+## RIP
+
+> [!TIP]
 >
 > ```vtysh
 > router rip
+>  network 10.0.0.0/8
+>  network lo
+>  passive-interface lo
+>  default-information originate
+>  redistribute static metric 2
+>  timers basic 5 30 60
 > show ip rip
+> no router rip
 > ```
 
-> [!WARNING]
->
-> ✅ Работает после включения `ripngd=yes` и gRPC endpoint `ripngd_options=" -A 127.0.0.1 -M grpc:50063"`.
-> Проверено: `GetCapabilities` отдаёт `frr-ripngd`, `EditCandidate` создаёт `/frr-ripngd:ripngd/instance[vrf='default']`, `Get(CONFIG/STATE)` читает RIPng tree.
+| yang module     | yang module path | daemon |
+| --------------- | ---------------- | ------ |
+| `frr-ripd.yang` | `/frr-ripd:ripd` | `ripd` |
+
+```bash
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50062 frr.Northbound/EditCandidate <<'JSON'
+{
+  "candidateId": 1,
+  "update": [
+    {
+      "path": "/frr-ripd:ripd/instance[vrf='default']"
+    },
+    {
+      "path": "/frr-ripd:ripd/instance[vrf='default']/network[.='10.0.0.0/8']"
+    },
+    {
+      "path": "/frr-ripd:ripd/instance[vrf='default']/interface[.='lo']"
+    },
+    {
+      "path": "/frr-ripd:ripd/instance[vrf='default']/passive-interface[.='lo']"
+    },
+    {
+      "path": "/frr-ripd:ripd/instance[vrf='default']/default-information-originate",
+      "value": "true"
+    },
+    {
+      "path": "/frr-ripd:ripd/instance[vrf='default']/redistribute[protocol='static']/metric",
+      "value": "2"
+    },
+    {
+      "path": "/frr-ripd:ripd/instance[vrf='default']/timers/update-interval",
+      "value": "5"
+    },
+    {
+      "path": "/frr-ripd:ripd/instance[vrf='default']/timers/holddown-interval",
+      "value": "30"
+    },
+    {
+      "path": "/frr-ripd:ripd/instance[vrf='default']/timers/flush-interval",
+      "value": "60"
+    }
+  ]
+}
+JSON
+```
+
+___
+
+## RIPng
+
+> [!TIP]
 >
 > ```vtysh
 > router ripng
+>  network 2001:db8::/32
+>  network lo
+>  passive-interface lo
+>  default-information originate
+>  redistribute static metric 2
+>  timers basic 5 30 60
 > show ipv6 ripng
+> no router ripng
 > ```
 
-> [!WARNING]
->
-> ✅ Работает после включения `vrrpd=yes` и gRPC endpoint `vrrpd_options=" -A 127.0.0.1 -M grpc:50064"`.
-> Проверено: `GetCapabilities` отдаёт `frr-vrrpd`, `EditCandidate` создаёт `/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[...]`, `Get(CONFIG/STATE)` читает VRRP tree.
+| yang module       | yang module path     | daemon   |
+| ----------------- | -------------------- | -------- |
+| `frr-ripngd.yang` | `/frr-ripngd:ripngd` | `ripngd` |
+
+```bash
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50063 frr.Northbound/EditCandidate <<'JSON'
+{
+  "candidateId": 1,
+  "update": [
+    {
+      "path": "/frr-ripngd:ripngd/instance[vrf='default']"
+    },
+    {
+      "path": "/frr-ripngd:ripngd/instance[vrf='default']/network[.='2001:db8::/32']"
+    },
+    {
+      "path": "/frr-ripngd:ripngd/instance[vrf='default']/interface[.='lo']"
+    },
+    {
+      "path": "/frr-ripngd:ripngd/instance[vrf='default']/passive-interface[.='lo']"
+    },
+    {
+      "path": "/frr-ripngd:ripngd/instance[vrf='default']/default-information-originate",
+      "value": "true"
+    },
+    {
+      "path": "/frr-ripngd:ripngd/instance[vrf='default']/redistribute[protocol='static']/metric",
+      "value": "2"
+    },
+    {
+      "path": "/frr-ripngd:ripngd/instance[vrf='default']/timers/update-interval",
+      "value": "5"
+    },
+    {
+      "path": "/frr-ripngd:ripngd/instance[vrf='default']/timers/holddown-interval",
+      "value": "30"
+    },
+    {
+      "path": "/frr-ripngd:ripngd/instance[vrf='default']/timers/flush-interval",
+      "value": "60"
+    }
+  ]
+}
+JSON
+```
+
+___
+
+## VRRP
+
+> [!TIP]
 >
 > ```vtysh
-> vrrp ...
+> interface lo
+>  vrrp 10 priority 110
+>  vrrp 10 advertisement-interval 1000
+>  vrrp 10 shutdown
+>  vrrp 10 ip 192.0.2.254
+>  vrrp 10 ipv6 2001:db8::254
 > show vrrp
+> no vrrp 10
 > ```
+
+| yang module          | yang module path                                  | daemon  |
+| -------------------- | ------------------------------------------------- | ------- |
+| `frr-interface.yang` | `/frr-interface:lib`                              | `vrrpd` |
+| `frr-vrrpd.yang`     | `/frr-interface:lib/interface/.../frr-vrrpd:vrrp` | `vrrpd` |
+
+```bash
+grpcurl -plaintext -import-path frrpb -proto frr-northbound.proto -d @ localhost:50064 frr.Northbound/EditCandidate <<'JSON'
+{
+  "candidateId": 1,
+  "update": [
+    {
+      "path": "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[virtual-router-id='10']"
+    },
+    {
+      "path": "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[virtual-router-id='10']/priority",
+      "value": "110"
+    },
+    {
+      "path": "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[virtual-router-id='10']/advertisement-interval",
+      "value": "1000"
+    },
+    {
+      "path": "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[virtual-router-id='10']/shutdown",
+      "value": "true"
+    },
+    {
+      "path": "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[virtual-router-id='10']/v4/virtual-address[.='192.0.2.254']"
+    },
+    {
+      "path": "/frr-interface:lib/interface[name='lo']/frr-vrrpd:vrrp/vrrp-group[virtual-router-id='10']/v6/virtual-address[.='2001:db8::254']"
+    }
+  ]
+}
+JSON
+```
 
 # Не доступные команды
 
@@ -1725,7 +1909,27 @@ JSON
 > ```
 >
 > ```vtysh
+> show evpn
+> ```
+>
+> ```vtysh
+> show evpn vni
+> ```
+>
+> ```vtysh
+> show evpn mac vni
+> ```
+>
+> ```vtysh
+> show evpn arp-cache
+> ```
+>
+> ```vtysh
 > show bgp l2vpn evpn
+> ```
+>
+> ```vtysh
+> show running-config bgpd
 > ```
 ___
 
@@ -1782,6 +1986,24 @@ ___
 >
 > ```vtysh
 > show ip ospf database
+> ```
+>
+> ```vtysh
+> show running-config ospfd
+> ```
+
+## ISIS Runtime
+
+| Доказательства                                                                                                        |
+| --------------------------------------------------------------------------------------------------------------------- |
+| `isisd GetCapabilities` публикует `frr-isisd`, и ISIS config/state частично работает через workflow `13-isis.yaml`    |
+| Полный LSDB view как `show isis database` через northbound gRPC в текущем FRR не реализован готовым YANG/JSON деревом |
+| Для настоящей ISIS LSDB в lab нужен второй ISIS router; single-router проверка не даст полноценную базу               |
+
+> [!CAUTION]
+>
+> ```vtysh
+> show isis database
 > ```
 
 ## BGP Runtime / Debug Commands
@@ -1936,6 +2158,21 @@ ___
 > router ospf6
 > show ipv6 ospf6 neighbor
 > show ipv6 ospf6 database
+> ```
+
+## PIM Runtime
+
+| Доказательства                                                                                              |
+| ----------------------------------------------------------------------------------------------------------- |
+| `pimd GetCapabilities` публикует `frr-pim`, и router-level PIM config работает через workflow `21-pim.yaml` |
+| Interface-level PIM config в текущей FRR 10.6.1 сборке падает внутри `pimd` при commit                      |
+| Готовый operational view для PIM neighbors и multicast routes через northbound gRPC сейчас не реализован    |
+
+> [!CAUTION]
+>
+> ```vtysh
+> show ip pim neighbor
+> show ip mroute
 > ```
 
 

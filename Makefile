@@ -1,10 +1,18 @@
+SHELL := /bin/bash
+
+LOG_DIR ?= logs/workflows
+
+FRR_VERSION ?= frr-10.6.1
+
+RUN_WORKFLOW = $(MAKE) --no-print-directory welcome; mkdir -p $(LOG_DIR); ts=$$(date +"%Y-%m-%d_%H-%M-%S"); name=$$(basename "$(1)" .yaml); log="$(LOG_DIR)/$${ts}_$${name}.log"; echo "log: $$log"; set -o pipefail; go run cmd/playground/main.go "$(1)" 2>&1 | tee >(perl -pe 's/\x1b\[[0-9;]*[A-Za-z]//g' > "$$log")
+
 go-rebuild-frr-proto:
 	rm -rf frrpb
 	
 	mkdir -p frrpb
 
 	curl -L \
-	https://raw.githubusercontent.com/FRRouting/frr/master/grpc/frr-northbound.proto \
+	https://raw.githubusercontent.com/FRRouting/frr/$(FRR_VERSION)/grpc/frr-northbound.proto \
 	-o frrpb/frr.proto
 
 	protoc \
@@ -17,7 +25,18 @@ go-rebuild-frr-proto:
 	--go-grpc_opt=Mfrrpb/frr.proto=github.com/shamil-developer/FRR-Playground/frrpb \
 	frrpb/frr.proto
 
-	rm -f frrpb/frr.proto
+	go mod tidy
+
+welcome:
+	@printf "%s\n" "$$(tput setaf 2)"
+	@printf "%s\n" "       ▒▒▒   ▒▒▒       ███████╗██╗░░░██╗░█████╗░░██████╗██████╗░███╗░░██╗"
+	@printf "%s\n" "    ▒▒▒▒▒▒   ▒▒▒▒▒▒    ██╔════╝██║░░░██║██╔══██╗██╔════╝██╔══██╗████╗░██║"
+	@printf "%s\n" "    ▒▒▒▒▒▒   ▒▒▒▒▒▒    █████╗░░╚██╗░██╔╝██║░░██║╚█████╗░██║░░██║██╔██╗██║"
+	@printf "%s\n" "    ▒▒▒▒▒▒             ██╔══╝░░░╚████╔╝░██║░░██║░╚═══██╗██║░░██║██║╚████║"
+	@printf "%s\n" "    ▒▒▒▒▒▒   ▒▒▒▒▒▒    ███████╗░░╚██╔╝░░╚█████╔╝██████╔╝██████╔╝██║░╚███║"
+	@printf "%s\n" "    ▒▒▒▒▒▒   ▒▒▒▒▒▒    ╚══════╝░░░╚═╝░░░░╚════╝░╚═════╝░╚═════╝░╚═╝░░╚══╝"
+	@printf "%s\n" "       ▒▒▒   ▒▒▒"
+	@printf "%s\n" "$$(tput sgr0)"
 
 # ╭━━┳━━╮
 # ┃╭╮┃╭╮┃
@@ -33,49 +52,58 @@ go-run:
 	go run cmd/playground/main.go
 
 workflow:
-	go run cmd/playground/main.go $(FILE)
+	@$(call RUN_WORKFLOW,$(FILE))
 
 workflow-01-check:
-	go run cmd/playground/main.go configs/playground/workflows/01-check.yaml
+	@$(call RUN_WORKFLOW,configs/playground/workflows/01-check.yaml)
 
 workflow-02-capabilities:
-	go run cmd/playground/main.go configs/playground/workflows/02-capabilities.yaml
+	@$(call RUN_WORKFLOW,configs/playground/workflows/02-capabilities.yaml)
 
 workflow-03-interfaces:
-	go run cmd/playground/main.go configs/playground/workflows/03-interfaces.yaml
+	@$(call RUN_WORKFLOW,configs/playground/workflows/03-interfaces.yaml)
 
 workflow-04-routes:
-	go run cmd/playground/main.go configs/playground/workflows/04-routes.yaml
+	@$(call RUN_WORKFLOW,configs/playground/workflows/04-routes.yaml)
 
 workflow-05-vrf:
-	go run cmd/playground/main.go configs/playground/workflows/05-vrf.yaml
+	@$(call RUN_WORKFLOW,configs/playground/workflows/05-vrf.yaml)
 
 workflow-06-prefix-lists:
-	go run cmd/playground/main.go configs/playground/workflows/06-prefix-lists.yaml
+	@$(call RUN_WORKFLOW,configs/playground/workflows/06-prefix-lists.yaml)
 
 workflow-07-route-maps:
-	go run cmd/playground/main.go configs/playground/workflows/07-route-maps.yaml
+	@$(call RUN_WORKFLOW,configs/playground/workflows/07-route-maps.yaml)
 
 workflow-08-bgp-base:
-	go run cmd/playground/main.go configs/playground/workflows/08-bgp-base.yaml
+	@$(call RUN_WORKFLOW,configs/playground/workflows/08-bgp-base.yaml)
 
 workflow-13-isis:
-	go run cmd/playground/main.go configs/playground/workflows/13-isis.yaml
+	@$(call RUN_WORKFLOW,configs/playground/workflows/13-isis.yaml)
 
 workflow-14-bfd:
-	go run cmd/playground/main.go configs/playground/workflows/14-bfd.yaml
+	@$(call RUN_WORKFLOW,configs/playground/workflows/14-bfd.yaml)
 
 workflow-15-sbfd:
-	go run cmd/playground/main.go configs/playground/workflows/15-sbfd.yaml
+	@$(call RUN_WORKFLOW,configs/playground/workflows/15-sbfd.yaml)
 
 workflow-16-rip:
-	go run cmd/playground/main.go configs/playground/workflows/16-rip.yaml
+	@$(call RUN_WORKFLOW,configs/playground/workflows/16-rip.yaml)
 
 workflow-17-ripng:
-	go run cmd/playground/main.go configs/playground/workflows/17-ripng.yaml
+	@$(call RUN_WORKFLOW,configs/playground/workflows/17-ripng.yaml)
 
 workflow-18-vrrp:
-	go run cmd/playground/main.go configs/playground/workflows/18-vrrp.yaml
+	@$(call RUN_WORKFLOW,configs/playground/workflows/18-vrrp.yaml)
+
+workflow-19-diagnostics:
+	@$(call RUN_WORKFLOW,configs/playground/workflows/19-diagnostics.yaml)
+
+workflow-20-segment-routing:
+	@$(call RUN_WORKFLOW,configs/playground/workflows/20-segment-routing.yaml)
+
+workflow-21-pim:
+	@$(call RUN_WORKFLOW,configs/playground/workflows/21-pim.yaml)
 
 workflow-all:
 	$(MAKE) workflow-01-check

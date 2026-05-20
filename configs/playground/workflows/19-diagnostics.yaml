@@ -1,0 +1,270 @@
+---
+steps:
+  - type: getCapabilities
+    daemon: zebra
+    description: |
+      19. Diagnostics capabilities
+
+      Проверяем базовую диагностическую информацию,
+      которую можно получить через gRPC:
+        - FRR version
+        - список YANG modules
+        - факт, что daemon endpoint живой
+
+      Аналог:
+
+      vtysh:
+      show version
+      show daemons
+      show northbound
+      show yang operational-data
+
+      Важно:
+      это не полный CLI output один-в-один.
+      Это gRPC discovery API.
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      RPC: GetCapabilities()
+
+      grpcurl пример:
+      grpcurl -plaintext localhost:50051 frr.Northbound/GetCapabilities
+
+  - type: assertCapabilityExists
+    daemon: zebra
+    description: |
+      19. Diagnostics capability assert
+
+      Автоматическая проверка, что zebra
+      реально отдает базовые northbound modules.
+
+      Аналог:
+      нет отдельной vtysh-команды; это проверка результата GetCapabilities.
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      - frr-logging.yang
+      root paths/libs: проверяется список modules из GetCapabilities().
+
+      grpcurl пример:
+      grpcurl -plaintext localhost:50051 frr.Northbound/GetCapabilities
+    params:
+      modules:
+        - frr-zebra
+        - frr-logging
+
+  - type: get
+    daemon: zebra
+    description: |
+      19. Logging config
+
+      Чтение logging configuration.
+
+      Аналог:
+
+      vtysh:
+      show logging
+
+      Важно:
+      через gRPC читается logging config,
+      а не runtime log buffer/messages.
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-logging.yang
+      root paths/libs:
+      - /frr-logging:logging
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-logging:logging"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-logging:logging"
+
+  - type: assertJsonExists
+    daemon: zebra
+    description: |
+      19. Logging config assert
+
+      Проверяем, что logging config реально
+      читается через JSON/YANG tree.
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get.
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-logging.yang
+      root paths/libs:
+      - /frr-logging:logging
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 1
+      path:
+        - "/frr-logging:logging"
+      checks:
+        - path: 'frr-logging:logging.facility'
+
+  - type: get
+    daemon: zebra
+    description: |
+      19. Zebra dplane config
+
+      Чтение zebra dataplane-related configuration.
+
+      Аналог:
+
+      vtysh:
+      show zebra dplane
+      show running-config zebra
+
+      Важно:
+      через gRPC видна config-часть,
+      например dplane-queue-limit.
+      Runtime очередь/статистика dplane как полный
+      CLI view не отдается.
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs:
+      - /frr-zebra:zebra
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "withDefaults": true,
+        "path": [
+          "/frr-zebra:zebra"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      withDefaults: true
+      path:
+        - "/frr-zebra:zebra"
+
+  - type: assertJsonExists
+    daemon: zebra
+    description: |
+      19. Zebra dplane config assert
+
+      Проверяем, что zebra dplane config
+      реально читается через gRPC.
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get.
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs:
+      - /frr-zebra:zebra
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 1
+      withDefaults: true
+      path:
+        - "/frr-zebra:zebra"
+      checks:
+        - path: 'frr-zebra:zebra.dplane-queue-limit'
+          equals: "200"
+
+  - type: get
+    daemon: zebra
+    description: |
+      19. Zebra state
+
+      Чтение zebra operational state.
+
+      Аналог:
+
+      vtysh:
+      show zebra
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs:
+      - /frr-zebra:zebra/state
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50051 frr.Northbound/Get <<'JSON'
+      {
+        "type": "STATE",
+        "encoding": "JSON",
+        "path": [
+          "/frr-zebra:zebra/state"
+        ]
+      }
+      JSON
+    params:
+      requestType: 2
+      path:
+        - "/frr-zebra:zebra/state"
+
+  - type: assertJsonExists
+    daemon: zebra
+    description: |
+      19. Zebra state assert
+
+      Проверяем, что zebra operational state
+      реально читается через gRPC.
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get.
+
+      Демон: zebra
+
+      YANG/lib:
+      endpoint: zebra / localhost:50051
+      YANG modules:
+      - frr-zebra.yang
+      root paths/libs:
+      - /frr-zebra:zebra/state
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 2
+      path:
+        - "/frr-zebra:zebra/state"
+      checks:
+        - path: 'frr-zebra:zebra.state.max-multipath'

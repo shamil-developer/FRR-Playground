@@ -1,0 +1,417 @@
+---
+steps:
+  - type: getCapabilities
+    daemon: pimd
+    description: |
+      21. PIM capabilities
+
+      Проверяем, что pimd реально отдает
+      northbound YANG module frr-pim.
+
+      Аналог:
+
+      vtysh:
+      router pim
+
+      Важно:
+      через этот workflow проверяется стабильная
+      router-level PIM config. Interface-level PIM
+      в текущей сборке FRR падает внутри pimd
+      при commit, поэтому не используется.
+
+      Демон: pimd
+
+      YANG/lib:
+      endpoint: pimd / localhost:50058
+      RPC: GetCapabilities() возвращает supported YANG modules этого daemon endpoint.
+      ожидаемый daemon module: frr-pim.yang
+
+      grpcurl пример:
+      grpcurl -plaintext localhost:50058 frr.Northbound/GetCapabilities
+
+  - type: assertCapabilityExists
+    daemon: pimd
+    description: |
+      21. PIM capability assert
+
+      Автоматическая проверка наличия
+      module frr-pim.
+
+      Демон: pimd
+
+      YANG/lib:
+      endpoint: pimd / localhost:50058
+      YANG modules:
+      - frr-pim.yang
+      root paths/libs: проверяется список modules из GetCapabilities().
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата GetCapabilities.
+
+      grpcurl пример:
+      grpcurl -plaintext localhost:50058 frr.Northbound/GetCapabilities
+    params:
+      modules:
+        - frr-pim
+
+  - type: get
+    daemon: pimd
+    description: |
+      21. PIM config before
+
+      Чтение PIM configuration до изменений.
+
+      Аналог:
+
+      vtysh:
+      show running-config
+
+      Демон: pimd
+
+      YANG/lib:
+      endpoint: pimd / localhost:50058
+      YANG modules:
+      - frr-pim.yang
+      root paths/libs:
+      - /frr-pim:pim
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50058 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-pim:pim"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-pim:pim"
+
+  - type: createCandidate
+    daemon: pimd
+    description: |
+      21. PIM create candidate
+
+      Создание candidate transaction
+      для PIM router-level config.
+
+      Демон: pimd
+
+      YANG/lib:
+      endpoint: pimd / localhost:50058
+      YANG modules:
+      - frr-pim.yang
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50058 frr.Northbound/CreateCandidate
+
+  - type: editCandidate
+    daemon: pimd
+    description: |
+      21. PIM router config
+
+      Настройка стабильной router-level PIM части.
+
+      Аналог:
+
+      vtysh:
+      router pim
+       packets 5
+       join-prune-interval 30
+
+      В YANG:
+        - router PIM параметры живут в /frr-pim:pim/address-family
+        - address-family=frr-routing:ipv4
+
+      Демон: pimd
+
+      YANG/lib:
+      endpoint: pimd / localhost:50058
+      YANG modules:
+      - frr-pim.yang
+      - frr-routing.yang
+      root paths/libs:
+      - /frr-pim:pim
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50058 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "update": [
+          {
+            "path": "/frr-pim:pim/address-family[address-family='frr-routing:ipv4']/packets",
+            "value": "5"
+          },
+          {
+            "path": "/frr-pim:pim/address-family[address-family='frr-routing:ipv4']/join-prune-interval",
+            "value": "30"
+          }
+        ]
+      }
+      JSON
+    params:
+      update:
+        - path: "/frr-pim:pim/address-family[address-family='frr-routing:ipv4']/packets"
+          value: "5"
+        - path: "/frr-pim:pim/address-family[address-family='frr-routing:ipv4']/join-prune-interval"
+          value: "30"
+
+  - type: commitCandidate
+    daemon: pimd
+    description: |
+      21. PIM commit
+
+      Commit PIM router-level config.
+
+      Демон: pimd
+
+      YANG/lib:
+      endpoint: pimd / localhost:50058
+      YANG modules:
+      - frr-pim.yang
+
+      Аналог:
+      vtysh:
+      end
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50058 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "create pim router config"
+      }
+      JSON
+    params:
+      comment: create pim router config
+
+  - type: get
+    daemon: pimd
+    description: |
+      21. PIM config after
+
+      Чтение PIM configuration после изменений.
+      Здесь видно, что router-level config реально применился.
+
+      Аналог:
+
+      vtysh:
+      show running-config
+
+      Демон: pimd
+
+      YANG/lib:
+      endpoint: pimd / localhost:50058
+      YANG modules:
+      - frr-pim.yang
+      root paths/libs:
+      - /frr-pim:pim
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50058 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-pim:pim"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-pim:pim"
+
+  - type: assertJsonExists
+    daemon: pimd
+    description: |
+      21. PIM config assert
+
+      Автоматическая проверка, что PIM
+      router-level config действительно появился.
+
+      Демон: pimd
+
+      YANG/lib:
+      endpoint: pimd / localhost:50058
+      YANG modules:
+      - frr-pim.yang
+      root paths/libs:
+      - /frr-pim:pim
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 1
+      path:
+        - "/frr-pim:pim"
+      checks:
+        - path: 'frr-pim:pim.address-family.#(address-family=="frr-routing:ipv4").packets'
+          equals: "5"
+        - path: 'frr-pim:pim.address-family.#(address-family=="frr-routing:ipv4").join-prune-interval'
+          equals: "30"
+
+  - type: createCandidate
+    daemon: pimd
+    description: |
+      21. PIM cleanup candidate
+
+      Создание candidate transaction
+      для удаления PIM router-level config.
+
+      Демон: pimd
+
+      YANG/lib:
+      endpoint: pimd / localhost:50058
+      YANG modules:
+      - frr-pim.yang
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50058 frr.Northbound/CreateCandidate
+
+  - type: editCandidate
+    daemon: pimd
+    description: |
+      21. PIM cleanup
+
+      Удаление созданной PIM address-family,
+      чтобы после workflow состояние вернулось
+      к исходному.
+
+      Аналог:
+
+      vtysh:
+      configure terminal
+      no router pim
+
+      Демон: pimd
+
+      YANG/lib:
+      endpoint: pimd / localhost:50058
+      YANG modules:
+      - frr-pim.yang
+      root paths/libs:
+      - /frr-pim:pim
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50058 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "delete": [
+          {
+            "path": "/frr-pim:pim/address-family[address-family='frr-routing:ipv4']"
+          }
+        ]
+      }
+      JSON
+    params:
+      delete:
+        - path: "/frr-pim:pim/address-family[address-family='frr-routing:ipv4']"
+
+  - type: commitCandidate
+    daemon: pimd
+    description: |
+      21. PIM cleanup commit
+
+      Commit удаления PIM router-level config.
+
+      Демон: pimd
+
+      YANG/lib:
+      endpoint: pimd / localhost:50058
+      YANG modules:
+      - frr-pim.yang
+
+      Аналог:
+      vtysh:
+      end
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50058 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "cleanup pim router config"
+      }
+      JSON
+    params:
+      comment: cleanup pim router config
+
+  - type: get
+    daemon: pimd
+    description: |
+      21. PIM config after cleanup
+
+      Чтение PIM configuration после удаления.
+
+      Аналог:
+
+      vtysh:
+      show running-config
+
+      Демон: pimd
+
+      YANG/lib:
+      endpoint: pimd / localhost:50058
+      YANG modules:
+      - frr-pim.yang
+      root paths/libs:
+      - /frr-pim:pim
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50058 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-pim:pim"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-pim:pim"
+
+  - type: assertJsonMissing
+    daemon: pimd
+    description: |
+      21. PIM cleanup assert
+
+      Автоматическая проверка, что созданная
+      PIM address-family удалена.
+
+      Демон: pimd
+
+      YANG/lib:
+      endpoint: pimd / localhost:50058
+      YANG modules:
+      - frr-pim.yang
+      root paths/libs:
+      - /frr-pim:pim
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 1
+      path:
+        - "/frr-pim:pim"
+      checks:
+        - path: 'frr-pim:pim.address-family.#(address-family=="frr-routing:ipv4").address-family'

@@ -1,0 +1,421 @@
+---
+steps:
+  - type: getCapabilities
+    daemon: pathd
+    description: |
+      20. Segment Routing capabilities
+
+      Проверяем, что pathd реально отдает
+      northbound YANG module frr-pathd.
+
+      Аналог:
+
+      vtysh:
+      segment-routing
+      show segment-routing srv6
+
+      Важно:
+      через этот workflow проверяется SR-TE model
+      внутри pathd. Полный SRv6 CLI view здесь
+      не повторяется один-в-один.
+
+      Демон: pathd
+
+      YANG/lib:
+      endpoint: pathd / localhost:50061
+      RPC: GetCapabilities() возвращает supported YANG modules этого daemon endpoint.
+      ожидаемый daemon module: frr-pathd.yang
+
+      grpcurl пример:
+      grpcurl -plaintext localhost:50061 frr.Northbound/GetCapabilities
+
+  - type: assertCapabilityExists
+    daemon: pathd
+    description: |
+      20. Segment Routing capability assert
+
+      Автоматическая проверка наличия
+      module frr-pathd.
+
+      Демон: pathd
+
+      YANG/lib:
+      endpoint: pathd / localhost:50061
+      YANG modules:
+      - frr-pathd.yang
+      root paths/libs: проверяется список modules из GetCapabilities().
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата GetCapabilities.
+
+      grpcurl пример:
+      grpcurl -plaintext localhost:50061 frr.Northbound/GetCapabilities
+    params:
+      modules:
+        - frr-pathd
+
+  - type: get
+    daemon: pathd
+    description: |
+      20. Segment Routing config before
+
+      Чтение pathd SR-TE configuration до изменений.
+
+      Аналог:
+
+      vtysh:
+      show segment-routing srv6
+
+      Демон: pathd
+
+      YANG/lib:
+      endpoint: pathd / localhost:50061
+      YANG modules:
+      - frr-pathd.yang
+      root paths/libs:
+      - /frr-pathd:pathd
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50061 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-pathd:pathd"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-pathd:pathd"
+
+  - type: createCandidate
+    daemon: pathd
+    description: |
+      20. Segment Routing create candidate
+
+      Создание candidate transaction
+      для SR-TE segment-list.
+
+      Демон: pathd
+
+      YANG/lib:
+      endpoint: pathd / localhost:50061
+      YANG modules:
+      - frr-pathd.yang
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50061 frr.Northbound/CreateCandidate
+
+  - type: editCandidate
+    daemon: pathd
+    description: |
+      20. Segment Routing create segment-list
+
+      Создание SR-TE segment-list через pathd.
+
+      Аналог:
+
+      vtysh:
+      segment-routing
+
+      В YANG:
+        - segment-list живет в /frr-pathd:pathd/srte
+        - protocol-origin=local означает объект, созданный локально
+        - sid-value задает MPLS SID/label
+
+      Демон: pathd
+
+      YANG/lib:
+      endpoint: pathd / localhost:50061
+      YANG modules:
+      - frr-pathd.yang
+      root paths/libs:
+      - /frr-pathd:pathd/srte
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50061 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "update": [
+          {
+            "path": "/frr-pathd:pathd/srte/segment-list[name='TEST']/protocol-origin",
+            "value": "local"
+          },
+          {
+            "path": "/frr-pathd:pathd/srte/segment-list[name='TEST']/originator",
+            "value": "config"
+          },
+          {
+            "path": "/frr-pathd:pathd/srte/segment-list[name='TEST']/segment[index='10']/sid-value",
+            "value": "16010"
+          }
+        ]
+      }
+      JSON
+    params:
+      update:
+        - path: "/frr-pathd:pathd/srte/segment-list[name='TEST']/protocol-origin"
+          value: local
+        - path: "/frr-pathd:pathd/srte/segment-list[name='TEST']/originator"
+          value: config
+        - path: "/frr-pathd:pathd/srte/segment-list[name='TEST']/segment[index='10']/sid-value"
+          value: "16010"
+
+  - type: commitCandidate
+    daemon: pathd
+    description: |
+      20. Segment Routing commit
+
+      Commit создания SR-TE segment-list.
+
+      Демон: pathd
+
+      YANG/lib:
+      endpoint: pathd / localhost:50061
+      YANG modules:
+      - frr-pathd.yang
+
+      Аналог:
+      vtysh:
+      end
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50061 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "create segment routing segment-list"
+      }
+      JSON
+    params:
+      comment: create segment routing segment-list
+
+  - type: get
+    daemon: pathd
+    description: |
+      20. Segment Routing config after
+
+      Чтение pathd SR-TE configuration после изменений.
+      Здесь видно, что segment-list реально применился.
+
+      Аналог:
+
+      vtysh:
+      show segment-routing srv6
+
+      Демон: pathd
+
+      YANG/lib:
+      endpoint: pathd / localhost:50061
+      YANG modules:
+      - frr-pathd.yang
+      root paths/libs:
+      - /frr-pathd:pathd
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50061 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-pathd:pathd"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-pathd:pathd"
+
+  - type: assertJsonExists
+    daemon: pathd
+    description: |
+      20. Segment Routing config assert
+
+      Автоматическая проверка, что SR-TE
+      segment-list действительно появился.
+
+      Демон: pathd
+
+      YANG/lib:
+      endpoint: pathd / localhost:50061
+      YANG modules:
+      - frr-pathd.yang
+      root paths/libs:
+      - /frr-pathd:pathd/srte
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 1
+      path:
+        - "/frr-pathd:pathd"
+      checks:
+        - path: 'frr-pathd:pathd.srte.segment-list.#(name=="TEST").protocol-origin'
+          equals: local
+        - path: 'frr-pathd:pathd.srte.segment-list.#(name=="TEST").segment.#(index==10).sid-value'
+          equals: "16010"
+
+  - type: createCandidate
+    daemon: pathd
+    description: |
+      20. Segment Routing cleanup candidate
+
+      Создание candidate transaction
+      для удаления segment-list.
+
+      Демон: pathd
+
+      YANG/lib:
+      endpoint: pathd / localhost:50061
+      YANG modules:
+      - frr-pathd.yang
+
+      Аналог:
+      vtysh:
+      configure terminal
+
+      grpcurl пример:
+      grpcurl -plaintext -d '{}' localhost:50061 frr.Northbound/CreateCandidate
+
+  - type: editCandidate
+    daemon: pathd
+    description: |
+      20. Segment Routing cleanup
+
+      Удаление созданного SR-TE segment-list,
+      чтобы после workflow состояние вернулось
+      к исходному.
+
+      Аналог:
+
+      vtysh:
+      configure terminal
+      no segment-routing
+
+      Демон: pathd
+
+      YANG/lib:
+      endpoint: pathd / localhost:50061
+      YANG modules:
+      - frr-pathd.yang
+      root paths/libs:
+      - /frr-pathd:pathd/srte
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50061 frr.Northbound/EditCandidate <<'JSON'
+      {
+        "candidateId": 1,
+        "delete": [
+          {
+            "path": "/frr-pathd:pathd/srte/segment-list[name='TEST']"
+          }
+        ]
+      }
+      JSON
+    params:
+      delete:
+        - path: "/frr-pathd:pathd/srte/segment-list[name='TEST']"
+
+  - type: commitCandidate
+    daemon: pathd
+    description: |
+      20. Segment Routing cleanup commit
+
+      Commit удаления segment-list.
+
+      Демон: pathd
+
+      YANG/lib:
+      endpoint: pathd / localhost:50061
+      YANG modules:
+      - frr-pathd.yang
+
+      Аналог:
+      vtysh:
+      end
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50061 frr.Northbound/Commit <<'JSON'
+      {
+        "candidateId": 1,
+        "phase": "ALL",
+        "comment": "cleanup segment routing segment-list"
+      }
+      JSON
+    params:
+      comment: cleanup segment routing segment-list
+
+  - type: get
+    daemon: pathd
+    description: |
+      20. Segment Routing config after cleanup
+
+      Чтение pathd SR-TE configuration после удаления.
+
+      Аналог:
+
+      vtysh:
+      show segment-routing srv6
+
+      Демон: pathd
+
+      YANG/lib:
+      endpoint: pathd / localhost:50061
+      YANG modules:
+      - frr-pathd.yang
+      root paths/libs:
+      - /frr-pathd:pathd
+
+      grpcurl пример:
+      grpcurl -plaintext -d @ localhost:50061 frr.Northbound/Get <<'JSON'
+      {
+        "type": "CONFIG",
+        "encoding": "JSON",
+        "path": [
+          "/frr-pathd:pathd"
+        ]
+      }
+      JSON
+    params:
+      requestType: 1
+      path:
+        - "/frr-pathd:pathd"
+
+  - type: assertJsonMissing
+    daemon: pathd
+    description: |
+      20. Segment Routing cleanup assert
+
+      Автоматическая проверка, что созданный
+      segment-list удален.
+
+      Демон: pathd
+
+      YANG/lib:
+      endpoint: pathd / localhost:50061
+      YANG modules:
+      - frr-pathd.yang
+      root paths/libs:
+      - /frr-pathd:pathd/srte
+
+      Аналог:
+      нет отдельной команды; это автоматическая проверка результата Get.
+
+      grpcurl пример:
+      assert step не имеет отдельного RPC; эквивалентный grpcurl смотри в Get step рядом.
+    params:
+      requestType: 1
+      path:
+        - "/frr-pathd:pathd"
+      checks:
+        - path: 'frr-pathd:pathd.srte.segment-list.#(name=="TEST").name'
