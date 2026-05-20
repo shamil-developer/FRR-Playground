@@ -1,2 +1,29 @@
 frr-lib
 logs/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd
+
+# Editor / IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Local env
+.env
+.env.*
+!.env.example
+
+# Build / temp
+tmp/
+temp/
+*.tmp
