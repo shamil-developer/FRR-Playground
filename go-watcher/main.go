@@ -78,41 +78,34 @@ func main() {
 
 		var lastRouteMapKey string
 		var lastBackendClientsKey string
+		pendingRequests := map[uint64]string{}
+		nextReqID := uint64(2)
 		lastPoll := time.Time{}
 		buf := make([]byte, 65536)
 		for {
-			if time.Since(lastPoll) >= 50*time.Millisecond {
+			if time.Since(lastPoll) >= 250*time.Millisecond {
 				lastPoll = time.Now()
-				current, err := getData(routeMapXPath, datastoreRunning, getDataFlagConfig)
-				if err != nil {
-					fmt.Printf("Route-map poll error: %v\n", err)
-				} else if currentKey := canonicalJSON(current); currentKey != lastRouteMapKey {
-					if lastRouteMapKey != "" || hasRouteMapData(current) {
-						fmt.Println("\n=== ROUTE-MAP CONFIG CHANGE ===")
-						if hasRouteMapData(current) {
-							fmt.Printf("#OP=REPLACE: %s\n", routeMapXPath)
-							fmt.Println(current)
-						} else {
-							fmt.Printf("#OP=DELETE: %s\n", routeMapXPath)
-						}
+				if !hasPendingRequest(pendingRequests, routeMapXPath) {
+					reqID := nextReqID
+					nextReqID++
+					if err := sendGetData(conn, sessID, reqID, routeMapXPath, datastoreRunning, getDataFlagConfig); err != nil {
+						fmt.Printf("Route-map poll error: %v\n", err)
+						break
 					}
-					lastRouteMapKey = currentKey
+					pendingRequests[reqID] = routeMapXPath
 				}
-
-				currentBackendClients, err := getData(backendClientsXPath, datastoreOperational, getDataFlagState)
-				if err != nil {
-					fmt.Printf("Backend poll error: %v\n", err)
-				} else if currentBackendClientsKey := canonicalBackendClientsJSON(currentBackendClients); currentBackendClientsKey != lastBackendClientsKey {
-					if lastBackendClientsKey != "" {
-						fmt.Println("\n=== BACKEND STATE CHANGE ===")
-						fmt.Printf("#OP=PATCH: %s\n", backendClientsXPath)
-						fmt.Println(currentBackendClients)
+				if !hasPendingRequest(pendingRequests, backendClientsXPath) {
+					reqID := nextReqID
+					nextReqID++
+					if err := sendGetData(conn, sessID, reqID, backendClientsXPath, datastoreOperational, getDataFlagState); err != nil {
+						fmt.Printf("Backend poll error: %v\n", err)
+						break
 					}
-					lastBackendClientsKey = currentBackendClientsKey
+					pendingRequests[reqID] = backendClientsXPath
 				}
 			}
 
-			_ = conn.SetReadDeadline(time.Now().Add(250 * time.Millisecond))
+			_ = conn.SetReadDeadline(time.Now().Add(100 * time.Millisecond))
 			if _, err := io.ReadFull(conn, buf[:8]); err != nil {
 				if isTimeout(err) {
 					continue
@@ -154,9 +147,48 @@ func main() {
 					fmt.Println("\n=== NOTIFICATION RECEIVED ===")
 					fmt.Printf("Session ID: %d, Req ID: %d, Result Type: %d, Op: %d\n", msgSessID, reqID, resultType, op)
 					printNotification(op, xpath, data)
+				} else if code == MSG_CODE_TREE_DATA {
+					xpath := pendingRequests[reqID]
+					delete(pendingRequests, reqID)
+					data := ""
+					if bodyLen > 32 {
+						data = cstr(buf[40 : 8+bodyLen])
+					}
+					switch xpath {
+					case routeMapXPath:
+						currentKey := canonicalJSON(data)
+						if currentKey != lastRouteMapKey {
+							if lastRouteMapKey != "" || hasRouteMapData(data) {
+								fmt.Println("\n=== ROUTE-MAP CONFIG CHANGE ===")
+								if hasRouteMapData(data) {
+									fmt.Printf("#OP=REPLACE: %s\n", routeMapXPath)
+									fmt.Println(data)
+								} else {
+									fmt.Printf("#OP=DELETE: %s\n", routeMapXPath)
+								}
+							}
+							lastRouteMapKey = currentKey
+						}
+					case backendClientsXPath:
+						currentKey := canonicalBackendClientsJSON(data)
+						if currentKey != lastBackendClientsKey {
+							if lastBackendClientsKey != "" {
+								fmt.Println("\n=== BACKEND STATE CHANGE ===")
+								fmt.Printf("#OP=PATCH: %s\n", backendClientsXPath)
+								fmt.Println(data)
+							}
+							lastBackendClientsKey = currentKey
+						}
+					default:
+						fmt.Printf("TREE_DATA reply: session=%d req=%d\n", msgSessID, reqID)
+						if data != "" {
+							fmt.Println(data)
+						}
+					}
 				} else if code == MSG_CODE_ERROR {
 					errCode := int16(binary.LittleEndian.Uint16(buf[32:34]))
 					errMsg := cstr(buf[40 : 8+bodyLen])
+					delete(pendingRequests, reqID)
 					fmt.Printf("MGMTD error: session=%d req=%d error=%d message=%s\n", msgSessID, reqID, errCode, errMsg)
 				} else {
 					fmt.Printf("Message: code=%d session=%d req=%d\n", code, msgSessID, reqID)
@@ -224,26 +256,6 @@ func readSessionReply(conn net.Conn) (uint64, error) {
 	return binary.LittleEndian.Uint64(buf[16:24]), nil
 }
 
-func getData(xpath string, datastore byte, flags byte) (string, error) {
-	conn, err := net.Dial("unix", "/run/frr/mgmtd_fe.sock")
-	if err != nil {
-		return "", err
-	}
-	defer conn.Close()
-
-	if err := sendSessionRequest(conn); err != nil {
-		return "", err
-	}
-	sessID, err := readSessionReply(conn)
-	if err != nil {
-		return "", err
-	}
-	if err := sendGetData(conn, sessID, 2, xpath, datastore, flags); err != nil {
-		return "", err
-	}
-	return readGetDataReply(conn)
-}
-
 func sendGetData(conn net.Conn, sessID uint64, reqID uint64, xpath string, datastore byte, flags byte) error {
 	query := []byte(xpath + "\x00")
 
@@ -268,40 +280,6 @@ func sendGetData(conn net.Conn, sessID uint64, reqID uint64, xpath string, datas
 
 	_, err := conn.Write(msg)
 	return err
-}
-
-func readGetDataReply(conn net.Conn) (string, error) {
-	buf := make([]byte, 65536)
-	if _, err := io.ReadFull(conn, buf[:8]); err != nil {
-		return "", err
-	}
-	marker := binary.LittleEndian.Uint32(buf[:4])
-	if marker != MGMT_MSG_MARKER_NATIVE {
-		return "", fmt.Errorf("bad marker")
-	}
-	length := binary.LittleEndian.Uint32(buf[4:8])
-	bodyLen := int(length) - 8
-	if bodyLen < 32 {
-		return "", fmt.Errorf("short get-data reply: %d bytes", bodyLen)
-	}
-	if bodyLen > len(buf)-8 {
-		return "", fmt.Errorf("get-data reply too large: %d bytes", bodyLen)
-	}
-	if _, err := io.ReadFull(conn, buf[8:8+bodyLen]); err != nil {
-		return "", err
-	}
-
-	code := binary.LittleEndian.Uint16(buf[8:10])
-	if code == MSG_CODE_ERROR {
-		return "", fmt.Errorf("mgmtd error: %s", cstr(buf[40:8+bodyLen]))
-	}
-	if code != MSG_CODE_TREE_DATA {
-		return "", fmt.Errorf("expected tree-data reply, got code=%d", code)
-	}
-	if bodyLen <= 32 {
-		return "", nil
-	}
-	return cstr(buf[40 : 8+bodyLen]), nil
 }
 
 func splitNotificationPayload(payload []byte, vsplit int) (string, string) {
@@ -361,6 +339,15 @@ func hasRouteMapData(data string) bool {
 func isTimeout(err error) bool {
 	netErr, ok := err.(net.Error)
 	return ok && netErr.Timeout()
+}
+
+func hasPendingRequest(pending map[uint64]string, xpath string) bool {
+	for _, pendingXPath := range pending {
+		if pendingXPath == xpath {
+			return true
+		}
+	}
+	return false
 }
 
 func canonicalJSON(data string) string {
