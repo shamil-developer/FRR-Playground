@@ -233,3 +233,20 @@ request-grpc-check:
 
 request-grpc-create-candidate:
 	curl http://localhost:8081/frr/grpc/create-candidate
+
+# ╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╭╮
+# ╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱┃┃
+# ╭━━┳━━┳━━┳━━┳━━┳━━┳━━┳━━┳━━╋━╋━━╋━━┳┓
+# ┃  ╱╱╱╱╱╱╱╱ ╱╱╱╱╱╱╱╱  ╱╱╱╱╱╱╱╱┃┃
+# ╰━━┻━━┻━━┻━━┻━━┻━━┻━━┻━━┻━━┻━┻━━┻━━┻┛
+
+go-watch:
+	@echo "=== FRR Notification Watcher ==="
+	@echo "Cleaning up old watcher binary..."
+	@docker exec frr-playground sh -c 'rm -f /usr/local/bin/frr-watcher 2>/dev/null || true'
+	@echo "Copying main.go to container..."
+	@docker cp go-watcher/main.go frr-playground:/tmp/go-watcher/main.go
+	@echo "Building watcher in container..."
+	@docker exec frr-playground sh -c 'mkdir -p /tmp/go-watcher && cd /tmp/go-watcher && go mod init frr-watcher 2>/dev/null || true && go build -o /usr/local/bin/frr-watcher .'
+	@echo "=== Starting watcher... Press Ctrl+C to stop ==="
+	@docker exec frr-playground /usr/local/bin/frr-watcher
