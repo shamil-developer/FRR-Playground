@@ -1,7 +1,7 @@
 ---
 name: frr-northbound-architecture
 description: "FRRNorthbound architecture, notification mechanisms, MGMTd, sysrepo"
-metadata: 
+metadata:
   node_type: memory
   type: project
   originSessionId: 0f4e7fb6-98f4-46fb-b6be-ce15aef46a0f
@@ -125,11 +125,11 @@ struct nb_callbacks {
     int (*create)(struct nb_cb_create_args *args);     // Создание объекта
     int (*modify)(struct nb_cb_modify_args *args);     // Изменение значения
     int (*destroy)(struct nb_cb_destroy_args *args);   // Удаление
-    
-    enum nb_error (*get)(const struct nb_node *nb_node, 
-                         const void *list_entry, 
+
+    enum nb_error (*get)(const struct nb_node *nb_node,
+                         const void *list_entry,
                          struct lyd_node *parent);     // Получение данных
-    
+
     int (*rpc)(struct nb_cb_rpc_args *args);          // Вызов RPC
     void (*notify)(struct nb_cb_notify_args *args);   // Обработка уведомлений
 };
@@ -180,6 +180,7 @@ struct nb_callbacks {
 #### Уведомления в MGMTd:
 
 **Типы уведомлений:**
+
 1. **ON-CHANGE** - Уведомления при изменении
 2. **PERIODIC** - Периодический опрос (polling)
 
@@ -190,14 +191,14 @@ struct nb_callbacks {
 static void fe_session_periodic_notify_timer(struct event *event)
 {
     struct mgmt_fe_session_ctx *session = EVENT_ARG(event);
-    
+
     // Получить clients, которые SUBSCRIBED на этот xpath
-    clients = mgmt_be_interested_clients(msg->xpath, 
-                                         MGMT_BE_XPATH_SUBSCR_TYPE_OPER, 
+    clients = mgmt_be_interested_clients(msg->xpath,
+                                         MGMT_BE_XPATH_SUBSCR_TYPE_OPER,
                                          "GET-DATA");
-    
+
     // Отправить запрос backend'ам
-    mgmt_txn_send_notify_selectors(0, session->session_id, clients, 
+    mgmt_txn_send_notify_selectors(0, session->session_id, clients,
                                    false, session->periodic_xpaths);
 }
 ```
@@ -231,7 +232,7 @@ static const struct mgmt_be_client_cbs daemon_be_client_data = {
 };
 
 // Создание backend client
-mgmt_be_client = mgmt_be_client_create("bgpd", &bgpd_be_client_data, 
+mgmt_be_client = mgmt_be_client_create("bgpd", &bgpd_be_client_data,
                                        0, master);
 ```
 
@@ -273,17 +274,17 @@ static int frr_sr_notification_send(const char *xpath, struct list *arguments)
     sr_val_t *values = NULL;
     size_t values_cnt = 0;
     int ret;
-    
+
     if (arguments && listcount(arguments) > 0) {
         // Конвертировать FRR данные в sysrepo формат
         values_cnt = listcount(arguments);
         ret = sr_new_values(values_cnt, &values);
         // ... заполнение values
     }
-    
+
     // Отправить уведомление
     ret = sr_notif_send(session, xpath, values, values_cnt, 0, 0);
-    
+
     return NB_OK;
 }
 
@@ -343,6 +344,7 @@ service Northbound {
 ```
 
 **Важное ограничение из документации:**
+
 > There is currently no support for YANG notifications
 
 ---
@@ -485,12 +487,12 @@ service Northbound {
 
 #### Сравнение с другими демонами:
 
-| Daemon | frr_*_info | frr_*_route_map_info | mgmt_be_client |
-|--------|------------|---------------------|----------------|
-| **BGP** | ❌ Нет | ✅ Да | ❌ Нет |
-| **ISIS** | ✅ Да | ✅ Да | ✅ Да |
-| **ZEBRA** | ✅ Да | ✅ Да | ✅ Да |
-| **RIP** | ✅ Да | ✅ Да | ✅ Да |
+| Daemon    | frr\_\*\_info | frr\_\*\_route_map_info | mgmt_be_client |
+| --------- | ------------- | ----------------------- | -------------- |
+| **BGP**   | ❌ Нет        | ✅ Да                   | ❌ Нет         |
+| **ISIS**  | ✅ Да         | ✅ Да                   | ✅ Да          |
+| **ZEBRA** | ✅ Да         | ✅ Да                   | ✅ Да          |
+| **RIP**   | ✅ Да         | ✅ Да                   | ✅ Да          |
 
 #### Проверка в коде:
 
@@ -520,6 +522,7 @@ static const struct frr_yang_module_info *const isisd_yang_modules[] = {
 #### Корень проблемы:
 
 **BGP не регистрирует `frr_bgp_info`**, который должен содержать callbacks для:
+
 - router bgp (instance)
 - neighbor configuration
 - AS configuration
@@ -550,11 +553,13 @@ install_element(BGP_NODE, &neighbor description_cmd);
 ```
 
 Команды:
+
 - `router bgp 65001`
 - `neighbor 10.0.0.1 remote-as 65002`
 - `network 192.168.1.0/24`
 
 **Проблема:** Эти команды:
+
 1. Сохраняют данные **только в память** (struct bgp)
 2. **НЕ вызывают** northbound callbacks
 3. **НЕ вызывают** mgmt_be_client notify
@@ -574,17 +579,18 @@ static const char *const ripd_oper_xpaths[] = {
 ```
 
 **BGP не регистрирует oper_xpaths**, поэтому:
+
 - MGMTd не знает как получить oper data от BGP
 - Periodic notify не может работать для BGP
 - Operational data запросы не работают для BGP
 
 ### 4. Отсутствие RPC для BGP
 
-| Function | Available? | Comment |
-|----------|-----------|---------|
-| `clear bgp *` | ❌ | CLI only, no northbound RPC |
-| `debug bgp updates` | ❌ | CLI only, no northbound RPC |
-| `show bgp summary` | ❌ | CLI only, no northbound RPC |
+| Function            | Available? | Comment                     |
+| ------------------- | ---------- | --------------------------- |
+| `clear bgp *`       | ❌         | CLI only, no northbound RPC |
+| `debug bgp updates` | ❌         | CLI only, no northbound RPC |
+| `show bgp summary`  | ❌         | CLI only, no northbound RPC |
 
 ---
 
@@ -602,12 +608,12 @@ static struct op_changes nb_notif_dels = RB_INITIALIZER(&nb_notif_dels);
 // Timer для batch delivery (10msec)
 void nb_notif_set_walk_timer(void)
 {
-    event_add_timer_msec(nb_notif_master, timer_walk_start, NULL, 
+    event_add_timer_msec(nb_notif_master, timer_walk_start, NULL,
                          NB_NOTIF_TIMER_MSEC, &nb_notif_timer);
 }
 
 // Отправка уведомлений
-void mgmt_be_send_ds_replace_notification(const char *path, 
+void mgmt_be_send_ds_replace_notification(const char *path,
                                           const struct lyd_node *tree,
                                           uint64_t refer_id);
 
@@ -615,6 +621,7 @@ void mgmt_be_send_ds_delete_notification(const char *path);
 ```
 
 **Как работает:**
+
 1. `nb_notif_add(path)` - добавляет путь в буфер
 2. Timer ждет 10msec и собирает все изменения
 3. Отправляет batch уведомлений через mgmt_be_client
@@ -625,7 +632,7 @@ void mgmt_be_send_ds_delete_notification(const char *path);
 // lib/mgmt_be_client.c
 
 struct mgmt_be_client_cbs {
-    void (*client_connect_notify)(struct mgmt_be_client *client, 
+    void (*client_connect_notify)(struct mgmt_be_client *client,
                                   uintptr_t usr_data, bool connected);
     const char *const *config_xpaths;
     uint nconfig_xpaths;
@@ -639,13 +646,13 @@ struct mgmt_be_client_cbs {
 
 // Создание client
 struct mgmt_be_client *mgmt_be_client_create(
-    const char *name, 
+    const char *name,
     struct mgmt_be_client_cbs *cbs,
-    uintptr_t user_data, 
+    uintptr_t user_data,
     struct event_loop *event_loop);
 
 // Отправка уведомлений
-int mgmt_be_send_ds_replace_notification(const char *path, 
+int mgmt_be_send_ds_replace_notification(const char *path,
                                          const struct lyd_node *tree,
                                          uint64_t refer_id);
 
@@ -662,12 +669,12 @@ static int frr_sr_init(void)
 {
     sr_connect(SR_CONN_DEFAULT, &connection);
     sr_session_start(connection, SR_DS_RUNNING, &session);
-    
+
     // Subscribe на config changes
-    sr_module_change_subscribe(session, module->name, NULL, 
+    sr_module_change_subscribe(session, module->name, NULL,
                                frr_sr_config_change_cb, NULL, 0,
                                &module->sr_subscription);
-    
+
     // Subscribe на oper data
     sr_oper_get_items_subscribe(session, module->name, xpath,
                                 frr_sr_state_cb, NULL, 0,
@@ -682,10 +689,10 @@ static int frr_sr_config_change_cb(sr_session_ctx_t *session, uint32_t sub_id,
 {
     // Получить изменения
     sr_get_changes_iter(session, "//*", &it);
-    
+
     // Применить к candidate config
     frr_sr_process_change(candidate, sr_op, sr_old_val, sr_new_val);
-    
+
     // Commit transaction
     nb_candidate_commit(context, candidate, ...);
 }
@@ -696,7 +703,7 @@ static int frr_sr_notification_send(const char *xpath, struct list *arguments)
     // Конвертировать в sr_val_t
     sr_val_t *values;
     sr_new_values(values_cnt, &values);
-    
+
     // Отправить
     sr_notif_send(session, xpath, values, values_cnt, 0, 0);
 }
@@ -708,29 +715,30 @@ static int frr_sr_notification_send(const char *xpath, struct list *arguments)
 
 ### Сравнительная таблица механизмов
 
-| Механизм | Протокол | Порты | Notifications | BGP Support | Файл конфиг |
-|----------|----------|-------|---------------|-------------|-------------|
-| **gRPC** | TCP | 50051-64 | ❌ Нет (polling only) | ❌ Нет | Тот же |
-| **Sysrepo** | Unix socket | /var/run/sysrepo.sock | ✅ Да (через nb_notification_send) | ⚠️ Только route-map | Тот же |
-| **MGMTd FE** | Unix socket | /run/frr/mgmtd_fe.sock | ✅ ON-CHANGE + PERIODIC | ⚠️ Только с registered xpaths | Тот же |
-| **MGMTd BE** | Unix socket | /run/frr/mgmtd_be.sock | - | ✅ Если registered | Тот же |
-| **vtysh CLI** | - | - | - | ✅ Полный | Обновляется при write memory |
+| Механизм      | Протокол    | Порты                  | Notifications                      | BGP Support                   | Файл конфиг                  |
+| ------------- | ----------- | ---------------------- | ---------------------------------- | ----------------------------- | ---------------------------- |
+| **gRPC**      | TCP         | 50051-64               | ❌ Нет (polling only)              | ❌ Нет                        | Тот же                       |
+| **Sysrepo**   | Unix socket | /var/run/sysrepo.sock  | ✅ Да (через nb_notification_send) | ⚠️ Только route-map           | Тот же                       |
+| **MGMTd FE**  | Unix socket | /run/frr/mgmtd_fe.sock | ✅ ON-CHANGE + PERIODIC            | ⚠️ Только с registered xpaths | Тот же                       |
+| **MGMTd BE**  | Unix socket | /run/frr/mgmtd_be.sock | -                                  | ✅ Если registered            | Тот же                       |
+| **vtysh CLI** | -           | -                      | -                                  | ✅ Полный                     | Обновляется при write memory |
 
 ### Проблемная таблица BGP
 
-| Задача | Доступно? | Причина |
-|--------|-----------|---------|
-| Получить BGP конфиг через gRPC Get | ❌ | Нет frr_bgp_info в yang_modules |
-| Получить BGP конфиг через Sysrepo | ❌ | Нет frr_bgp_info |
-| Получить BGP конфиг через MGMTd | ❌ | Нет registered xpaths |
-| Уведомления об изменениях BGP | ❌ | Нет registration |
-| Управление BGP через gRPC EditCommit | ❌ | Нет northbound |
-| Читать BGP конфиг из /etc/frr/bgpd.conf | ✅ | Прямое чтение файла |
-| vtysh show running-config | ✅ | Читает из памяти |
+| Задача                                  | Доступно? | Причина                         |
+| --------------------------------------- | --------- | ------------------------------- |
+| Получить BGP конфиг через gRPC Get      | ❌        | Нет frr_bgp_info в yang_modules |
+| Получить BGP конфиг через Sysrepo       | ❌        | Нет frr_bgp_info                |
+| Получить BGP конфиг через MGMTd         | ❌        | Нет registered xpaths           |
+| Уведомления об изменениях BGP           | ❌        | Нет registration                |
+| Управление BGP через gRPC EditCommit    | ❌        | Нет northbound                  |
+| Читать BGP конфиг из /etc/frr/bgpd.conf | ✅        | Прямое чтение файла             |
+| vtysh show running-config               | ✅        | Читает из памяти                |
 
 ### Альтернативные решения для BGP
 
 #### Решение 1: Прямое чтение файла
+
 ```go
 // Плюсы: Работает, показывает текущее состояние
 // Минусы: Нет уведомлений, нужно polling
@@ -741,6 +749,7 @@ func readBGPConfig() string {
 ```
 
 #### Решение 2: vtysh commands
+
 ```bash
 # Плюсы: Работает, показывает текущее состояние
 # Минусы: Нет уведомлений, нужно polling
@@ -748,6 +757,7 @@ vtysh -c "show running-config bgpd"
 ```
 
 #### Решение 3: poll `show running-config`
+
 ```go
 // Плюсы: Работает, показывает текущее состояние
 // Минусы: Нет уведомлений
@@ -758,6 +768,7 @@ func pollConfig() {
 ```
 
 #### Решение 4: Добавить frr_bgp_info ( Requires FRR code change )
+
 ```c
 // Нужно изменить bgpd/bgp_main.c
 static const struct frr_yang_module_info *const bgpd_yang_modules[] = {
@@ -774,11 +785,13 @@ static const struct frr_yang_module_info *const bgpd_yang_modules[] = {
 ### Рекомендации
 
 **Если нужна полная управляемость BGP:**
+
 1. **Простейший вариант**: Poll `show running-config` или читать файл каждые N секунд
 2. **Продвинутый вариант**: Модифицировать FRR добавив `frr_bgp_info`
 3. **Компромисс**: Использовать gRPC только для других протоколов (ISIS, OSPF, RIP)
 
 **Для udmin и прочих систем:**
+
 - MGMTd работает хорошо для ISIS/OSPF/RIP/zebra
 - BGP требует отдельного подхода из-за отсутствия полного northbound API
 
@@ -806,17 +819,17 @@ static const struct frr_yang_module_info *const bgpd_yang_modules[] = {
 
 ### Глоссарий терминов
 
-| Термин | Описание |
-|--------|----------|
-| **Northbound** | API для получения/изменения конфигурации извне |
-| **Southbound** | Протоколы для управления устройствами (BGP, OSPF, etc) |
-| **MGMTd** | Централизованный management daemon для FRR |
-| **Frontend (FE)** | Клиенты MGMTd (gRPC, vtysh) |
-| **Backend (BE)** | Daemon'ы (bgpd, zebra, ripd) которые предоставляют данные |
-| **Running Config** | Текущая конфигурация в памяти |
-| **Startup Config** | Конфигурация в файле `/etc/frr/*.conf` |
-| **Operational Data** | Runtime состояние (neighbor state, routes, etc) |
-| **Sysrepo** | YANG-based configuration datastore |
+| Термин               | Описание                                                  |
+| -------------------- | --------------------------------------------------------- |
+| **Northbound**       | API для получения/изменения конфигурации извне            |
+| **Southbound**       | Протоколы для управления устройствами (BGP, OSPF, etc)    |
+| **MGMTd**            | Централизованный management daemon для FRR                |
+| **Frontend (FE)**    | Клиенты MGMTd (gRPC, vtysh)                               |
+| **Backend (BE)**     | Daemon'ы (bgpd, zebra, ripd) которые предоставляют данные |
+| **Running Config**   | Текущая конфигурация в памяти                             |
+| **Startup Config**   | Конфигурация в файле `/etc/frr/*.conf`                    |
+| **Operational Data** | Runtime состояние (neighbor state, routes, etc)           |
+| **Sysrepo**          | YANG-based configuration datastore                        |
 
 ---
 
@@ -900,27 +913,31 @@ grep -A7 "static const struct frr_yang_module_info \*const isisd_yang_modules" \
 ### VTY SOCKET PROTOCOL
 
 **Формат команды:**
+
 ```
 <command>\0
 ```
+
 - Команда завершается **одним нулевым байтом** (`\0`, не `\n`)
 - vtysh передает команду как есть, без оберток
 
 **Формат ответа:**
+
 ```
 <output>\0
 ```
+
 - Ответ тоже завершается `\0`
 - vtysh ждет полный ответ перед отправкой следующей команды
 
 ### VTY TYPES
 
-| Type | Описание | daemon side |
-|------|----------|-------------|
-| **VTY_TERM** | Telnet/stdin/stdout | vty_new_init() |
-| **VTY_FILE** | Файл конфигурации | vty_read_file() |
-| **VTY_SHELL** | Клиент vtysh | vtysh_main.c |
-| **VTY_SHELL_SERV** | Сервер vtysh (daemon) | vtysh_accept() |
+| Type               | Описание              | daemon side     |
+| ------------------ | --------------------- | --------------- |
+| **VTY_TERM**       | Telnet/stdin/stdout   | vty_new_init()  |
+| **VTY_FILE**       | Файл конфигурации     | vty_read_file() |
+| **VTY_SHELL**      | Клиент vtysh          | vtysh_main.c    |
+| **VTY_SHELL_SERV** | Сервер vtysh (daemon) | vtysh_accept()  |
 
 ### ВАЖНЫЕ ОГРАНИЧЕНИЯ vtysh socket
 
@@ -930,10 +947,12 @@ grep -A7 "static const struct frr_yang_module_info \*const isisd_yang_modules" \
    - Каждое соединение имеет свою vty структуру
 
 2. **Один запрос за раз:**
+
    ```c
    // vtysh_read(): "counting on vtysh not sending more than 1 command line
    // before waiting on the reply"
    ```
+
    - Нельзя слать много команд сразу
    - Нужно ждать ответа перед следующей командой
 
@@ -948,16 +967,16 @@ grep -A7 "static const struct frr_yang_module_info \*const isisd_yang_modules" \
 
 ### Уровни логирования
 
-| Уровень | ID | Описание |
-|---------|----|----------|
-| **EMERG** | 0 | Система неработоспособна |
-| **ALERT** | 1 | Требуется немедленное действие |
-| **CRIT** | 2 | Критические условия |
-| **ERR** | 3 | Ошибки |
-| **WARNING** | 4 | Предупреждения |
-| **NOTICE** | 5 | Информационные сообщения |
-| **INFO** | 6 | Информация |
-| **DEBUG** | 7 | Отладка |
+| Уровень     | ID  | Описание                       |
+| ----------- | --- | ------------------------------ |
+| **EMERG**   | 0   | Система неработоспособна       |
+| **ALERT**   | 1   | Требуется немедленное действие |
+| **CRIT**    | 2   | Критические условия            |
+| **ERR**     | 3   | Ошибки                         |
+| **WARNING** | 4   | Предупреждения                 |
+| **NOTICE**  | 5   | Информационные сообщения       |
+| **INFO**    | 6   | Информация                     |
+| **DEBUG**   | 7   | Отладка                        |
 
 ### Команды логирования
 
@@ -979,16 +998,19 @@ debug bgp updates
 ### Где логируются команды
 
 **`vty_command()`** в `lib/vty.c`:
+
 ```c
 zlog_notice("%s%s", prompt_str, buf);
 ```
 
 **Условие логирования:**
+
 - `vty_log_commands == true` (устанавливается командой `log commands`)
 - Команда не пустая
 - Команда не "echo PING"
 
 **Пример лога:**
+
 ```
 2026/05/22 15:30:45 vty[123]@localhost: router bgp 65001
 2026/05/22 15:30:46 vty[123]@localhost: neighbor 10.0.0.1 remote-as 65002
@@ -998,6 +1020,7 @@ zlog_notice("%s%s", prompt_str, buf);
 ### Логи которые BGP пишет
 
 **Постоянные логи (всегда):**
+
 ```
 %%ADJCHANGE: neighbor 10.0.0.1 in vrf default Down Router ID changed
 %%ADJCHANGE: neighbor 10.0.0.1 in vrf default Up
@@ -1005,6 +1028,7 @@ Resetting peer 10.0.0.1 due to change in addpath config
 ```
 
 **Условные логи (с `log-neighbor-changes`):**
+
 ```
 %%ADJCHANGE: neighbor 10.0.0.1 in vrf default Down Remote AS changed
 %%ADJCHANGE: neighbor 10.0.0.1 in vrf default Down Admin. shutdown
@@ -1023,6 +1047,7 @@ Resetting peer 10.0.0.1 due to change in addpath config
 | `neighbor X remote-as Y` | ⚠️ | Только Down/Up через session reset |
 
 **BGP пишет логи** при:
+
 - Neighbor UP (если log-neighbor-changes)
 - Neighbor DOWN (если log-neighbor-changes)
 - Router ID change (всегда)
@@ -1036,7 +1061,7 @@ Resetting peer 10.0.0.1 due to change in addpath config
 | Метод | Работает? | Комментарий |
 |-------|-----------|-------------|
 | `log-neighbor-changes` | ⚠️ | Только UP/DOWN состояний |
-| `log commands` | ✅ | Логирует_ALL_ команды |
+| `log commands` | ✅ | Логирует*ALL* команды |
 | Битое хранение | ❌ | BGP не пишет config change |
 
 **Рекомендация:** Включить `log commands` и читать лог через tail/f
