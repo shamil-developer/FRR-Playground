@@ -38,13 +38,10 @@ RUN apt update && apt install -y \
 
 RUN groupadd -r frr && useradd -r -g frr frr
 
-WORKDIR /src
-
-RUN git clone \
-    --branch frr-10.6.1 \
-    https://github.com/FRRouting/frr.git
-
 WORKDIR /src/frr
+
+# Копируем содержимое локальной папки в рабочую директорию контейнера
+COPY third_party/frr/ .
 
 RUN ./bootstrap.sh
 

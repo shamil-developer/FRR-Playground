@@ -1,19 +1,27 @@
+# ╭━━━╮╭━━━╮╭━╮╭━╮╭━╮╭━╮╭━━━╮╭━╮╱╭╮
+# ┃╭━╮┃┃╭━╮┃┃┃╰╯┃┃┃┃╰╯┃┃┃╭━╮┃┃┃╰╮┃┃
+# ┃┃╱╰╯┃┃╱┃┃┃╭╮╭╮┃┃╭╮╭╮┃┃┃╱┃┃┃╭╮╰╯┃
+# ┃┃╱╭╮┃┃╱┃┃┃┃┃┃┃┃┃┃┃┃┃┃┃┃╱┃┃┃┃╰╮┃┃
+# ┃╰━╯┃┃╰━╯┃┃┃┃┃┃┃┃┃┃┃┃┃┃╰━╯┃┃┃╱┃┃┃
+# ╰━━━╯╰━━━╯╰╯╰╯╰╯╰╯╰╯╰╯╰━━━╯╰╯╱╰━╯
+
 SHELL := /bin/bash
 
-LOG_DIR ?= logs/workflows
+RUN_WORKFLOW = $(MAKE) --no-print-directory welcome; mkdir -p logs/workflows; ts=$$(date +"%Y-%m-%d_%H-%M-%S"); name=$$(basename "$(1)" .yaml); log="logs/workflows/$${ts}_$${name}.log"; echo "log: $$log"; set -o pipefail; go run cmd/playground/main.go "$(1)" 2>&1 | tee >(perl -pe 's/\x1b\[[0-9;]*[A-Za-z]//g' > "$$log")
 
-FRR_VERSION ?= frr-10.6.1
-
-RUN_WORKFLOW = $(MAKE) --no-print-directory welcome; mkdir -p $(LOG_DIR); ts=$$(date +"%Y-%m-%d_%H-%M-%S"); name=$$(basename "$(1)" .yaml); log="$(LOG_DIR)/$${ts}_$${name}.log"; echo "log: $$log"; set -o pipefail; go run cmd/playground/main.go "$(1)" 2>&1 | tee >(perl -pe 's/\x1b\[[0-9;]*[A-Za-z]//g' > "$$log")
-
-go-rebuild-frr-proto:
+go-rebuild-frr-local-proto:
 	rm -rf frrpb
-	
 	mkdir -p frrpb
 
-	curl -L \
-	https://raw.githubusercontent.com/FRRouting/frr/$(FRR_VERSION)/grpc/frr-northbound.proto \
-	-o frrpb/frr.proto
+	@# Проверяем, существует ли локальный файл перед копированием
+	@if [ ! -f "third_party/frr/grpc/frr-northbound.proto" ]; then \
+		echo "Ошибка: локальный файл frr-northbound.proto не найден!"; \
+		echo "Сначала выполните: make frr-sync и make frr-checkout"; \
+		exit 1; \
+	fi
+
+	@# Копируем файл из локального репозитория вместо curl
+	cp third_party/frr/grpc/frr-northbound.proto frrpb/frr.proto
 
 	protoc \
 	-I=. \
@@ -27,6 +35,7 @@ go-rebuild-frr-proto:
 
 	go mod tidy
 
+
 welcome:
 	@printf "%s\n" "$$(tput setaf 2)"
 	@printf "%s\n" "       ▒▒▒   ▒▒▒       ███████╗██╗░░░██╗░█████╗░░██████╗██████╗░███╗░░██╗"
@@ -38,6 +47,37 @@ welcome:
 	@printf "%s\n" "       ▒▒▒   ▒▒▒"
 	@printf "%s\n" "$$(tput sgr0)"
 
+
+# ╭━━━╮╭━━━╮╭━━━╮
+# ┃╭━━╯┃╭━╮┃┃╭━╮┃
+# ┃╰━━╮┃╰━╯┃┃╰━╯┃
+# ┃╭━━╯┃╭╮╭╯┃╭╮╭╯
+# ┃┃╱╱╱┃┃┃╰╮┃┃┃╰╮
+# ╰╯╱╱╱╰╯╰━╯╰╯╰━╯
+
+frr-pull: welcome
+	@mkdir -p third_party
+	@if [ ! -d "third_party/frr" ]; then \
+		echo "Клонирование репозитория FRR..."; \
+		git clone https://github.com/FRRouting/frr.git third_party/frr; \
+	else \
+		echo "Обновление репозитория FRR (git pull)..."; \
+		cd third_party/frr && git pull; \
+	fi
+
+frr-checkout: welcome
+	@if [ -z "$(BRANCH)" ]; then \
+		echo "Ошибка: укажите ветку. Пример: make checkout BRANCH=master"; \
+		exit 1; \
+	fi
+	@if [ ! -d "third_party/frr" ]; then \
+		echo "Ошибка: репозиторий не найден. Сначала выполните 'make sync'"; \
+		exit 1; \
+	fi
+	@echo "Переключение на ветку $(BRANCH)..."
+	@cd third_party/frr && git checkout $(BRANCH)
+
+
 # ╭━━┳━━╮
 # ┃╭╮┃╭╮┃
 # ┃╰╯┃╰╯┃
@@ -45,10 +85,10 @@ welcome:
 # ╭━╯┃
 # ╰━━╯
 
-go-deps:
+go-deps: welcome
 	go mod tidy
 
-go-run:
+go-run: welcome
 	go run cmd/playground/main.go
 
 workflow:

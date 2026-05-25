@@ -1,6 +1,6 @@
 frr-lib
 logs/
-
+third_party
 # macOS
 .DS_Store
 .AppleDouble
