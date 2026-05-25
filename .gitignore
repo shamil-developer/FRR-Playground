@@ -24,6 +24,7 @@ Icon
 !.env.example
 
 # Build / temp
+.build/
 tmp/
 temp/
 *.tmp

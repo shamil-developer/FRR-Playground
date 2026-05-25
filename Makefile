@@ -244,9 +244,17 @@ go-watch:
 	@echo "=== FRR Notification Watcher ==="
 	@echo "Cleaning up old watcher binary..."
 	@docker exec frr-playground sh -c 'rm -f /usr/local/bin/frr-watcher 2>/dev/null || true'
-	@echo "Copying main.go to container..."
-	@docker cp go-watcher/main.go frr-playground:/tmp/go-watcher/main.go
-	@echo "Building watcher in container..."
-	@docker exec frr-playground sh -c 'mkdir -p /tmp/go-watcher && cd /tmp/go-watcher && go mod init frr-watcher 2>/dev/null || true && go build -o /usr/local/bin/frr-watcher .'
+	@echo "Building watcher for container..."
+	@mkdir -p .build
+	@arch=$$(docker exec frr-playground uname -m); \
+	case "$$arch" in \
+		x86_64) goarch=amd64 ;; \
+		aarch64|arm64) goarch=arm64 ;; \
+		*) echo "Unsupported container architecture: $$arch"; exit 1 ;; \
+	esac; \
+	CGO_ENABLED=0 GOOS=linux GOARCH=$$goarch go build -o .build/frr-watcher ./go-watcher
+	@echo "Copying watcher to container..."
+	@docker cp .build/frr-watcher frr-playground:/usr/local/bin/frr-watcher
+	@docker exec frr-playground chmod +x /usr/local/bin/frr-watcher
 	@echo "=== Starting watcher... Press Ctrl+C to stop ==="
 	@docker exec frr-playground /usr/local/bin/frr-watcher
