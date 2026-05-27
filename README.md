@@ -3,3 +3,6 @@
 - [Руководство по запуску и эксплуатации](docs/run-and-operation-guide.md)
 - [Комментрий команды FRR по поводу внедрения gRPC](docs/frr-team-comment.md)
 - [Соответствие команд VTYSH и FRR gRPC Northbound](docs/vtysh-grpc-compatibility.md)
+- [Как логгирует FRR](docs/frr-logging-guide.md)
+- [Как работает система увидомлений в FRR](docs/frr-mgmtd-fe-socket-notifications.md)
+- [Архитекутрп FRR Northbound](docs/frr-northbound-architecture.md)
